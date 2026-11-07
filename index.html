@@ -2625,7 +2625,8 @@ const sunAddon = (series, size, sun) => {
   const row = sunRow(series, size);
   return row ? (row[i] ?? null) : null;
 };
-const upgrades = (brandId, series) => brandId === "stek" && Array.isArray(series.windshield) ? series.windshield : [];
+const UPGRADES_ON = false; // ปิดตัวเลือกอัปเกรดบานหน้าไว้ก่อน
+const upgrades = (brandId, series) => UPGRADES_ON && brandId === "stek" && Array.isArray(series.windshield) ? series.windshield : [];
 const caption = (brandId, series, size, sun) => {
   const kind = priceKind(brandId, series, size);
   const base = basePrice(brandId, series, size);
@@ -2646,7 +2647,7 @@ const frontCaption = (series, size) => {
   const parts = [];
   if (typeof w === "string") parts.push(`ติดเฉพาะบานหน้า ${w} บาท`);
   else if (w && !Array.isArray(w) && w[size] != null) parts.push(`ติดเฉพาะบานหน้า ${money(w[size])} บาท`);
-  if (series.wsUpgrade) parts.push(`อัปเกรดบานหน้า +${money(series.wsUpgrade)} บาท`);
+  if (UPGRADES_ON && series.wsUpgrade) parts.push(`อัปเกรดบานหน้า +${money(series.wsUpgrade)} บาท`);
   return parts.join(" · ");
 };
 function buildQuote() {
