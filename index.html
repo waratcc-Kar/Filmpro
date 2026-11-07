@@ -254,6 +254,33 @@ button.series b { font-weight: 600; }
 .tintscale span:nth-child(-n+3) { color: #24384D; } .tintscale span:nth-child(n+4) { color: #EEF3F8; }
 .tintcap { color: var(--muted); font-size: .78rem; margin: .45rem 0 0; }
 
+/* quiz */
+.quiz { padding: 1.1rem; }
+.qprog { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: .7rem; }
+.qprog i { height: 5px; border-radius: 3px; background: #E3EAF2; }
+.qprog i.done { background: #93B4E8; } .qprog i.now { background: var(--blue); }
+.qopt { display: block; width: 100%; text-align: left; background: #fff; border: 1px solid var(--line); border-radius: var(--r-md); padding: .8rem .9rem; margin-top: .5rem; color: var(--ink); }
+.qopt b { display: block; font-weight: 600; font-size: 1rem; }
+.qopt span { display: block; color: var(--muted); font-size: .84rem; margin-top: .1rem; }
+.qopt:hover { border-color: #9DB8E8; }
+.qopt.on { border-color: var(--blue); background: var(--wash); box-shadow: inset 0 0 0 1px var(--blue); }
+.pick { display: block; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 1rem; margin-bottom: .75rem; background: #fff; color: var(--ink); }
+.pick.main { border-color: var(--blue); box-shadow: inset 0 0 0 1px var(--blue); background: #fff; }
+.pick-top { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+.pick-label { font-size: .75rem; font-weight: 600; border-radius: 99px; padding: .15rem .6rem; background: #EEF2F7; color: #334155; }
+.pick-label.pk-main { background: var(--blue); color: #fff; }
+.pick-label.pk-cheaper { background: #E7F6EC; color: #116B32; }
+.pick-label.pk-cooler { background: #E0F2FE; color: #075985; }
+.pick-price { font-weight: 700; font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+.pick-name { display: flex; align-items: center; gap: .7rem; margin: .7rem 0 .5rem; }
+.pick-name img { width: 3rem; height: 3rem; object-fit: contain; flex: none; }
+.pick-name b { font-size: 1.02rem; font-weight: 600; }
+.pick-shades { font-size: .88rem; color: #334155; line-height: 1.6; }
+.why { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .6rem; }
+.why span { font-size: .76rem; background: #F1F5F9; color: #334155; border-radius: 99px; padding: .2rem .55rem; }
+.pick-go { margin-top: .75rem; font-size: .88rem; font-weight: 600; color: var(--blue); }
+.recbar { display: flex; align-items: center; justify-content: space-between; gap: .75rem; background: var(--wash); border: 1px solid #C7DBFB; border-radius: var(--r-lg); padding: .8rem .9rem; margin: .6rem 0; font-size: .88rem; }
+.recbar .btn { flex: none; padding: .55rem .8rem; font-size: .88rem; }
 /* quote / summary lines */
 .qline { display: flex; justify-content: space-between; gap: .75rem; padding: .6rem 0; border-top: 1px solid #EEF2F7; font-size: .92rem; }
 .qline b { font-weight: 600; }
@@ -2578,13 +2605,12 @@ const GROUPS = [
 const SUNS = ["ไม่มี", "ซันรูฟ 1 ช่อง", "ซันรูฟ 2 ช่อง", "หลังคาแก้ว"];
 const TIME_SLOTS = ["09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00"];
 const QUIZ = [
-  ["budget", "งบประมาณสำหรับรถของคุณ", [["low", "ต่ำกว่า 10,000 บาท"], ["mid", "10,000 - 20,000 บาท"], ["high", "20,000 บาทขึ้นไป"]]],
-  ["priority", "ให้ความสำคัญกับอะไรมากที่สุด", [["heat", "กันความร้อนสูงสุด"], ["famous", "แบรนด์ดัง / แบรนด์ต่างประเทศ"], ["value", "คุ้มค่า สเปกต่อราคา"]]],
-  ["tone", "โทนสีฟิล์มที่ชอบ", [["dark", "ดำเข้ม เน้นความเป็นส่วนตัว"], ["natural", "ดำธรรมชาติ / เทา"], ["blue", "ฟ้าอ่อน สบายตา"], ["clear", "ใส เคลียร์"]]],
-  ["night", "ขับรถกลางคืนบ่อยไหม", [["yes", "บ่อย (กระจกหน้า VLT ≥ 40%)"], ["no", "ไม่บ่อย"]]],
-  ["signal", "ใช้ Easy Pass / GPS ไหม", [["yes", "ใช้ (ต้องไม่บล็อกสัญญาณ)"], ["no", "ไม่ใช้ / ไม่สำคัญ"]]],
+  ["budget", "งบสำหรับติดทั้งคัน", null, "ช่วงราคาคำนวณจากราคาทุกยี่ห้อสำหรับรถรุ่นนี้"],
+  ["priority", "อยากได้อะไรจากฟิล์มมากที่สุด", [["heat", "เย็นที่สุด", "เน้นค่าลดความร้อนรวมสูงสุด"], ["value", "คุ้มค่าที่สุด", "ลดร้อนได้ดีเมื่อเทียบกับราคา"], ["famous", "แบรนด์ต่างประเทศที่คุ้นเคย", "เช่น 3M, LLumar, V-KOOL, XPEL"]]],
+  ["tone", "ชอบความเข้มแบบไหน", [["dark", "เข้ม", "มองจากข้างนอกแทบไม่เห็นข้างใน"], ["natural", "เข้มกลาง ๆ", "เห็นข้างในบ้าง ดูเป็นธรรมชาติ"], ["clear", "ใส แต่กันร้อน", "รถดูเหมือนไม่ได้ติดฟิล์ม"], ["blue", "ฟ้าอ่อน", "โทนฟ้า สบายตา"]]],
+  ["night", "ขับรถกลางคืนบ่อยไหม", [["yes", "บ่อย", "แนะนำบานหน้าแบบใส มองถนนชัด"], ["no", "ไม่บ่อย", ""]]],
+  ["signal", "ใช้ Easy Pass หรือ GPS ในรถไหม", [["yes", "ใช้", "ตัดฟิล์มที่มีโลหะ ซึ่งอาจกวนสัญญาณ"], ["no", "ไม่ใช้", ""]]],
 ];
-const BUDGET = { low: [0, 9999], mid: [10000, 20000], high: [20001, 1e9] };
 const KEY = "filmpro-bookings";
 const SETTINGS_KEY = "filmpro-settings";
 const PLACEHOLDER_MOBILE = "0812345678";
@@ -2802,46 +2828,115 @@ function buildQuote() {
     total, totalLabel: total == null ? "รอราคา · ติดต่อร้าน" : `${kind === "approx" ? "ประมาณ " : ""}${money(total)} บาท${ask ? " + ซันรูฟรอราคา" : ""}`,
   };
 }
+const isBlueShade = (shade) => {
+  if (/BLUE|\dBL(?=PSHC|\s|$|[^A-Za-z])|\bBL\b/i.test(shade.model)) return true;
+  const t = shade.tint; return Array.isArray(t) && shade.vlt >= 45 && t[2] - t[0] >= 30;
+};
 const toneOk = (shade, tone) => {
-  if (tone === "dark") return shade.vlt <= 20;
-  if (tone === "natural") return shade.vlt > 15 && shade.vlt < 50 && !/BLUE|\bBL\b/i.test(shade.model);
-  if (tone === "blue") return /BLUE|\bBL\b|\dBL(?!K)/i.test(shade.model);
-  if (tone === "clear") return shade.vlt >= 50;
+  if (tone === "dark") return shade.vlt <= 22 && !isBlueShade(shade);
+  if (tone === "natural") return shade.vlt > 15 && shade.vlt < 50 && !isBlueShade(shade);
+  if (tone === "blue") return isBlueShade(shade);
+  if (tone === "clear") return shade.vlt >= 45;
   return true;
 };
+const heatOf = (shade, series) => {
+  const t = maxNum(shade?.tser) ?? maxNum(series.tser);
+  if (t != null) return t;
+  const ir = maxNum(shade?.irr) ?? maxNum(series.irr);
+  return ir != null ? Math.round(ir * 0.65) : null;
+};
+function carPrices() {
+  const size = sizeOf(S.brand, S.model);
+  const sun = S.sunroof || "ไม่มี";
+  return CATALOG.filmBrands.flatMap((brand) => brand.series.map((series) => {
+    const b = basePrice(brand.id, series, size); const e = sunAddon(series, size, sun);
+    return b == null ? null : b + (e || 0);
+  })).filter((v) => v != null).sort((a, b) => a - b);
+}
+function budgetTiers() {
+  const ps = carPrices();
+  if (ps.length < 3) return null;
+  const q = (f) => Math.round(ps[Math.floor((ps.length - 1) * f)] / 1000) * 1000;
+  const a = q(1 / 3), b = Math.max(q(2 / 3), a + 1000);
+  return { low: [0, a], mid: [a + 1, b], high: [b + 1, 1e9], a, b, min: ps[0], max: ps[ps.length - 1] };
+}
+function budgetOptions() {
+  const t = budgetTiers();
+  if (!t) return [["any", "ยังไม่แน่ใจ", "ดูทุกช่วงราคา"]];
+  return [["low", "ประหยัด", `ไม่เกิน ${money(t.a)} บาท`], ["mid", "กลาง", `${money(t.a + 1)} – ${money(t.b)} บาท`], ["high", "พรีเมียม", `${money(t.b + 1)} บาทขึ้นไป`], ["any", "ยังไม่แน่ใจ", "ดูทุกช่วงราคา"]];
+}
+function recShades(series, quiz) {
+  const sh = series.shades;
+  if (!sh.length) return { side: null, front: null };
+  const match = sh.filter((d) => toneOk(d, quiz.tone));
+  const pool = match.length ? match : sh;
+  const target = { dark: 8, natural: 30, clear: 60, blue: 60 }[quiz.tone] ?? 30;
+  const side = [...pool].sort((a, b) => Math.abs(a.vlt - target) - Math.abs(b.vlt - target) || (heatOf(b, series) || 0) - (heatOf(a, series) || 0))[0];
+  const lightEnough = sh.filter((d) => d.vlt >= (quiz.night ? 40 : 30));
+  const front = lightEnough.length ? [...lightEnough].sort((a, b) => quiz.night ? (heatOf(b, series) || 0) - (heatOf(a, series) || 0) || a.vlt - b.vlt : Math.abs(a.vlt - 40) - Math.abs(b.vlt - 40))[0] : null;
+  return { side, front: front && front.model !== side.model ? front : (quiz.night ? front : null) };
+}
 function recommend() {
   const size = sizeOf(S.brand, S.model);
   const sun = S.sunroof || "ไม่มี";
-  const collect = (mode) => CATALOG.filmBrands.flatMap((brand) => brand.series.flatMap((series) => {
-    const shades = mode === "any" ? series.shades : series.shades.filter((shade) => toneOk(shade, S.quiz.tone));
-    if (!shades.length) return [];
-    const price = (() => { const b = basePrice(brand.id, series, size); const e = sunAddon(series, size, sun); return b == null ? null : b + (e || 0); })();
-    if (mode === "strict" && S.quiz.signal && series.metal) return [];
-    if (mode !== "any" && price != null && S.quiz.budget) {
-      const range = BUDGET[S.quiz.budget];
-      if (price < range[0] || price > range[1]) return [];
-    }
-    const best = [...shades].sort((a, b) => ((maxNum(b.irr) || 0) + (maxNum(b.tser) || 0)) - ((maxNum(a.irr) || 0) + (maxNum(a.tser) || 0)))[0];
-    const front = S.quiz.night ? shades.filter((d) => d.vlt >= 40).sort((a, b) => b.vlt - a.vlt)[0] : null;
-    if (mode === "strict" && S.quiz.night && !front) return [];
-    const score = (maxNum(best.irr) || 0) + (maxNum(best.tser) || 0) * 1.2 + (S.quiz.priority === "famous" && brand.origin === "intl" ? 30 : 0) + (price != null ? 8 : 0);
-    return [{ brand, series, best, front, price, score }];
-  }));
-  const chosen = [];
-  const seen = new Set();
-  let relaxed = false;
-  for (const mode of ["strict", "loose", "any"]) {
-    if (mode !== "strict" && chosen.length < 3) relaxed = true;
-    for (const item of collect(mode).sort((a, b) => b.score - a.score)) {
-      const key = item.brand.id + "|" + item.series.name;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      chosen.push(item);
-      if (chosen.length === 3) break;
-    }
-    if (chosen.length === 3) break;
-  }
-  return { relaxed, picks: chosen.map((item, i) => ({ ...item, label: i === 0 ? "ตรงใจที่สุด" : i === 1 ? "อีกตัวเลือก" : "ตัวเลือกเสริม" })) };
+  const Q = S.quiz;
+  const tiers = budgetTiers();
+  const range = tiers && Q.budget && Q.budget !== "any" ? tiers[Q.budget] : null;
+  const all = CATALOG.filmBrands.flatMap((brand) => brand.series.map((series) => {
+    const b = basePrice(brand.id, series, size); const e = sunAddon(series, size, sun);
+    const price = b == null ? null : b + (e || 0);
+    const { side, front } = recShades(series, Q);
+    const heat = heatOf(side, series);
+    return { brand, series, price, best: side, front, heat,
+      toneFit: !!side && toneOk(side, Q.tone), nightFit: !Q.night || !!front, signalFit: !(Q.signal && series.metal),
+      inBudget: !range || (price != null && price >= range[0] && price <= range[1]),
+      nearBudget: !range || (price != null && price >= range[0] * 0.8 && price <= range[1] * 1.25) };
+  })).filter((x) => x.best);
+  const priced = all.filter((x) => x.price != null);
+  const maxPrice = Math.max(...priced.map((x) => x.price), 1);
+  const scoreOf = (x) => {
+    const h = x.heat ?? 45;
+    let sc = h;
+    if (Q.priority === "value" && x.price != null) sc = h * 0.6 + (1 - x.price / maxPrice) * 45;
+    if (Q.priority === "famous") sc = h + (x.brand.origin === "intl" ? 22 : 0);
+    if (Q.priority === "heat") sc = h * 1.15;
+    if (x.heat == null) sc -= 6;
+    return sc;
+  };
+  const tiersOfFit = [
+    (x) => x.price != null && x.inBudget && x.toneFit && x.nightFit && x.signalFit,
+    (x) => x.price != null && x.nearBudget && x.toneFit && x.nightFit && x.signalFit,
+    (x) => x.price != null && x.toneFit && x.nightFit && x.signalFit,
+    (x) => x.price != null && x.inBudget && x.nightFit && x.signalFit,
+    (x) => x.price != null && x.signalFit,
+    (x) => x.signalFit,
+  ];
+  let relaxed = 0, pool = [];
+  for (let k = 0; k < tiersOfFit.length; k++) { pool = all.filter(tiersOfFit[k]); if (pool.length >= 3 || k === tiersOfFit.length - 1) { relaxed = k; break; } }
+  pool = pool.map((x) => ({ ...x, score: scoreOf(x) })).sort((a, b) => b.score - a.score);
+  if (!pool.length) return { relaxed, picks: [] };
+  const first = pool[0];
+  const used = new Set([first.brand.id + "|" + first.series.name]);
+  const usedBrands = new Set([first.brand.id]);
+  const take = (pred) => { const x = pool.find((y) => !used.has(y.brand.id + "|" + y.series.name) && !usedBrands.has(y.brand.id) && pred(y)) || pool.find((y) => !used.has(y.brand.id + "|" + y.series.name) && pred(y)); if (x) { used.add(x.brand.id + "|" + x.series.name); usedBrands.add(x.brand.id); } return x; };
+  const cheaper = first.price != null ? take((y) => y.price != null && y.price < first.price) : null;
+  const cooler = take((y) => (y.heat ?? 0) > (first.heat ?? 0) && (first.price == null || y.price == null || y.price >= first.price));
+  const picks = [{ ...first, label: "ตรงใจที่สุด", kind: "main" }];
+  if (cheaper) picks.push({ ...cheaper, label: "ประหยัดกว่า", kind: "cheaper" });
+  if (cooler) picks.push({ ...cooler, label: "เย็นกว่า", kind: "cooler" });
+  while (picks.length < 3) { const x = take(() => true); if (!x) break; picks.push({ ...x, label: "อีกตัวเลือก", kind: "alt" }); }
+  return { relaxed, picks, tiers, range };
+}
+function reasonChips(p, first) {
+  const Q = S.quiz, out = [];
+  if (p.heat != null) out.push(`ลดความร้อนรวม ${p.heat}%`);
+  if (p.kind === "cheaper" && first.price != null && p.price != null) out.push(`ถูกกว่า ${money(first.price - p.price)} บาท`);
+  if (p.kind === "cooler" && first.heat != null && p.heat != null) out.push(`เย็นกว่า +${p.heat - first.heat}%`);
+  if (Q.budget && Q.budget !== "any") out.push(p.inBudget ? "อยู่ในงบ" : p.nearBudget ? "ใกล้เคียงงบ" : "นอกงบที่เลือก");
+  if (Q.priority === "famous" && p.brand.origin === "intl") out.push("แบรนด์ต่างประเทศ");
+  if (Q.night && p.front) out.push(`บานหน้า VLT ${p.front.vlt}% มองกลางคืนชัด`);
+  if (Q.signal && !p.series.metal) out.push("ไม่มีโลหะ ไม่กวนสัญญาณ");
+  return out;
 }
 const RING = {
   UV: ["#38bdf8", "กันยูวี"],
@@ -2917,15 +3012,32 @@ function seriesHtml() {
 function shadesHtml() {
   const series = seriesOf();
   const q = buildQuote();
-  return `<button class="back" data-act="go" data-step="series">← กลับ</button><button class="btn" style="width:100%;padding:.8rem;margin-bottom:.8rem;background:#fff;color:#2563eb;border:2px solid #3b82f6" data-act="go" data-step="camera">ทดลองดูฟิล์มด้วยกล้อง</button><h1>เลือกความเข้มฟิล์ม</h1><p class="muted">${esc(film(S.filmId).name)} ${esc(series.name)}</p><p class="amber">ราคาทั้งคันเป็นของซีรีส์นี้ เลือกเฉดเข้มหรืออ่อนไม่ทำให้ราคาเปลี่ยน</p>${ringLegend}${series.shades.map((d) => `<article class="shade"><div style="display:flex;justify-content:space-between"><b>${esc(d.model)}</b><span>${darkPct(d.vlt) === "ใส" ? "ฟิล์มใส" : "ฟิล์ม " + darkPct(d.vlt) + "%"}</span></div>${ringRow(d)}<button class="series" style="margin:.6rem 0 0;padding:.55rem;text-align:center;font-size:.85rem" data-act="allshade" data-m="${esc(d.model)}">ใช้เบอร์นี้ทุกบาน</button></article>`).join("") || `<p class="muted">ซีรีส์นี้ไม่มีตารางเฉดในข้อมูลตัวอย่าง</p>`}<div class="card" id="pickcard" style="padding:1rem"><h2 style="margin-bottom:.3rem">เลือกเบอร์ฟิล์มแต่ละบาน</h2><p class="muted" style="margin:0 0 .8rem;font-size:.85rem">เลือกเองทีละบาน หรือกด "ใช้เบอร์นี้ทุกบาน" ที่การ์ดด้านบน</p>${groupsFor(S.sunroof || "ไม่มี").map((id) => `<label style="display:block;margin-bottom:.7rem">${groupLabel(id)}<select class="field" data-shade="${id}" style="${series.shades.length && !S.shades[id] ? "border-color:#f59e0b;color:#94a3b8" : ""}"><option value="" ${!S.shades[id] ? "selected" : ""} disabled>— เลือกเบอร์ฟิล์ม —</option>${series.shades.map((d) => `<option value="${esc(d.model)}" ${S.shades[id] === d.model ? "selected" : ""}>${esc(d.model)} · ${esc(darkLabel(d.vlt))}</option>`).join("")}</select></label>`).join("")}${upgrades(S.filmId, series).length ? `<label>อัปเกรดกระจกบานหน้า (เฉพาะ Lunaray)<select id="upgrade" class="field"><option value="">ไม่อัปเกรด</option>${upgrades(S.filmId, series).map((u) => `<option value="${esc(u.to)}" ${S.upgrade === u.to ? "selected" : ""}>อัปเกรดเป็น ${esc(u.to)} (+${money(u.price)} บาท)</option>`).join("")}</select></label>` : ""}${S.shadeErr ? `<p class="err">${esc(S.shadeErr)}</p>` : ""}<button class="btn" style="width:100%;padding:.8rem;margin-top:.5rem" data-act="tobook">ดูสรุปและจองคิว</button></div>${q ? `<p style="text-align:center;font-weight:700;color:#1d4ed8">รวมตัวอย่าง ${esc(q.totalLabel)}</p>` : ""}`;
+  return `<button class="back" data-act="go" data-step="series">← กลับ</button><button class="btn" style="width:100%;padding:.8rem;margin-bottom:.8rem;background:#fff;color:#2563eb;border:2px solid #3b82f6" data-act="go" data-step="camera">ทดลองดูฟิล์มด้วยกล้อง</button><h1>เลือกความเข้มฟิล์ม</h1><p class="muted">${esc(film(S.filmId).name)} ${esc(series.name)}</p>${S.rec && S.rec.id === S.filmId && S.rec.name === series.name && S.rec.side ? `<div class="recbar"><div><b>แนะนำจากคำตอบของคุณ</b><div>รอบคัน ${esc(S.rec.side)}${S.rec.front ? ` · บานหน้า ${esc(S.rec.front)}` : ""}</div></div><button class="btn" data-act="userec">ใช้ตามที่แนะนำ</button></div>` : ""}<p class="amber">ราคาทั้งคันเป็นของซีรีส์นี้ เลือกเฉดเข้มหรืออ่อนไม่ทำให้ราคาเปลี่ยน</p>${ringLegend}${series.shades.map((d) => `<article class="shade"><div style="display:flex;justify-content:space-between"><b>${esc(d.model)}</b><span>${darkPct(d.vlt) === "ใส" ? "ฟิล์มใส" : "ฟิล์ม " + darkPct(d.vlt) + "%"}</span></div>${ringRow(d)}<button class="series" style="margin:.6rem 0 0;padding:.55rem;text-align:center;font-size:.85rem" data-act="allshade" data-m="${esc(d.model)}">ใช้เบอร์นี้ทุกบาน</button></article>`).join("") || `<p class="muted">ซีรีส์นี้ไม่มีตารางเฉดในข้อมูลตัวอย่าง</p>`}<div class="card" id="pickcard" style="padding:1rem"><h2 style="margin-bottom:.3rem">เลือกเบอร์ฟิล์มแต่ละบาน</h2><p class="muted" style="margin:0 0 .8rem;font-size:.85rem">เลือกเองทีละบาน หรือกด "ใช้เบอร์นี้ทุกบาน" ที่การ์ดด้านบน</p>${groupsFor(S.sunroof || "ไม่มี").map((id) => `<label style="display:block;margin-bottom:.7rem">${groupLabel(id)}<select class="field" data-shade="${id}" style="${series.shades.length && !S.shades[id] ? "border-color:#f59e0b;color:#94a3b8" : ""}"><option value="" ${!S.shades[id] ? "selected" : ""} disabled>— เลือกเบอร์ฟิล์ม —</option>${series.shades.map((d) => `<option value="${esc(d.model)}" ${S.shades[id] === d.model ? "selected" : ""}>${esc(d.model)} · ${esc(darkLabel(d.vlt))}</option>`).join("")}</select></label>`).join("")}${upgrades(S.filmId, series).length ? `<label>อัปเกรดกระจกบานหน้า (เฉพาะ Lunaray)<select id="upgrade" class="field"><option value="">ไม่อัปเกรด</option>${upgrades(S.filmId, series).map((u) => `<option value="${esc(u.to)}" ${S.upgrade === u.to ? "selected" : ""}>อัปเกรดเป็น ${esc(u.to)} (+${money(u.price)} บาท)</option>`).join("")}</select></label>` : ""}${S.shadeErr ? `<p class="err">${esc(S.shadeErr)}</p>` : ""}<button class="btn" style="width:100%;padding:.8rem;margin-top:.5rem" data-act="tobook">ดูสรุปและจองคิว</button></div>${q ? `<p style="text-align:center;font-weight:700;color:#1d4ed8">รวมตัวอย่าง ${esc(q.totalLabel)}</p>` : ""}`;
 }
 function quizHtml() {
-  if (S.quizStep < QUIZ.length) {
-    const q = QUIZ[S.quizStep];
-    return `<button class="back" data-act="go" data-step="path">← กลับ</button><h1>ช่วยแนะนำฟิล์ม</h1><p class="muted lede">ตอบ 5 คำถามสั้น ๆ เพื่อรับ 3 ตัวเลือกที่เหมาะกับคุณ</p><div class="card" style="padding:1rem"><div class="muted">คำถาม ${S.quizStep + 1} / 5</div><div style="height:6px;background:#e0f2fe;border-radius:99px;margin:.5rem 0 1rem"><div style="height:100%;width:${(S.quizStep / 5) * 100}%;background:linear-gradient(90deg,#38bdf8,#2563eb);border-radius:99px"></div></div><b>${q[1]}</b>${q[2].map((o) => `<button class="series" data-act="answer" data-v="${esc(o[0])}">${esc(o[1])}</button>`).join("")}</div>`;
+  const total = QUIZ.length;
+  if (S.quizStep < total) {
+    const [key, title, opts, hint] = QUIZ[S.quizStep];
+    const options = key === "budget" ? budgetOptions() : opts;
+    const cur = S.quiz[key];
+    const curKey = cur === true ? "yes" : cur === false ? "no" : cur;
+    const back = S.quizStep > 0 ? `<button class="back" data-act="qback">← คำถามก่อนหน้า</button>` : `<button class="back" data-act="go" data-step="path">← กลับ</button>`;
+    return `${back}<h1>ช่วยเลือกฟิล์ม</h1><p class="muted lede">${esc(S.brand)} ${esc(S.model)} · ตอบ ${total} ข้อ ได้ 3 ตัวเลือกพร้อมเหตุผล</p><div class="card quiz"><div class="qprog">${QUIZ.map((_, i) => `<i class="${i < S.quizStep ? "done" : i === S.quizStep ? "now" : ""}"></i>`).join("")}</div><div class="muted" style="font-size:.8rem">ข้อ ${S.quizStep + 1} จาก ${total}</div><h2 style="margin:.2rem 0 ${hint ? ".1rem" : ".8rem"}">${esc(title)}</h2>${hint ? `<p class="muted" style="font-size:.82rem;margin:0 0 .8rem">${esc(hint)}</p>` : ""}${options.map((o) => `<button class="qopt ${curKey === o[0] ? "on" : ""}" data-act="answer" data-v="${esc(o[0])}"><b>${esc(o[1])}</b>${o[2] ? `<span>${esc(o[2])}</span>` : ""}</button>`).join("")}</div>`;
   }
   const rec = recommend();
-  return `<button class="back" data-act="go" data-step="path">← กลับ</button><h1>ช่วยแนะนำฟิล์ม</h1><div class="card" style="padding:1rem"><p class="muted lede">ตัวเลือกจากคำตอบของคุณ · ราคาเป็นข้อมูลตัวอย่าง</p>${rec.relaxed ? `<p class="amber">ตัวเลือกตรงงบหรือโทนมีไม่ครบ 3 รายการ จึงเติมจากซีรีส์ที่ใกล้ที่สุด</p>` : ""}${rec.picks.map((p, i) => `<button class="pick ${i === 0 ? "main" : ""}" data-act="pick" data-id="${esc(p.brand.id)}" data-name="${esc(p.series.name)}"><div style="color:#2563eb;font-size:.75rem;font-weight:700">${esc(p.label)}</div><b>${esc(p.brand.name)} ${esc(p.series.name)}</b><div class="muted">เฉดแนะนำ: ${esc(p.best.model)} ${esc(darkLabel(p.best.vlt))}${p.front ? ` · กระจกหน้า: ${esc(p.front.model)}` : ""}</div>${p.price == null ? `<b style="color:#2563eb">รอราคา · ติดต่อร้าน</b><div class="muted">ยังไม่มีรายการราคาที่เผยแพร่ของซีรีส์นี้สำหรับไซส์ ${esc(sizeLabel(sizeOf(S.brand, S.model)))}</div>` : `<b style="color:#2563eb">${money(p.price)} บาท</b>`}</button>`).join("")}<button class="btn" style="width:100%;background:#fff;color:#2563eb;border:1px solid #bae6fd" data-act="requiz">ทำแบบสอบถามใหม่</button></div>`;
+  const first = rec.picks[0];
+  const note = ["", "ในงบที่เลือกมีตัวเลือกไม่ครบ จึงรวมรุ่นที่ราคาใกล้เคียงงบด้วย", "ในงบที่เลือกไม่มีโทนสีนี้ จึงแสดงรุ่นที่ตรงโทนจากช่วงราคาอื่น", "ไม่มีรุ่นที่ตรงโทนสีนี้ จึงเลือกเฉดที่ใกล้เคียงที่สุดในงบให้", "ไม่มีรุ่นที่ตรงทุกข้อ จึงผ่อนเงื่อนไขให้", "บางรุ่นยังไม่มีราคา"][rec.relaxed] || "";
+  const card = (p, i) => {
+    const brand = p.brand;
+    const chips = reasonChips(p, first).map((c) => `<span>${esc(c)}</span>`).join("");
+    return `<button class="pick ${i === 0 ? "main" : ""}" data-act="pick" data-id="${esc(brand.id)}" data-name="${esc(p.series.name)}">
+      <div class="pick-top"><span class="pick-label pk-${p.kind}">${esc(p.label)}</span>${p.price == null ? `<span class="pick-price muted">รอราคา</span>` : `<span class="pick-price">${money(p.price)} บาท</span>`}</div>
+      <div class="pick-name">${brand.logo ? `<img alt="" src="${brand.logo}">` : ""}<div><b>${esc(brand.name)}</b><div>${esc(p.series.name)}</div></div></div>
+      <div class="pick-shades">รอบคัน <b>${esc(p.best.model)}</b> ${esc(darkLabel(p.best.vlt))}${p.front ? `<br>บานหน้า <b>${esc(p.front.model)}</b> ${esc(darkLabel(p.front.vlt))}` : ""}</div>
+      ${chips ? `<div class="why">${chips}</div>` : ""}
+      <div class="pick-go">ดูรายละเอียดและเลือกเฉด</div></button>`;
+  };
+  return `<button class="back" data-act="qback">← แก้คำตอบ</button><h1>ฟิล์มที่เหมาะกับคุณ</h1><p class="muted lede">${esc(S.brand)} ${esc(S.model)} · ราคาติดทั้งคัน${S.sunroof && S.sunroof !== "ไม่มี" ? "รวม" + esc(S.sunroof) : ""}</p>${note ? `<p class="amber">${esc(note)}</p>` : ""}${rec.picks.length ? rec.picks.map(card).join("") : `<p class="muted">ยังไม่มีซีรีส์ที่ตรงเงื่อนไข ลองแก้คำตอบหรือเลือกยี่ห้อเอง</p>`}<button class="series" style="text-align:center;margin-top:.4rem" data-act="requiz">เริ่มตอบใหม่</button><button class="series" style="text-align:center" data-act="go" data-step="path">เลือกยี่ห้อเอง</button>`;
 }
 function cameraHtml() {
   const shades = seriesOf()?.shades || [];
@@ -3048,23 +3160,25 @@ document.addEventListener("click", (event) => {
   const act = btn.dataset.act;
   if (act === "calnav") { S.calMonth = btn.dataset.ym; paint(); document.getElementById("calendar")?.scrollIntoView({ block: "nearest" }); return; }
   if (act === "day") { if (btn.disabled || !dayOpen(btn.dataset.date)) return; S.bookDate = btn.dataset.date; if (S.bookTime && slotPassed(S.bookDate, S.bookTime)) S.bookTime = ""; S.error = ""; paint(); return; }
+  if (act === "userec" && S.rec) { groupsFor(S.sunroof || "ไม่มี").forEach((g) => { S.shades[g] = g === "windshield" && S.rec.front ? S.rec.front : S.rec.side; }); S.shadeErr = ""; paint(); document.getElementById("pickcard")?.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
   if (act === "allshade") { groupsFor(S.sunroof || "ไม่มี").forEach((g) => { S.shades[g] = btn.dataset.m; }); S.shadeErr = ""; paint(); document.getElementById("pickcard")?.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
   if (act === "tobook") { const ser = seriesOf(); const miss = ser && ser.shades.length ? groupsFor(S.sunroof || "ไม่มี").filter((g) => !S.shades[g]) : []; if (miss.length) { S.shadeErr = "ยังไม่ได้เลือกเบอร์ฟิล์ม: " + miss.map(groupLabel).join(", "); paint(); document.getElementById("pickcard")?.scrollIntoView({ behavior: "smooth", block: "start" }); return; } S.shadeErr = ""; go("book"); return; }
   if (act === "next") nextStep();
   if (act === "slot") { S.bookTime = btn.dataset.time; paint(); }
   if (act === "go") { if (btn.dataset.step !== "camera") stopCam(); go(btn.dataset.step); }
   if (act === "quiz") { S.quiz = { budget: "", priority: "", tone: "", night: null, signal: null }; S.quizStep = 0; go("quiz"); }
-  if (act === "requiz") { S.quizStep = 0; paint(); }
+  if (act === "requiz") { S.quizStep = 0; S.quiz = { budget: "", priority: "", tone: "", night: null, signal: null }; paint(); }
   if (act === "brands") document.getElementById("brands")?.scrollIntoView({ behavior: "smooth" });
   if (act === "brand") { S.filmId = btn.dataset.id; S.pricedOnly = false; go("series"); }
   if (act === "priced") { S.pricedOnly = btn.dataset.on === "1"; paint(); }
   if (act === "series") chooseSeries(S.filmId, btn.dataset.name);
-  if (act === "pick") chooseSeries(btn.dataset.id, btn.dataset.name);
+  if (act === "pick") { const ser = film(btn.dataset.id).series.find((x) => x.name === btn.dataset.name); const r = recShades(ser, S.quiz); S.rec = { id: btn.dataset.id, name: btn.dataset.name, side: r.side?.model || "", front: r.front?.model || "" }; chooseSeries(btn.dataset.id, btn.dataset.name); }
   if (act === "answer") {
     const key = QUIZ[S.quizStep][0];
     S.quiz[key] = key === "night" || key === "signal" ? btn.dataset.v === "yes" : btn.dataset.v;
-    S.quizStep += 1; paint();
+    S.quizStep += 1; paint(); window.scrollTo(0, 0);
   }
+  if (act === "qback") { S.quizStep = Math.max(0, Math.min(S.quizStep, QUIZ.length) - 1); paint(); }
   if (act === "faq") { const i = Number(btn.dataset.i); S.faq = S.faq === i ? null : i; paint(); }
   if (act === "cam") openCam();
   if (act === "demo") { stopCam(); S.cameraOn = true; S.photoUrl = ""; S.note = "กำลังใช้ภาพจำลอง"; go("camera"); }
