@@ -86,6 +86,19 @@ select.field {
 .slots { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .4rem; }
 .slots button { border: 1px solid #bfdbfe; background: #fff; color: #1e3a8a; border-radius: 999px; padding: .45rem .7rem; }
 .slots button.on { background: #2563eb; color: #fff; border-color: #2563eb; }
+.slots button:disabled { opacity: .35; text-decoration: line-through; cursor: not-allowed; }
+.days { display: flex; gap: .45rem; overflow-x: auto; padding: .4rem 0 .5rem; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.days::-webkit-scrollbar { display: none; }
+.days button { flex: none; width: 3.6rem; display: flex; flex-direction: column; align-items: center; gap: .05rem; padding: .45rem 0; border-radius: 14px; border: 1px solid #bfdbfe; background: #fff; color: #1e3a8a; }
+.days button b { font-size: 1.15rem; }
+.days button small { font-size: .66rem; color: #64748b; }
+.days button.on { background: #2563eb; border-color: #2563eb; color: #fff; }
+.days button.on small { color: #dbeafe; }
+.next-steps { list-style: none; padding: 0; margin: .4rem 0 0; display: grid; gap: .6rem; }
+.next-steps li { display: flex; gap: .6rem; align-items: flex-start; font-size: .9rem; }
+.next-steps li span.n { flex: none; width: 1.6rem; height: 1.6rem; border-radius: 99px; display: flex; align-items: center; justify-content: center; font-size: .8rem; font-weight: 700; background: #e2e8f0; color: #475569; }
+.next-steps li.done span.n { background: #22c55e; color: #fff; }
+.next-steps li.now span.n { background: #2563eb; color: #fff; }
 .logo-tile { width: 100%; height: 4.5rem; display: flex; align-items: center; justify-content: center; border-radius: 1rem; background: #fff; border: 1px solid #e2e8f0; padding: .45rem; }
 .logo-tile img { width: 100%; height: 100%; object-fit: contain; }
 .hero { display: grid; gap: 1.25rem; padding-top: 1.25rem; }
@@ -2537,6 +2550,23 @@ function qrMarkup(payload) {
   return code.createSvgTag({ cellSize: 5, margin: 2 });
 }
 const STATUS_LABEL = { pending_payment: "รอชำระเงิน", awaiting_verification: "อัปโหลดสลิปแล้ว / รอตรวจสอบ", paid: "ชำระแล้ว", new: "รอดำเนินการ", confirmed: "ยืนยันแล้ว", scheduled: "นัดติดตั้งแล้ว", done: "ติดตั้งเสร็จ", cancelled: "ยกเลิก" };
+const TH_WD = ["อา.", "จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส."];
+const TH_MON = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+const isoOf = (d) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+function upcomingDays(n = 30) {
+  const out = [], t = new Date();
+  for (let i = 0; i < n; i++) {
+    const d = new Date(t.getFullYear(), t.getMonth(), t.getDate() + i);
+    if (i === 0 && TIME_SLOTS.every((slot) => slotPassed(isoOf(d), slot))) continue;
+    out.push({ iso: isoOf(d), wd: i === 0 ? "วันนี้" : i === 1 ? "พรุ่งนี้" : TH_WD[d.getDay()], day: d.getDate(), mon: TH_MON[d.getMonth()] });
+  }
+  return out;
+}
+function slotPassed(iso, slot) {
+  const [h, m] = slot.split(":").map(Number);
+  const [y, mo, d] = iso.split("-").map(Number);
+  return new Date(y, mo - 1, d, h, m).getTime() < Date.now() + 2 * 3600 * 1000;
+}
 const todayStr = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
 const money = (n) => Number(n).toLocaleString("th-TH");
 const brands = () => Object.keys(CATALOG.cars).filter((b) => b !== "อื่น ๆ").sort((a, b) => a.localeCompare(b, "en"));
@@ -2782,9 +2812,24 @@ function cameraHtml() {
 function bookHtml() {
   const q = buildQuote();
   return `<button class="back" data-act="go" data-step="shades">← กลับ</button><h1 style="text-align:center">สรุปรายการ</h1>${q ? quoteHtml(q) : ""}
-  <div class="card" style="padding:1rem;margin-bottom:1rem"><h2>ข้อมูลการจอง</h2><div class="grid2"><input class="field" data-bind="firstName" placeholder="ชื่อ" value="${esc(S.firstName)}"><input class="field" data-bind="lastName" placeholder="สกุล" value="${esc(S.lastName)}"></div><input class="field" data-bind="phone" placeholder="เบอร์ติดต่อ" value="${esc(S.phone)}" style="margin-top:.6rem"><input class="field" data-bind="carColor" placeholder="สีรถ" value="${esc(S.carColor)}" style="margin-top:.6rem"><div class="grid2" style="margin-top:.6rem"><label class="muted">ทะเบียนรถ *<input id="plateNo" class="field" data-bind="plateNo" value="${esc(S.plateNo)}" placeholder="เช่น 1กข 1234"></label><label class="muted">จังหวัด *<select id="plateProv" class="field" data-bind="plateProv"><option value="">เลือกจังหวัด</option>${PROVINCES.map((p) => `<option ${S.plateProv === p ? "selected" : ""}>${esc(p)}</option>`).join("")}</select></label></div><input class="field" data-bind="location" placeholder="สถานที่ติดตั้ง" value="${esc(S.location)}" style="margin-top:.6rem"><div style="margin:.6rem 0"><button type="button" class="series" data-act="geo">ใช้ตำแหน่งปัจจุบัน (ไม่บังคับ)</button> <span class="muted">${esc(S.geoText)}</span></div><label class="muted">วันที่ติดตั้ง<input id="bookDate" class="field" type="date" min="${todayStr()}" data-bind="bookDate" value="${esc(S.bookDate)}"></label><div style="margin-top:.7rem"><span class="muted">เลือกเวลา</span><div class="slots" id="timeSlots">${TIME_SLOTS.map((slot) => `<button type="button" data-act="slot" data-time="${slot}" class="${S.bookTime === slot ? "on" : ""}">${slot}</button>`).join("")}</div></div></div>
+  <div class="card" style="padding:1rem;margin-bottom:1rem"><h2>ข้อมูลการจอง</h2><div class="grid2"><input class="field" data-bind="firstName" placeholder="ชื่อ" value="${esc(S.firstName)}"><input class="field" data-bind="lastName" placeholder="สกุล" value="${esc(S.lastName)}"></div><input class="field" data-bind="phone" placeholder="เบอร์ติดต่อ" value="${esc(S.phone)}" style="margin-top:.6rem"><input class="field" data-bind="carColor" placeholder="สีรถ" value="${esc(S.carColor)}" style="margin-top:.6rem"><div class="grid2" style="margin-top:.6rem"><label class="muted">ทะเบียนรถ *<input id="plateNo" class="field" data-bind="plateNo" value="${esc(S.plateNo)}" placeholder="เช่น 1กข 1234"></label><label class="muted">จังหวัด *<select id="plateProv" class="field" data-bind="plateProv"><option value="">เลือกจังหวัด</option>${PROVINCES.map((p) => `<option ${S.plateProv === p ? "selected" : ""}>${esc(p)}</option>`).join("")}</select></label></div><input class="field" data-bind="location" placeholder="สถานที่ติดตั้ง" value="${esc(S.location)}" style="margin-top:.6rem"><div style="margin:.6rem 0"><button type="button" class="series" data-act="geo">ใช้ตำแหน่งปัจจุบัน (ไม่บังคับ)</button> <span class="muted">${esc(S.geoText)}</span></div><div class="muted">วันที่ติดตั้ง</div><div class="days" id="dayChips">${upcomingDays().map((d) => `<button type="button" data-act="day" data-date="${d.iso}" class="${S.bookDate === d.iso ? "on" : ""}"><small>${d.wd}</small><b>${d.day}</b><small>${d.mon}</small></button>`).join("")}</div><div style="margin-top:.7rem"><span class="muted">เลือกเวลา</span><div class="slots" id="timeSlots">${S.bookDate ? TIME_SLOTS.map((slot) => { const past = slotPassed(S.bookDate, slot); return `<button type="button" data-act="slot" data-time="${slot}" class="${S.bookTime === slot && !past ? "on" : ""}" ${past ? "disabled" : ""}>${slot}</button>`; }).join("") : `<span class="muted" style="font-size:.85rem">เลือกวันที่ก่อน</span>`}</div></div></div>
   <p class="muted">ขั้นถัดไปคือชำระเต็มจำนวนผ่าน PromptPay แล้วนำสลิปมาให้ร้านตรวจ</p>
   <label style="display:flex;gap:.5rem;font-size:.8rem" class="muted"><input id="consent" type="checkbox" ${S.consent ? "checked" : ""}> <span>ยอมรับ <button type="button" class="back" data-act="legal" data-which="privacy">นโยบายความเป็นส่วนตัว</button> และ <button type="button" class="back" data-act="legal" data-which="terms">เงื่อนไขการใช้บริการ</button></span></label>${S.error ? `<p class="err">${esc(S.error)}</p>` : ""}<button id="bookBtn" class="btn" style="width:100%;padding:.85rem" data-act="save" ${S.busy ? "disabled" : ""}>${S.busy ? "กำลังบันทึก…" : "จองคิวและไปชำระเงิน"}</button>`;
+}
+function lineMsgUrl(text) {
+  const id = String(CATALOG.shop.lineId || "").trim();
+  return id ? `https://line.me/R/oaMessage/${encodeURIComponent(id)}/?${encodeURIComponent(text)}` : "";
+}
+function afterSlipHtml(row) {
+  const when = row.date ? (() => { const [y, m, d] = row.date.split("-").map(Number); const dt = new Date(y, m - 1, d); return `${TH_WD[dt.getDay()]} ${d} ${TH_MON[m - 1]} ${y + 543}${row.time ? " เวลา " + row.time : ""}`; })() : "ยังไม่ระบุ";
+  const msg = `แจ้งชำระเงิน FilmPro\nรหัสการจอง: ${row.id}\nชื่อ: ${row.customer}\nโทร: ${row.phone}\nรถ: ${row.quote?.carBrand || ""} ${row.quote?.carModel || ""} ทะเบียน ${row.plate || ""}\nฟิล์ม: ${row.quote?.filmBrandName || ""} ${row.quote?.series || ""}\nนัดติดตั้ง: ${when}\nยอดชำระ: ${row.quote?.totalLabel || ""}\n(แนบรูปสลิปในแชตนี้)`;
+  const url = lineMsgUrl(msg);
+  return `<div class="card" style="padding:1rem;border-color:#93c5fd"><h2>ขั้นตอนต่อไป</h2><ol class="next-steps">
+    <li class="done"><span class="n">✓</span><div><b>อัปโหลดสลิปแล้ว</b><div class="muted">รหัสการจอง ${esc(row.id)} · นัด ${esc(when)}</div></div></li>
+    <li class="now"><span class="n">2</span><div><b>ส่งสลิปให้ร้านทาง LINE</b><div class="muted">กดปุ่มด้านล่าง ข้อความรายละเอียดการจองจะถูกเติมให้ แล้วแนบรูปสลิปส่งในแชต</div></div></li>
+    <li><span class="n">3</span><div><b>ร้านตรวจสลิปและยืนยันนัด</b><div class="muted">ร้านจะตอบกลับทาง LINE หรือโทรยืนยันวันเวลา</div></div></li>
+    <li><span class="n">4</span><div><b>ช่างเดินทางไปติดตั้งตามนัด</b><div class="muted">เตรียมรถให้จอดในที่ร่ม มีพื้นที่รอบรถพอให้ช่างทำงาน</div></div></li>
+  </ol>${url ? `<a class="btn" href="${esc(url)}" target="_blank" rel="noreferrer" style="display:block;text-align:center;text-decoration:none;padding:.85rem;margin-top:.9rem;background:#06C755">ส่งสลิปให้ร้านทาง LINE</a>` : ""}<a class="btn" href="tel:${esc(CATALOG.shop.phone || "")}" style="display:block;text-align:center;text-decoration:none;padding:.7rem;margin-top:.5rem;background:#fff;color:#1e293b;border:1px solid #e2e8f0">โทรหาร้าน</a><p class="muted" style="font-size:.78rem;margin:.7rem 0 0">เก็บรหัสการจอง ${esc(row.id)} ไว้ใช้อ้างอิงกับร้าน</p></div>`;
 }
 function payHtml() {
   const row = loadBookings().find((b) => b.id === S.bookingId);
@@ -2802,7 +2847,7 @@ function payHtml() {
   <div class="card" style="padding:1rem;text-align:center">${pay.amount == null ? `<p class="amber">ราคานี้ยังเป็น รอราคา จึงยังสร้าง QR ไม่ได้</p>` : `<h2>ยอดที่ต้องชำระทั้งจำนวน</h2><p id="payAmount" style="font-size:1.6rem;font-weight:700;color:#1d4ed8">${money(pay.amount)} บาท</p><p class="amber">ยอดนี้เป็นข้อมูลตัวอย่าง</p>${pay.placeholder ? `<p class="amber">ร้านยังไม่ได้ตั้งเบอร์ PromptPay จึงยังไม่แสดง QR กรุณาติดต่อร้านทาง LINE</p>` : `<p class="muted">PromptPay ${esc(mobile)}</p>`}<div id="promptpayQr" class="qr">${qrMarkup(pay.payload)}</div><p class="muted">สแกนด้วยแอปธนาคาร ยอดใน QR คือยอดเต็มจำนวน</p>`}</div>
   ${row.status !== "paid" && pay.amount != null ? `<div class="card" style="padding:1rem"><h2>อัปโหลดสลิป</h2>${pay.slipDataUrl ? `<img alt="สลิปที่อัปโหลด" src="${pay.slipDataUrl}" style="width:100%;max-height:12rem;object-fit:contain">` : ""}<label class="btn" style="display:block;text-align:center;padding:.8rem;margin-top:.6rem">เลือกสลิป<input id="slipFile" type="file" accept="image/*" hidden></label></div>` : ""}
   <div class="card" style="padding:1rem"><h2>บัตรเครดิตหรือเดบิต</h2><p class="muted">บัตรยังไม่เปิดในไฟล์นี้ ไม่มีคีย์ Omise หรือ Stripe และจะไม่ตัดเงินจริง</p><button class="btn" style="width:100%;padding:.7rem;opacity:.5" disabled>บัตรยังไม่เปิด</button></div>
-  ${row.status === "awaiting_verification" ? `<p style="color:#1d4ed8">อัปโหลดสลิปแล้ว รอร้านตรวจสอบ</p>` : ""}${row.status === "paid" ? `<p style="color:#1d4ed8;font-weight:700">ชำระเต็มจำนวนแล้ว</p>` : ""}
+  ${row.status === "awaiting_verification" ? afterSlipHtml(row) : ""}${row.status === "paid" ? `<p style="color:#1d4ed8;font-weight:700">ชำระเต็มจำนวนแล้ว</p>` : ""}
   <button class="btn" style="width:100%;padding:.8rem;background:#fff;color:#1e293b;border:1px solid #e2e8f0" data-act="go" data-step="home">กลับหน้าแรก</button>`;
 }
 function adminHtml() {
@@ -2861,6 +2906,7 @@ document.addEventListener("click", (event) => {
   const btn = event.target.closest("[data-act]");
   if (!btn) return;
   const act = btn.dataset.act;
+  if (act === "day") { S.bookDate = btn.dataset.date; if (S.bookTime && slotPassed(S.bookDate, S.bookTime)) S.bookTime = ""; S.error = ""; paint(); return; }
   if (act === "allshade") { groupsFor(S.sunroof || "ไม่มี").forEach((g) => { S.shades[g] = btn.dataset.m; }); S.shadeErr = ""; paint(); document.getElementById("pickcard")?.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
   if (act === "tobook") { const ser = seriesOf(); const miss = ser && ser.shades.length ? groupsFor(S.sunroof || "ไม่มี").filter((g) => !S.shades[g]) : []; if (miss.length) { S.shadeErr = "ยังไม่ได้เลือกเบอร์ฟิล์ม: " + miss.map(groupLabel).join(", "); paint(); document.getElementById("pickcard")?.scrollIntoView({ behavior: "smooth", block: "start" }); return; } S.shadeErr = ""; go("book"); return; }
   if (act === "next") nextStep();
@@ -2978,6 +3024,7 @@ function saveBooking() {
   if (!S.plateNo.trim() || !S.plateProv || !S.firstName.trim() || !S.lastName.trim() || !S.phone.trim() || !S.carColor.trim() || !S.location.trim()) { S.error = "กรอกทะเบียน จังหวัด ชื่อ สกุล เบอร์ สีรถ และสถานที่ติดตั้ง"; paint(); return; }
   if (!normalizeMobile(S.phone)) { S.error = "กรอกเบอร์มือถือ 10 หลักให้ถูกต้อง"; paint(); return; }
   if (S.bookDate && S.bookDate < todayStr()) { S.error = "เลือกวันที่ตั้งแต่วันนี้เป็นต้นไป"; paint(); return; }
+  if (S.bookDate && S.bookTime && slotPassed(S.bookDate, S.bookTime)) { S.error = "เวลานี้ผ่านไปแล้วหรือใกล้เกินไป กรุณาเลือกเวลาใหม่"; S.bookTime = ""; paint(); return; }
   if (!S.bookDate || !S.bookTime) { S.error = "เลือกวันที่และเวลาติดตั้ง"; paint(); return; }
   if (!S.consent) { S.error = "กรุณายอมรับนโยบายความเป็นส่วนตัวและเงื่อนไข"; paint(); return; }
   const rows = loadBookings();
