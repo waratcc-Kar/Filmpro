@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FilmPro Inspect — ตรวจสภาพรถก่อนติดตั้ง</title>
+<!-- FilmPro Part 0: Pre-install inspection. Pulls customer bookings from localStorage 'filmpro_bookings_v1' (written by index.html) + jobs from 'filmpro_tech_v1'. Jobs share shape {id,customer,phone,car,film,inst,pre,createdAt} with filmpro_tech_v1 / filmpro_handover_v1; pre={panelKey:dataURL,interior}. Export JSON {source,inst:[{id,name}],jobs:[...]} imports directly into Handover. -->
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+body{font-family:'Sarabun',sans-serif;background:#f1f5f9;color:#1e293b}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:20px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.btn{background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%);border-radius:12px;color:#fff}
+.btn:disabled{opacity:.4}
+.btn2{background:#fff;border:1px solid #e2e8f0;border-radius:12px}
+input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:10px 12px;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:#3b82f6;flex:none}
+h1,h2{color:#1e40af}button:active{transform:scale(.98)}
+.tab{white-space:nowrap}.tab.on{background:#2563eb;color:#fff}
+.pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px}
+label.f{display:block;font-size:13px;font-weight:500;margin-top:8px}
+.ph{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;background:#e2e8f0}
+.phx{width:100%;aspect-ratio:4/3;border-radius:10px;border:2px dashed #cbd5e1;display:flex;align-items:center;justify-content:center;font-size:11px;color:#94a3b8;text-align:center}
+.star{font-size:28px;line-height:1;color:#d1d5db}.star.on{color:#f59e0b}
+canvas.sig{width:100%;height:140px;border:1px dashed #94a3b8;border-radius:12px;background:#fff;touch-action:none}
+@media print{.noprint{display:none!important}body{background:#fff}.card{box-shadow:none;border-color:#cbd5e1;break-inside:avoid}}
+</style></head>
+<body><div class="max-w-md mx-auto pb-20">
+<header class="noprint sticky top-0 z-10 bg-white/95 backdrop-blur border-b px-3 py-2">
+ <div class="flex items-center justify-between"><div><b class="text-blue-800">FilmPro Inspect</b> <span class="text-xs text-gray-500">ตรวจสภาพรถก่อนติดตั้ง</span></div>
+ <div class="flex gap-1"><button class="btn2 text-xs px-2 py-1" onclick="demo()">ข้อมูลตัวอย่าง</button><button class="btn2 text-xs px-2 py-1" onclick="if(confirm('ล้างข้อมูลทั้งหมด?'))reset()">รีเซ็ต</button></div></div>
+ <nav id="tabs" class="flex gap-1 overflow-x-auto mt-2 pb-1"></nav></header>
+<main id="app" class="p-3"></main>
+<div class="text-[10px] text-gray-400 text-center noprint">FilmPro · ข้อมูลเก็บในเครื่องนี้ (localStorage)</div>
+</div>
+<script>
+const KEY='filmpro_inspect_v1',HO_KEY='filmpro_handover_v1';
+// Same panel keys as Part 3 (Handover PANELS) so pre-photos show as "ก่อนติดตั้ง"
+const PANELS=[['front','บานหน้า'],['fl','คู่หน้า ซ้าย'],['fr','คู่หน้า ขวา'],['rl','คู่หลัง ซ้าย'],['rr','คู่หลัง ขวา'],['quarter','หูช้าง'],['fixed','บานตาย'],['rear','บานหลัง'],['sun1','ซันรูฟ 1'],['sun2','ซันรูฟ 2'],['roof','หลังคาแก้ว']];
+const DEF_EXIST=['front','fl','fr','rl','rr','rear'];
+const OPTIONAL=['quarter','fixed','sun1','sun2','roof'];
+const ZONES=[['front','บานหน้า',['front']],['side','กระจกข้าง/หูช้าง',['fl','fr','rl','rr','quarter','fixed']],['rear','บานหลัง',['rear']],['sun','ซันรูฟ/หลังคาแก้ว',['sun1','sun2','roof']]];
+const DEFECTS=[['scratch','รอยขีดข่วน'],['chip','กระจกบิ่น/หินกระเด็น'],['crack','กระจกร้าว'],['oldfilm','มีฟิล์มเดิม'],['sealant','ยาง/ซิลิโคนขอบเสื่อม'],['defrost','เส้นไล่ฝ้าชำรุด'],['sticker','สติกเกอร์/คราบกาว'],['body','ตำหนิตัวถัง/สี'],['interior','ตำหนิภายใน/แผงประตู'],['other','อื่น ๆ']];
+const BRANDS=['3M','Lamina','V-KOOL','Hi-Kool','XPEL','LLumar','Huper Optik','Global','อื่น ๆ'];
+const SHADES=['5','20','30','40','50','60','70','80'];
+const ST_COLOR={'กำลังตรวจ':'bg-amber-100 text-amber-700','ตรวจแล้ว':'bg-emerald-100 text-emerald-700'};
+const $=id=>document.getElementById(id),now=()=>new Date().toISOString(),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let D,cur=null,tab='board',ui={};
+function blank(){return {jobs:[],ins:{},inst:{},seq:1};}
+const nid=p=>p+(D.seq++).toString().padStart(4,'0');
+function load(){try{D=JSON.parse(localStorage.getItem(KEY))||blank();}catch(e){D=blank();}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(D));}catch(e){alert('พื้นที่เก็บข้อมูลเต็ม — ส่งออก JSON แล้วลบงานเก่า');}}
+function reset(){D=blank();cur=null;tab='list';save();render();}
+const job=id=>D.jobs.find(j=>j.id===id);
+function I(){return D.ins[cur];}
+function blankIns(){return {car:{plate:'',province:'',brand:'',model:'',year:'',color:''},exist:[...DEF_EXIST],photo:{},interior:null,defects:[],film:Object.fromEntries(ZONES.map(z=>[z[0],{brand:'',model:'',shade:''}])),ack:{inform:false,defects:false,film:false},sig:null,signer:'',status:'กำลังตรวจ',doneAt:null};}
+function carStr(c){return [c.brand,c.model,c.year].filter(Boolean).join(' ')+(c.plate?` (${c.plate}${c.province?' '+c.province:''})`:'');}
+function filmStr(h){return ZONES.filter(z=>zoneUsed(h,z)&&h.film[z[0]].brand).map(z=>{const f=h.film[z[0]];return `${z[1]}: ${f.brand} ${f.model}${f.shade?' '+f.shade+'%':''}`;}).join(' / ');}
+const zoneUsed=(h,z)=>z[2].some(k=>h.exist.includes(k));
+// ---------- image capture (compressed) ----------
+function shrink(file,cb){const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const m=1024,s=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*s;c.height=im.height*s;c.getContext('2d').drawImage(im,0,0,c.width,c.height);cb(c.toDataURL('image/jpeg',.7));};im.src=r.result;};r.readAsDataURL(file);}
+function photoBox(slot,src,label){return `<label class="block cursor-pointer">${src?`<img class="ph" src="${src}">`:`<div class="phx">📷 ${esc(label||'แตะเพื่อถ่ายรูป')}</div>`}<input type="file" accept="image/*" capture="environment" class="hidden" onchange="setPhoto('${slot}',this)"></label>`;}
+function setPhoto(slot,inp){const f=inp.files[0];if(!f)return;shrink(f,u=>{const h=I();const [a,b]=slot.split(':');if(a==='p')h.photo[b]=u;else if(a==='in')h.interior=u;else if(a==='seal'){h.seal=h.seal||{};h.seal.photo=u;}else if(a==='d'){const d=h.defects.find(x=>x.id===b);if(d)d.photo=u;}save();render();});}
+// ---------- validation ----------
+function missing(h){const m=[];
+ h.exist.forEach(k=>{if(!h.photo[k])m.push('รูป '+PANELS.find(p=>p[0]===k)[1]);});if(!h.interior)m.push('รูปภายในรถ');
+ h.defects.forEach((d,i)=>{if(!d.photo)m.push(`รูปตำหนิ #${i+1}`);});
+ if(!h.filmOk)m.push('ยืนยันฟิล์มตรงตามที่ลูกค้าเลือก');const jj=job(cur);if(needSeal(jj)){const sl=h.seal||{};if(!sl.photo)m.push('รูปซีลฟิล์ม');if(!sl.ok)m.push(sl.ok===false?'เลขซีลไม่ตรง — ห้ามติดตั้ง':'ตรวจเลขซีลฟิล์ม');}
+ if(!h.ack.inform||!h.ack.defects||!h.ack.film)m.push('ลูกค้ารับทราบ (ติ๊กให้ครบ)');if(!h.sig)m.push('ลายเซ็นลูกค้า');return m;}
+// ---------- views ----------
+const STEPS=[['s1','1 ข้อมูลรถ'],['s2','2 ถ่ายรูปกระจก'],['s3','3 ตำหนิ'],['s4','4 ฟิล์ม'],['s5','5 ลูกค้ายืนยัน']];
+function render(){const t=[['board','รอยืนยัน'],['list','งานของฉัน']].concat(cur?STEPS:[]),P=pub();$('tabs').innerHTML=`<select class="!w-auto !py-1 text-xs" onchange="setMe(this.value)"><option value="">👤 เลือกช่าง</option>${P.techs.map(x=>`<option value="${x.id}" ${x.id===ME?'selected':''}>${esc(x.id)} ${esc(x.name)} L${x.level}</option>`).join('')}</select>`+t.map(([k,n])=>`<button class="tab btn2 text-xs px-3 py-1 ${tab===k?'on':''}" onclick="go('${k}')">${n}${k==='board'?` <span class="pill bg-blue-600 text-white">${myOffers()}</span>`:''}</button>`).join('');
+ $('app').innerHTML=tab==='board'?vBoard():tab==='list'?vList():jobHead()+({s1:vS1,s2:vS2,s3:vS3,s4:vS4,s5:vS5}[tab])();if(tab==='s5')initSig();badge();window.scrollTo(0,0);}
+function go(t){tab=t;render();}
+function open_(id){cur=id;if(D.seen)D.seen[id]=true;if(!D.ins[id]){const h=blankIns(),j=job(id);['plate','province','brand','model','year','color'].forEach(k=>h.car[k]=j[k]||'');if(!h.car.brand&&j.car){const p=j.car.split(' ');h.car.brand=p.shift();h.car.model=p.join(' ');}prefillBooking(h,j);D.ins[id]=h;}tab='s1';save();render();}
+function jobHead(){const j=job(cur),h=I(),m=missing(h);return `<div class="card p-3 mb-3 flex justify-between items-center"><div><b>${esc(j.id)}</b> <span class="pill ${ST_COLOR[h.status]}">${h.status}</span><div class="text-xs text-gray-500">${esc(j.customer)} · ${esc(carStr(h.car)||'-')}</div></div><div class="text-xs ${m.length?'text-red-600':'text-emerald-600'}">${m.length?'ขาด '+m.length+' รายการ':'ครบ ✓'}</div></div>`;}
+function nav(prev,next){return `<div class="flex gap-2 mt-3">${prev?`<button class="btn2 flex-1 py-3" onclick="go('${prev}')">← ย้อนกลับ</button>`:''}${next?`<button class="btn flex-1 py-3" onclick="go('${next}')">ถัดไป →</button>`:''}</div>`;}
+function syncTech(){// pull assigned jobs from FilmPro Tech (Part 2) store on same origin
+ try{const T=JSON.parse(localStorage.getItem('filmpro_tech_v1'));if(!T)return;(T.inst||[]).forEach(i=>{if(!D.inst[i.id])D.inst[i.id]={name:i.name};});let n=0;(T.jobs||[]).forEach(j=>{if(!job(j.id)){D.jobs.push(mkJob(j));n++;}});if(n)save();return n;}catch(e){return 0;}}
+// ---- FilmPro Match (shared, identical in Inspect & Tech): eligibility + hybrid matching phases
+const FPM=(()=>{const UP=s=>String(s||'').trim().toUpperCase(),J=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d;}catch(e){return d;}};
+ const DEF={premium:['3M','STEK','XPEL','LLUMAR','HUPER OPTIK','V-KOOL'],premiumLevel:3,wsSunLevel:3,radius:{1:15,2:25,3:40,4:60},
+  hiPrice:20000,assign:{confirmMin:30},match:{p1Min:15,topN:3,p3Min:60,w:{rating:45,level:15,dist:20,brand:10,load:10},maxLoad:5}};
+ const T=()=>Date.now();
+ function hav(a,b,c,d){const r=x=>x*Math.PI/180,dl=r(c-a),dg=r(d-b),h=Math.sin(dl/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(dg/2)**2;return 12742*Math.asin(Math.sqrt(h));}
+ function pub(){const p=J('filmpro_techpub_v1',{techs:[]});const r={...DEF,...(p.rules||{})};r.match={...DEF.match,...(r.match||{}),w:{...DEF.match.w,...((r.match||{}).w||{})}};return {techs:p.techs||[],rules:r};}
+ function reqOf(b,R){const fb=UP((b.film||{}).brand),prem=R.premium.map(UP).includes(fb),sr=!!b.sunroof&&b.sunroof!=='ไม่มี',ws=!!b.windshieldUpgrade;let lv=1,why=[];
+  if(prem){lv=Math.max(lv,R.premiumLevel);why.push('ฟิล์มพรีเมียม');}if(sr||ws){lv=Math.max(lv,R.wsSunLevel);why.push(sr?b.sunroof:'อัปเกรดบานหน้า');}return {lv,prem,sr,ws,fb,why};}
+ function load(id){const C=J('filmpro_claims_v1',{}),RT=J('filmpro_ratings_v1',{});return Object.entries(C).filter(([b,c])=>c&&c.tech===id&&!RT[b]).length;}
+ function elig(t,b,R){const q=reqOf(b,R),no=[],g=b.geo||{};let km=null,area=false;
+  if(t.status&&t.status!=='active')no.push('ยังไม่ผ่านการตรวจสอบจากบริษัท');
+  const hi=q.prem||(+b.price||0)>(+R.hiPrice||Infinity);if(hi&&!t.verified)no.push('งานราคาสูง/ฟิล์มพรีเมียม ต้องเป็นช่าง Verified');
+  if(b.date&&(t.off||[]).includes(b.date))no.push('ไม่ว่างวันที่ '+b.date);
+  if(t.level<q.lv)no.push(`ต้องระดับ L${q.lv}+ (${q.why.join(', ')}) — คุณ L${t.level}`);
+  if(q.prem&&!(t.brands||[]).map(UP).includes(q.fb))no.push(`ต้องมีใบรับรองแบรนด์ ${q.fb}`);
+  if(q.sr&&!t.sun)no.push('ยังไม่ผ่านทักษะซันรูฟ');if(q.ws&&!t.ws)no.push('ยังไม่ผ่านทักษะกระจกบานหน้า');
+  const rad=R.radius[t.level]||R.radius[1];
+  if(g.lat!=null&&t.lat!=null&&t.lat!==''){km=hav(+t.lat,+t.lng,+g.lat,+g.lng);if(km>rad)no.push(`ไกลเกินรัศมี ${rad} กม. (${km.toFixed(1)} กม.)`);}
+  else{const L=String(b.location||'')+' '+String(b.province||''),A=String(t.area||'').split(/[,\s]+/).filter(Boolean);area=A.some(a=>L.includes(a));if(!area)no.push('ไม่มีพิกัด และพื้นที่ไม่ตรงกับพื้นที่ให้บริการ');}
+  const pro=(t.brands||[]).map(UP).includes(q.fb),M=R.match,W=M.w,tw=Object.values(W).reduce((a,x)=>a+(+x||0),0)||1,ld=load(t.id);
+  const part={rating:Math.max(0,Math.min(1,((+t.avg||0)-3)/2)),level:t.level/4,dist:km!=null?Math.max(0,1-km/rad):area?.5:0,brand:pro?1:0,load:Math.max(0,1-ld/(M.maxLoad||5))};
+  q.hi=hi;const score=Math.round(Object.keys(W).reduce((a,k)=>a+(+W[k]||0)*part[k],0)/tw*100);return {ok:!no.length,no,km,area,q,pro,load:ld,part,score};}
+ function rank(b,P=pub()){return P.techs.map(t=>({t,e:elig(t,b,P.rules)})).filter(x=>x.e.ok).sort((a,c)=>c.e.score-a.e.score);}
+ function phase(b,P=pub(),now=T()){const C=J('filmpro_claims_v1',{}),c=C[b.id],M=P.rules.match,age=(now-new Date(b.createdAt).getTime())/6e4;
+  if(c&&c.tech)return {ph:0,label:c.by==='admin'?'admin มอบหมาย':'มีช่างรับแล้ว',tech:c.tech,age};
+  if(age<M.p1Min)return {ph:1,label:`เฟส 1: เสนอ Top ${M.topN}`,left:M.p1Min-age,age};
+  if(age<M.p3Min)return {ph:2,label:'เฟส 2: เปิดให้ช่างที่ผ่านเกณฑ์ทุกคน',left:M.p3Min-age,age};
+  return {ph:3,label:'เฟส 3: ⚠️ รอ admin มอบหมาย',left:0,age};}
+ function visible(t,b,P=pub(),now=T()){const p=phase(b,P,now);if(p.ph===0)return false;const e=elig(t,b,P.rules);if(!e.ok)return false;if(p.ph===1)return rank(b,P).slice(0,P.rules.match.topN).some(x=>x.t.id===t.id);return true;}
+ const mmss=m=>{const s=Math.max(0,Math.round(m*60));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+ return {DEF,pub,reqOf,elig,rank,phase,visible,load,hav,mmss,UP};})();
+// ---- FilmPro Film seal (shared in Tech, Inspect, Handover): tamper-evident seal sticker number + roll numbers per job package
+const FPF=(()=>{const K='filmpro_film_v1',WK='filmpro_warranty_v1',J=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d;}catch(e){return d;}},W=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+ const h=s=>{let x=5381;for(const c of String(s))x=((x<<5)+x+c.charCodeAt(0))>>>0;return x.toString(36).toUpperCase().padStart(7,'0').slice(-7);};
+ const U=s=>String(s||'').trim().toUpperCase();
+ function code(p){const b=[ 'FP1',p.job,(p.rolls||[]).join(','),U(p.brand),p.series||'',p.shade||'',p.seal].join('|');return b+'|'+h(b);}
+ function parse(c){const a=String(c||'').trim().split('|');if(a[0]!=='FP1'||a.length!==8)return null;if(h(a.slice(0,7).join('|'))!==a[7])return {bad:'รหัสถูกแก้ไข/ปลอม (checksum ไม่ตรง)'};return {job:a[1],rolls:a[2].split(',').filter(Boolean),brand:a[3],series:a[4],shade:a[5],seal:a[6]};}
+ const all=()=>J(K,{}),get=id=>all()[id],put=(id,o)=>{const A=all();A[id]={...(A[id]||{}),...o};W(K,A);return A[id];};
+ function alert_(id,msg){const A=all(),r=A[id]||(A[id]={});(r.alerts=r.alerts||[]).push({at:Date.now(),msg});W(K,A);}
+ // validate a scanned code for a job; filmStr e.g. "3M Crystalline"
+ function check(c,job,filmStr){const p=parse(c);if(!p)return {ok:false,why:'ไม่ใช่รหัส FilmPro'};if(p.bad)return {ok:false,why:p.bad};const r=get(job);
+  if(p.job!==job)return {ok:false,why:`รหัสเป็นของงาน ${p.job} ไม่ใช่ ${job}`,p};if(!r||!r.code)return {ok:false,why:'ไม่พบแพ็กเกจฟิล์มของงานนี้ในระบบ',p};
+  if(r.code!==String(c).trim())return {ok:false,why:'รหัสไม่ตรงกับแพ็กเกจที่บริษัทส่ง (ซีล/ม้วนไม่ตรง)',p};
+  if(filmStr&&!U(filmStr).startsWith(U(p.brand)+' '+U(p.series).split(' ')[0])&&!U(filmStr).includes(U(p.series)))return {ok:false,why:`ฟิล์มในซีล (${p.brand} ${p.series}) ไม่ตรงกับที่ลูกค้าเลือก (${filmStr})`,p};
+  return {ok:true,p,r};}
+ // seal-number check (tamper-evident sticker); returns {ok,why,r}
+ function sealCheck(job,seal){const r=get(job),v=U(seal);if(!v)return {ok:false,why:'กรอกเลขซีล'};if(!r||!r.seal)return {ok:false,why:'ไม่พบแพ็กเกจฟิล์มของงานนี้ในระบบ'};
+  if(U(r.seal)!==v){const o=Object.entries(all()).find(([k,x])=>U(x.seal)===v);return {ok:false,why:o?`เลขซีล ${seal} เป็นของงาน ${o[0]} ไม่ใช่ ${job} (สงสัยสลับฟิล์ม)`:`เลขซีล ${seal} ไม่ตรงกับแพ็กของงานนี้`,r};}
+  return {ok:true,r};}
+ function wcode(job,roll,card){return 'W-'+h(job+'|'+roll+'|'+card);}
+ const war=()=>J(WK,{}),warPut=(c,o)=>{const A=war();A[c]=o;W(WK,A);};
+ return {code,parse,all,get,put,check,sealCheck,alert:alert_,hash:h,wcode,war,warPut};})();
+// ---- FilmPro Auto-assign (shared, identical in Inspect & Tech): system offers job to best tech, confirm within timeout, decline/timeout -> next
+const FPA=(()=>{const AK='filmpro_assign_v1',CK='filmpro_claims_v1',BK='filmpro_bookings_v1',J=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d;}catch(e){return d;}},W=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+ const conf=P=>(P.rules.assign&&+P.rules.assign.confirmMin)||30;
+ function offerNext(b,A,P,now){const skip=new Set(A.history.map(h=>h.tech)),rk=FPM.rank(b,P).filter(x=>!skip.has(x.t.id));
+  if(!rk.length){A.state='none';A.tech=null;A.noneAt=now;return;}const x=rk[0];A.state='offered';A.tech=x.t.id;A.score=x.e.score;A.offeredAt=now;A.expires=now+conf(P)*6e4;}
+ function tick(now=Date.now()){const P=FPM.pub();if(!P.techs.length)return J(AK,{});const S=J(AK,{}),C=J(CK,{});let ch=false;
+  J(BK,[]).filter(b=>b.status!=='cancelled'&&(!b.deposit||b.deposit.status==='paid')).forEach(b=>{if(C[b.id]&&C[b.id].tech){if(S[b.id]&&S[b.id].state==='offered'){S[b.id].state='accepted';ch=true;}return;}
+   let A=S[b.id];if(!A){A=S[b.id]={history:[],state:'new'};offerNext(b,A,P,now);ch=true;return;}
+   if(A.state==='offered'&&now>=A.expires){A.history.push({tech:A.tech,res:'timeout',at:A.expires});offerNext(b,A,P,now);ch=true;}});
+  if(ch)W(AK,S);return S;}
+ function accept(bid,tid,now=Date.now()){const S=tick(now),A=S[bid];if(!A||A.state!=='offered'||A.tech!==tid)return 'งานนี้ไม่ได้มอบให้คุณแล้ว (หมดเวลา/มอบให้คนอื่น)';
+  A.state='accepted';A.history.push({tech:tid,res:'accept',at:now});W(AK,S);const C=J(CK,{});C[bid]={tech:tid,at:now,by:'system'};W(CK,C);return '';}
+ function decline(bid,tid,reason,now=Date.now()){const S=tick(now),A=S[bid];if(!A||A.state!=='offered'||A.tech!==tid)return 'งานนี้ไม่ได้มอบให้คุณแล้ว';
+  A.history.push({tech:tid,res:'decline',reason:reason||'',at:now});const b=J(BK,[]).find(x=>x.id===bid);offerNext(b,A,FPM.pub(),now);W(AK,S);return '';}
+ function admin(bid,tid,reason,now=Date.now()){const S=J(AK,{}),A=S[bid]=S[bid]||{history:[]},C=J(CK,{});
+  if(tid){A.state='admin';A.tech=tid;A.history.push({tech:tid,res:'admin',reason:reason||'',at:now});C[bid]={tech:tid,at:now,by:'admin',reason:reason||''};}
+  else{delete C[bid];A.state='new';A.tech=null;A.history=[];delete S[bid];}W(AK,S);W(CK,C);}
+ function stats(){const o={};Object.values(J(AK,{})).forEach(A=>(A.history||[]).forEach(h=>{const s=o[h.tech]=o[h.tech]||{offer:0,accept:0,decline:0,timeout:0};if(h.res!=='admin')s.offer++;if(s[h.res]!=null)s[h.res]++;}));
+  Object.values(J(AK,{})).forEach(A=>{if(A.state==='offered'){const s=o[A.tech]=o[A.tech]||{offer:0,accept:0,decline:0,timeout:0};s.offer++;}});return o;}
+ return {tick,accept,decline,admin,stats,all:()=>J(AK,{}),conf};})();
+
+
+const BK_KEY='filmpro_bookings_v1',CL_KEY='filmpro_claims_v1',PUB_KEY='filmpro_techpub_v1',ME_KEY='filmpro_me';
+// techpub (published by FilmPro Tech): {techs:[{id,name,level,lat,lng,area,brands:[],ws,sun}],rules:{premium:[],premiumLevel,wsSunLevel,radius:{1..4}}}
+const DEF_RULES=FPM.DEF;
+const LS_=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d;}catch(e){return d;}};
+const pub=FPM.pub,claims=()=>LS_(CL_KEY,{}),bookings=()=>LS_(BK_KEY,[]),UP=FPM.UP,elig=FPM.elig,reqOf=FPM.reqOf;
+let ME=localStorage.getItem(ME_KEY)||'';
+let declWhy={};
+function act(bid,ok){if(!ME)return;let e;if(ok)e=FPA.accept(bid,ME);else{const r=declWhy[bid]||'';if(!r)return alert('เลือกเหตุผลที่ปฏิเสธ');e=FPA.decline(bid,ME,r);}
+ if(e)alert(e);else{toast(ok?'✅ ยืนยันรับงาน '+bid:'ปฏิเสธงาน '+bid+' แล้ว — ระบบส่งต่อให้ช่างคนถัดไป');if(ok){syncBookings();tab='list';}}render();}
+function vBoard(){const P=pub(),t=P.techs.find(x=>x.id===ME),S=FPA.tick(),B=bookings(),st=FPA.stats()[ME]||{};
+ if(!t)return `<div class="card p-4 text-sm">เลือกช่างที่มุมบน${P.techs.length?'':'<div class="text-xs text-gray-500 mt-1">ยังไม่มีข้อมูลช่างจาก FilmPro Tech (เปิดหน้า Tech หรือกด ข้อมูลตัวอย่าง)</div>'}</div>`;
+ const L=B.filter(b=>S[b.id]&&S[b.id].state==='offered'&&S[b.id].tech===ME);
+ return `<div class="card p-3 mb-3 text-sm"><b>${esc(t.name)}</b> <span class="pill bg-blue-100 text-blue-700">L${t.level}</span>${t.verified?' <span class="pill bg-emerald-100 text-emerald-700">✔ Verified</span>':''}
+ <div class="text-xs text-gray-500">ระบบมอบงานให้อัตโนมัติตามคะแนนความเหมาะสม · ต้องยืนยันภายใน ${FPA.conf(P)} นาที · รับแล้ว ${st.accept||0} · ปฏิเสธ ${st.decline||0} · หมดเวลา ${st.timeout||0}</div></div>
+ ${(()=>{const F=FPF.all(),mine=D.jobs.filter(j=>j.inst===ME&&F[j.id]);if(!mine.length)return '';return `<div class="card p-3 mb-3"><h2 class="font-semibold">📦 ฟิล์มที่บริษัทส่งให้</h2>${mine.map(j=>{const r=F[j.id];return `<div class="flex justify-between items-center text-sm border-t py-1"><span>${esc(j.id)}${r.status!=='shipped'?' · ซีล '+esc(r.seal):''}${r.tracking?' · พัสดุ '+esc(r.tracking):''}</span><span class="pill ${r.status==='received'||r.status==='used'?'bg-emerald-100 text-emerald-700':'bg-amber-100 text-amber-700'}">${r.status==='received'?'รับแล้ว':r.status==='used'?'ใช้แล้ว':r.status==='shipped'?'กำลังส่ง':'เตรียมแพ็ก'}</span></div>
+ ${r.status==='shipped'?`<div class="grid grid-cols-2 gap-2 mb-2"><div>${rcvBox(j.id)}</div><div><input id="rs_${j.id}" placeholder="พิมพ์เลขซีลบนสติกเกอร์"><button class="btn w-full py-2 mt-1 text-sm" onclick="receiveFilm('${j.id}')">ยืนยันรับฟิล์ม</button></div></div>`:''}`;}).join('')}
+</div>`;})()}
+ <h2 class="font-semibold mb-2">งานที่ระบบมอบให้ รอยืนยัน (${L.length})</h2>
+ ${L.map(b=>{const A=S[b.id],e=elig(t,b,P.rules),c=b.car||{},f=b.film||{},left=(A.expires-Date.now())/6e4;return `<div class="card p-3 mb-2 text-sm border-blue-300"><div class="flex justify-between"><b>${esc(b.id)}</b><span class="pill ${left<5?'bg-red-100 text-red-700':'bg-amber-100 text-amber-700'}">⏱ เหลือ ${FPM.mmss(left)}</span></div>
+ <div class="flex flex-wrap gap-1 my-1 text-[11px]"><span class="pill bg-blue-600 text-white">Match ${A.score}</span>${e.q.hi?'<span class="pill bg-amber-100 text-amber-700">งานราคาสูง</span>':''}<span class="pill bg-gray-100 text-gray-600">งานค้าง ${e.load}</span></div>
+ <div class="text-xs text-gray-600">📅 ${esc(b.date)} ${esc(b.time)} · 📍${esc(b.location)} ${e.km!=null?`· <b>${e.km.toFixed(1)} กม.</b>`:''}</div>
+ <div class="text-xs">🚗 ${esc(c.brand)} ${esc(c.model)}${b.sunroof&&b.sunroof!=='ไม่มี'?' · '+esc(b.sunroof):''} · 🎞 ${esc(UP(f.brand))} ${esc(f.series)} · 💰 ${b.price?Number(b.price).toLocaleString()+' บาท':'-'}</div>
+ <div class="grid grid-cols-2 gap-2 mt-2"><button class="btn py-2" onclick="act('${b.id}',true)">✔ ยืนยันรับงาน</button><button class="btn2 py-2 text-red-600" onclick="act('${b.id}',false)">✕ ปฏิเสธ</button></div>
+ <select class="mt-1 text-xs" onchange="declWhy['${b.id}']=this.value"><option value="">เหตุผลถ้าปฏิเสธ…</option>${['ไม่ว่างวัน/เวลานั้น','ไกลเกินไป','ไม่มีอุปกรณ์/ฟิล์มรุ่นนี้','ป่วย/ลา','อื่น ๆ'].map(r=>`<option ${declWhy[b.id]===r?'selected':''}>${r}</option>`).join('')}</select></div>`;}).join('')||'<div class="text-center text-sm text-gray-400">ไม่มีงานรอยืนยัน</div>'}`;}
+let rcvPh={};
+function rcvBox(id){return `<label class="block cursor-pointer">${rcvPh[id]?`<img class="ph" src="${rcvPh[id]}">`:'<div class="phx">📷 รูปแพ็ก/ซีล *</div>'}<input type="file" accept="image/*" capture="environment" class="hidden" onchange="shrink(this.files[0],u=>{rcvPh['${id}']=u;render()})"></label>`;}
+function receiveFilm(id){const seal=($('rs_'+id)||{}).value||'';if(!rcvPh[id])return alert('ถ่ายรูปแพ็กและซีลก่อน');const v=FPF.sealCheck(id,seal);
+ if(!v.ok){FPF.alert(id,'ตอนรับฟิล์ม: '+v.why+' (ช่าง '+ME+')');return alert('❌ '+v.why+' — แจ้ง admin แล้ว');}if(v.r.status==='prepare')return alert('บริษัทยังไม่ได้จัดส่งแพ็กนี้');
+ FPF.put(id,{status:'received',recvAt:Date.now(),recvBy:ME,recvPhoto:rcvPh[id]});delete rcvPh[id];toast('✅ รับฟิล์มงาน '+id+' แล้ว');render();}
+function sealCheckStep(){const h=I(),seal=($('sealNo')||{}).value||'',v=FPF.sealCheck(cur,seal);h.seal=h.seal||{};h.seal.no=seal.trim();h.seal.at=Date.now();
+ if(!v.ok){h.seal.ok=false;h.seal.why=v.why;FPF.alert(cur,'ก่อนติดตั้ง: '+v.why);save();render();return alert('❌ '+v.why+'\nหยุดงาน — แจ้ง admin แล้ว');}
+ if(!['received','used'].includes(v.r.status)){h.seal.ok=false;h.seal.why='ยังไม่ได้ยืนยันรับฟิล์ม';save();render();return alert('ต้องยืนยันรับฟิล์มก่อน');}
+ h.seal.ok=true;h.seal.why='';h.seal.rolls=v.r.rolls;save();render();toast('✅ เลขซีลตรงกับแพ็กของงานนี้');}
+function setMe(v){ME=v;localStorage.setItem(ME_KEY,v);tab='board';cur=null;render();}
+
+function snap(t){const m=String(t||'').match(/VLT\s*(\d+)/i)||String(t||'').match(/(\d+)\s*%/);if(!m)return '';const v=+m[1];return SHADES.reduce((a,b)=>Math.abs(b-v)<Math.abs(a-v)?b:a);}
+function syncBookings(){let L;try{L=JSON.parse(localStorage.getItem(BK_KEY))||[];}catch(e){return 0;}let n=0;D.seen=D.seen||{};const C=claims();
+ D.jobs.forEach(j=>{if(j.src==='booking'){const t=(C[j.id]||{}).tech||'';if(j.inst!==t&&D.ins[j.id]?.status!=='ตรวจแล้ว'){j.inst=t;n+=0;save();}}});
+ L.forEach(b=>{if(b.status==='cancelled'||job(b.id)||!(C[b.id]&&C[b.id].tech))return;const c=b.car||{},f=b.film||{};
+  const j=mkJob({id:b.id,customer:b.customer,phone:b.phone,brand:c.brand,model:c.model,color:c.color,plate:c.plate,province:c.province,car:[c.brand,c.model].filter(Boolean).join(' '),film:[String(f.brand||'').toUpperCase(),f.series].filter(Boolean).join(' '),inst:C[b.id].tech,createdAt:b.createdAt});
+  Object.assign(j,{src:'booking',carPhoto:c.photo||null,date:b.date||'',time:b.time||'',location:b.location||'',branch:b.branch||'',size:c.size||'',sunroof:b.sunroof||'',vlt:b.vlt||{},wsUp:b.windshieldUpgrade||'',price:b.price??null});
+  D.jobs.push(j);D.seen[j.id]=false;n++;});
+ if(n)save();return n;}
+const unseen=()=>D.jobs.filter(j=>D.seen&&D.seen[j.id]===false).length;
+function myOffers(){const S=FPA.tick();return ME?Object.values(S).filter(A=>A.state==='offered'&&A.tech===ME).length:0;}
+let lastOpen=-1;function openCount(){const C=claims();return bookings().filter(b=>b.status!=='cancelled'&&!(C[b.id]&&C[b.id].tech)).length;}
+function poll(){const o=myOffers();if(lastOpen>=0&&o>lastOpen)toast('📋 ระบบมอบงานใหม่ให้คุณ '+(o-lastOpen)+' งาน — กรุณายืนยัน');lastOpen=o;if(tab==='board'&&!document.querySelector('#app select:focus'))render();const n=syncBookings()+(syncTech()||0);if(n){toast('📥 มีงานใหม่ '+n+' งาน');if(tab==='list')render();else badge();}}
+function toast(m){let t=$('toast');if(!t){t=document.createElement('div');t.id='toast';t.className='fixed bottom-4 left-1/2 -translate-x-1/2 bg-blue-700 text-white text-sm px-4 py-2 rounded-xl shadow z-50';document.body.appendChild(t);}t.textContent=m;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',4000);}
+function badge(){const b=document.querySelectorAll('#tabs button')[1];if(b){const u=unseen();b.innerHTML='งานของฉัน'+(u?` <span class="pill bg-red-500 text-white">${u} ใหม่</span>`:'');}}
+function mkJob(j){return {carPhoto:j.carPhoto||null,id:j.id,customer:j.customer||'',phone:j.phone||'',car:j.car||'',plate:j.plate||'',province:j.province||'',brand:j.brand||'',model:j.model||'',year:j.year||'',color:j.color||'',film:j.film||'',inst:j.inst||'',note:j.note||'',pre:null,createdAt:j.createdAt||now()};}
+function vList(){return `<div class="card p-4 mb-3"><h2 class="font-semibold">งานของฉัน ${ME?'('+esc(ME)+')':'(ทุกช่าง — admin)'}</h2><div class="text-xs text-gray-500">ข้อมูลลูกค้าและรถมาจากหน้าจองคิว/ระบบหลังบ้าน ช่างไม่ต้องกรอก · อัปเดตอัตโนมัติ</div>
+ <div class="flex gap-2 mt-2"><button class="btn2 flex-1 py-2 text-sm" onclick="poll();render()">↻ ดึงงานใหม่</button><button class="btn2 flex-1 py-2 text-sm" onclick="$('imp').click()">นำเข้า JSON งาน</button><input id="imp" type="file" accept=".json" class="hidden" onchange="importJSON(this)"></div>
+ <button class="btn2 w-full py-2 text-sm mt-2" onclick="dl()">ส่งออก JSON → Handover</button></div>
+ ${D.jobs.filter(j=>!ME||j.inst===ME).slice().reverse().map(j=>{const h=D.ins[j.id];return `<div class="card p-3 mb-2 flex justify-between items-center" onclick="open_('${j.id}')"><div><b>${esc(j.id)}</b> ${esc(j.customer)} ${D.seen?.[j.id]===false?'<span class="pill bg-red-500 text-white">ใหม่</span>':''}${j.src==='booking'?' <span class="pill bg-blue-100 text-blue-700">จองคิว</span>':''}<div class="text-xs text-gray-500">${j.date?'📅 '+esc(j.date)+' '+esc(j.time)+' · ':''}${esc(h?carStr(h.car):j.car||'')}${j.location?' · 📍'+esc(j.location):''} ${j.inst?'· ช่าง '+esc(D.inst[j.inst]?.name||j.inst):''}</div></div><span class="pill ${ST_COLOR[h?.status||'กำลังตรวจ']}">${h?.status||'ยังไม่ตรวจ'}</span></div>`;}).join('')||'<div class="text-center text-sm text-gray-400">ยังไม่มีงานที่มอบหมาย — ดึงจาก Tech หรือนำเข้า JSON</div>'}`;}
+function upd(path,v){const h=I(),p=path.split('.');let o=h;while(p.length>1)o=o[p.shift()];o[p[0]]=v;save();}
+function prefillBooking(h,j){if(j.src!=='booking')return;const v=j.vlt||{},sr={'ซันรูฟ 1 ช่อง':['sun1'],'ซันรูฟ 2 ช่อง':['sun1','sun2'],'หลังคาแก้ว':['roof']}[j.sunroof]||[];
+ h.exist=PANELS.map(p=>p[0]).filter(k=>DEF_EXIST.includes(k)||sr.includes(k));const fb=j.film.split(' ')[0]||'',fm=j.film.split(' ').slice(1).join(' ');
+ const z={front:v.front,side:v.frontSide||v.rearSide,rear:v.rear,sun:v.sunroof||v.glassRoof};Object.keys(z).forEach(k=>h.film[k]={brand:fb,model:fm,shade:snap(z[k])});}
+function zoom(src){const o=document.createElement('div');o.className='fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-2';o.onclick=()=>o.remove();o.innerHTML=`<img src="${src}" style="max-width:100%;max-height:100%;border-radius:12px">`;document.body.appendChild(o);}
+function vS1(){const j=job(cur),c=I().car,ro=(n,v)=>`<div><div class="text-[11px] text-gray-500">${n}</div><div class="text-sm font-medium">${esc(v)||'-'}</div></div>`, f=(k,n)=>c[k]?ro(n,c[k]):'';
+ return `<div class="card p-4"><div class="flex justify-between"><h2 class="font-semibold">ข้อมูลงาน</h2><span class="pill bg-gray-100 text-gray-600">🔒 จากระบบหลังบ้าน</span></div>
+ <div class="grid grid-cols-2 gap-3 mt-2">${ro('ลูกค้า',j.customer)}${ro('เบอร์โทร',j.phone)}${ro('ช่าง',D.inst[j.inst]?.name||j.inst)}${ro('ฟิล์มที่สั่ง',j.film)}${j.date?ro('วัน/เวลานัด',j.date+' '+j.time):''}${j.location?ro('สถานที่ติดตั้ง',j.location):''}${j.branch?ro('สาขา',j.branch):''}${j.size?ro('ไซส์รถ',j.size):''}${j.sunroof?ro('ซันรูฟ',j.sunroof):''}${j.price?ro('ราคารวม',Number(j.price).toLocaleString()+' บาท'):''}</div>${j.vlt&&Object.values(j.vlt).some(Boolean)?`<div class="text-xs text-gray-600 mt-2">เฉดที่ลูกค้าเลือก: ${[['front','บานหน้า'],['frontSide','คู่หน้า'],['rearSide','คู่หลัง'],['rear','บานหลัง'],['sunroof','ซันรูฟ'],['sunroof2','ซันรูฟ 2'],['glassRoof','หลังคาแก้ว']].filter(([k])=>j.vlt[k]).map(([k,n])=>n+': '+esc(j.vlt[k])).join(' · ')}${j.wsUp?' · อัปเกรดบานหน้า: '+esc(j.wsUp):''}</div>`:''}${j.note?`<div class="text-xs text-gray-600 mt-2">หมายเหตุ: ${esc(j.note)}</div>`:''}
+ <h2 class="font-semibold mt-4">ข้อมูลรถ <span class="text-[10px] text-gray-400">🔒</span></h2>${j.carPhoto?`<img class="ph mt-2 cursor-zoom-in" src="${j.carPhoto}" onclick="zoom(this.src)">`:'<div class="phx mt-2">ไม่มีรูปรถ</div>'}<div class="grid grid-cols-2 gap-3 mt-2">${f('plate','ทะเบียน')}${f('province','จังหวัด')}${f('brand','ยี่ห้อ')}${f('model','รุ่น')}${f('year','ปี')}${f('color','สีรถ')}</div></div>${nav(null,'s2')}`;}
+function vS2(){const h=I();return `<div class="card p-4 mb-3"><h2 class="font-semibold">กระจกที่มีในรถคันนี้</h2><div class="text-xs text-gray-500 mb-2">ติ๊กบานที่มีจริง ทุกบานที่ติ๊กต้องมีรูป</div><div class="grid grid-cols-2 gap-1">${PANELS.map(([k,n])=>`<label class="flex items-center gap-2 text-sm"><input type="checkbox" ${h.exist.includes(k)?'checked':''} onchange="togEx('${k}',this.checked)">${n}${OPTIONAL.includes(k)?' <span class="text-[10px] text-gray-400">(ถ้ามี)</span>':''}</label>`).join('')}</div></div>
+ <div class="grid grid-cols-2 gap-2">${h.exist.map(k=>{const n=PANELS.find(p=>p[0]===k)[1];return `<div class="card p-2"><div class="text-xs font-medium mb-1">${n} ${h.photo[k]?'<span class="text-emerald-600">✓</span>':'<span class="text-red-500">*</span>'}</div>${photoBox('p:'+k,h.photo[k],n)}</div>`;}).join('')}
+ <div class="card p-2"><div class="text-xs font-medium mb-1">ภายในรถ/แผงประตู ${h.interior?'<span class="text-emerald-600">✓</span>':'<span class="text-red-500">*</span>'}</div>${photoBox('in:x',h.interior,'ภายในรถ')}</div></div>${nav('s1','s3')}`;}
+function togEx(k,on){const h=I();h.exist=PANELS.map(p=>p[0]).filter(x=>x===k?on:h.exist.includes(x));if(!on)delete h.photo[k];save();render();}
+function vS3(){const h=I(),locs=PANELS.filter(p=>h.exist.includes(p[0])).concat([['body','ตัวถัง/สีรถ'],['interior','ภายในรถ']]);
+ return `<div class="card p-4 mb-3"><h2 class="font-semibold">แจ้งตำหนิก่อนติดตั้ง</h2><div class="text-xs text-gray-500">บันทึกทุกจุดที่พบก่อนเริ่มงาน พร้อมรูป เพื่อป้องกันข้อพิพาท</div>
+ <button class="btn w-full py-2 mt-2" onclick="addDef()">+ เพิ่มตำหนิ</button>${h.defects.length?'':'<label class="flex items-center gap-2 text-sm mt-3"><input type="checkbox" '+(h.noDefect?'checked':'')+' onchange="upd(\'noDefect\',this.checked)">ตรวจแล้ว ไม่พบตำหนิ</label>'}</div>
+ ${h.defects.map((d,i)=>`<div class="card p-3 mb-2"><div class="flex justify-between"><b class="text-sm">ตำหนิ #${i+1}</b><button class="text-xs text-red-600" onclick="delDef('${d.id}')">ลบ</button></div>
+ <div class="grid grid-cols-2 gap-2"><div><label class="f">ตำแหน่ง</label><select onchange="setDef('${d.id}','loc',this.value)">${locs.map(([k,n])=>`<option value="${k}" ${d.loc===k?'selected':''}>${n}</option>`).join('')}</select></div>
+ <div><label class="f">ประเภท</label><select onchange="setDef('${d.id}','type',this.value)">${DEFECTS.map(([k,n])=>`<option value="${k}" ${d.type===k?'selected':''}>${n}</option>`).join('')}</select></div></div>
+ <label class="f">รายละเอียด</label><textarea rows="2" oninput="setDef('${d.id}','note',this.value,1)">${esc(d.note)}</textarea><div class="mt-2">${photoBox('d:'+d.id,d.photo,'รูปตำหนิ *')}</div></div>`).join('')}${nav('s2','s4')}`;}
+function addDef(){const h=I();h.defects.push({id:'D'+Date.now(),loc:h.exist[0]||'body',type:'scratch',note:'',photo:null});h.noDefect=false;save();render();}
+function delDef(id){if(!confirm('ลบตำหนินี้?'))return;const h=I();h.defects=h.defects.filter(d=>d.id!==id);save();render();}
+function setDef(id,k,v,quiet){I().defects.find(d=>d.id===id)[k]=v;save();if(!quiet)render();}
+const needSeal=j=>j&&j.src==='booking'&&!!FPF.get(j.id);
+function vS4(){const h=I(),j=job(cur),v=j.vlt||{};
+ const rows=[['front','บานหน้า'],['frontSide','คู่หน้า'],['rearSide','คู่หลัง'],['rear','บานหลัง'],['sunroof','ซันรูฟ'],['sunroof2','ซันรูฟ ช่องที่ 2'],['glassRoof','หลังคาแก้ว']].filter(([k])=>v[k]);
+ const zs=ZONES.filter(z=>zoneUsed(h,z)&&h.film[z[0]].brand);
+ return `<div class="card p-4 mb-3"><div class="flex justify-between"><h2 class="font-semibold">ฟิล์มที่ลูกค้าเลือก</h2><span class="pill bg-gray-100 text-gray-600">🔒 จากการจอง</span></div>
+ <div class="text-sm mt-2">ยี่ห้อ/ซีรีส์: <b>${esc(j.film)||'-'}</b></div>
+ ${rows.length?`<div class="mt-2 divide-y">${rows.map(([k,n])=>`<div class="flex justify-between text-sm py-1"><span class="text-gray-500">${n}</span><span>${esc(v[k])}</span></div>`).join('')}</div>`:zs.length?`<div class="mt-2 divide-y">${zs.map(([k,n])=>{const f=h.film[k];return `<div class="flex justify-between text-sm py-1"><span class="text-gray-500">${n}</span><span>${esc(f.brand+' '+f.model)}${f.shade?' · '+f.shade+'%':''}</span></div>`;}).join('')}</div>`:''}
+ ${j.wsUp?`<div class="text-sm mt-2">อัปเกรดกระจกบานหน้า: <b>${esc(j.wsUp)}</b></div>`:''}</div>
+ ${needSeal(j)?(()=>{const sl=h.seal||{};return `<div class="card p-4 mb-3 ${sl.ok===false?'border-red-300 bg-red-50':''}"><h2 class="font-semibold">🔒 ตรวจซีลฟิล์มก่อนติดตั้ง</h2><div class="text-xs text-gray-500">ถ่ายรูปซีลกันแกะที่ยังสมบูรณ์ แล้วพิมพ์เลขซีล ระบบตรวจว่าตรงกับแพ็กที่บริษัทส่งให้งานนี้</div>
+ <div class="mt-2">${photoBox('seal:x',sl.photo,'รูปซีล (ยังไม่แกะ) *')}</div><div class="flex gap-2 mt-2"><input id="sealNo" placeholder="เลขซีลบนสติกเกอร์" value="${esc(sl.no||'')}"><button class="btn px-3 text-sm" onclick="sealCheckStep()">ตรวจ</button></div>
+ ${sl.ok?`<div class="text-sm text-emerald-700 mt-2">✔ ตรงกัน · ม้วน ${esc((sl.rolls||[]).join(', '))}</div>`:sl.ok===false?`<div class="text-sm text-red-700 mt-2">✕ ${esc(sl.why)} — ห้ามติดตั้ง</div>`:''}</div>`;})():''}
+ <div class="card p-4 mb-3"><label class="flex gap-2 text-sm"><input type="checkbox" ${h.filmOk?'checked':''} onchange="upd('filmOk',this.checked);render()">ตรวจสอบแล้ว ฟิล์มที่จะติดตั้งตรงตามที่ลูกค้าเลือก (ยี่ห้อ รุ่น เฉดสี)</label></div>${nav('s3','s5')}`;}
+function vS5(){const h=I(),m=missing(h);return `<div class="card p-4 mb-3"><h2 class="font-semibold">สรุปผลตรวจ</h2><div class="text-sm">รถ: ${esc(carStr(h.car))} ${h.car.color?'สี'+esc(h.car.color):''}</div>
+ <div class="text-sm">รูปกระจก: ${h.exist.filter(k=>h.photo[k]).length}/${h.exist.length} บาน · ตำหนิ: ${h.defects.length?h.defects.length+' จุด':'ไม่พบ'}</div>
+ ${h.defects.map((d,i)=>`<div class="text-xs text-gray-600">#${i+1} ${(PANELS.find(p=>p[0]===d.loc)||[0,d.loc==='body'?'ตัวถัง':'ภายใน'])[1]} – ${DEFECTS.find(x=>x[0]===d.type)[1]} ${esc(d.note)}</div>`).join('')}
+ <div class="text-sm mt-1">ฟิล์ม: ${esc(filmStr(h)||job(cur).film)||'-'}</div></div>
+ <div class="card p-4 mb-3"><h2 class="font-semibold">ลูกค้ารับทราบ</h2>${[['inform','ลูกค้าได้ตรวจสภาพรถร่วมกับช่าง และรับทราบสภาพกระจกก่อนติดตั้ง'],['defects','ยอมรับว่าตำหนิที่บันทึกไว้มีอยู่ก่อนติดตั้ง ร้านไม่รับผิดชอบตำหนิดังกล่าว'],['film','ยืนยันยี่ห้อ รุ่น และความเข้มฟิล์มตามที่ระบุข้างต้น']].map(([k,n])=>`<label class="flex gap-2 text-sm mt-2"><input type="checkbox" ${h.ack[k]?'checked':''} onchange="upd('ack.${k}',this.checked);render()">${n}</label>`).join('')}
+ <label class="f">ชื่อผู้ลงนาม</label><input value="${esc(h.signer)}" oninput="upd('signer',this.value)"><label class="f">ลายเซ็นลูกค้า *</label><canvas id="sig" class="sig"></canvas><button class="btn2 text-xs px-2 py-1 mt-1" onclick="upd('sig',null);render()">ล้างลายเซ็น</button></div>
+ ${m.length?`<div class="card p-3 mb-3 border-red-200 bg-red-50 text-xs text-red-700"><b>ยังขาด:</b> ${m.map(esc).join(', ')}</div>`:''}
+ <button class="btn w-full py-3" ${m.length?'disabled':''} onclick="finish()">บันทึกและไปขั้นตอนติดตั้ง →</button>${nav('s4',null)}`;}
+function initSig(){const c=$('sig');if(!c)return;const r=c.getBoundingClientRect();c.width=r.width*2;c.height=r.height*2;const x=c.getContext('2d');x.scale(2,2);x.lineWidth=2;x.lineCap='round';x.strokeStyle='#1e293b';
+ if(I().sig){const im=new Image();im.onload=()=>x.drawImage(im,0,0,r.width,r.height);im.src=I().sig;}let dn=false;const p=e=>{const b=c.getBoundingClientRect();return [e.clientX-b.left,e.clientY-b.top];};
+ c.onpointerdown=e=>{dn=true;x.beginPath();x.moveTo(...p(e));};c.onpointermove=e=>{if(dn){x.lineTo(...p(e));x.stroke();}};c.onpointerup=c.onpointerleave=()=>{if(dn){dn=false;upd('sig',c.toDataURL('image/png'));const m=missing(I());document.querySelector('button.btn.w-full').disabled=!!m.length;}};}
+function toJob(id){const j=job(id),h=D.ins[id];const pre={};h.exist.forEach(k=>{if(h.photo[k])pre[k]=h.photo[k];});if(h.interior)pre.interior=h.interior;if(j.carPhoto)pre.car=j.carPhoto;
+ return {id:j.id,customer:j.customer,phone:j.phone,car:carStr(h.car),film:filmStr(h)||j.film,inst:j.inst,pre,carPhoto:j.carPhoto||null,filmRolls:(h.seal&&h.seal.ok&&h.seal.rolls)||null,sealNo:(h.seal&&h.seal.ok&&h.seal.no)||null,createdAt:j.createdAt,inspect:{car:h.car,exist:h.exist,defects:h.defects.map(({photo,...d})=>d),filmZones:h.film,signer:h.signer,doneAt:h.doneAt}};}
+function finish(){const h=I();h.status='ตรวจแล้ว';h.doneAt=now();if(h.seal&&h.seal.ok)FPF.put(cur,{status:'used',used:{rolls:h.seal.rolls,sealOk:true,sealPhoto:!!h.seal.photo,at:Date.now(),by:job(cur).inst}});const j=job(cur),o=toJob(cur);j.car=o.car;j.film=o.film;j.pre=o.pre;save();
+ // push into Handover (Part 3) store on same origin
+ try{const H=JSON.parse(localStorage.getItem(HO_KEY))||{jobs:[],ho:{},inst:{},W:{},S:{redoDays:3},seq:1};H.inst=H.inst||{};if(j.inst)H.inst[j.inst]=H.inst[j.inst]||D.inst[j.inst]||{name:j.inst};const e=H.jobs.findIndex(x=>x.id===o.id);if(e>=0)H.jobs[e]={...H.jobs[e],...o};else H.jobs.push(o);localStorage.setItem(HO_KEY,JSON.stringify(H));alert('บันทึกแล้ว ✓ ส่งข้อมูลงาน '+o.id+' ไป FilmPro Handover เรียบร้อย');}
+ catch(e){alert('บันทึกแล้ว แต่ส่งเข้า Handover ไม่ได้ (พื้นที่เต็ม) — ใช้ปุ่มส่งออก JSON');}tab='list';render();}
+function exportJSON(){return {source:'filmpro-inspect-v1',exportedAt:now(),inst:Object.entries(D.inst).map(([id,v])=>({id,name:v.name})),jobs:D.jobs.filter(j=>D.ins[j.id]?.status==='ตรวจแล้ว').map(j=>toJob(j.id))};}
+function dl(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(exportJSON())],{type:'application/json'}));a.download='filmpro-inspect-'+now().slice(0,10)+'.json';a.click();}
+function importJSON(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);let n=0;const ins=Array.isArray(o.inst)?o.inst:Object.entries(o.inst||{}).map(([id,v])=>({id,...v}));ins.forEach(i=>D.inst[i.id]={name:i.name});(o.jobs||[]).forEach(j=>{if(!job(j.id)){D.jobs.push(mkJob(j));n++;}});save();render();alert('นำเข้า '+n+' งาน');}catch(e){alert('ไฟล์ JSON ไม่ถูกต้อง');}};r.readAsText(f);}
+function demoImg(label,hue){const c=document.createElement('canvas');c.width=320;c.height=240;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,320,240);g.addColorStop(0,`hsl(${hue},45%,35%)`);g.addColorStop(1,`hsl(${hue},45%,15%)`);x.fillStyle=g;x.fillRect(0,0,320,240);x.fillStyle='#fff';x.font='bold 22px Sarabun,sans-serif';x.textAlign='center';x.fillText(label,160,125);return c.toDataURL('image/jpeg',.7);}
+function demoShared(){if(!pub().techs.length)localStorage.setItem(PUB_KEY,JSON.stringify({techs:[{id:'T0001',name:'ช่าง A',status:'active',verified:true,level:4,avg:4.7,lat:13.7563,lng:100.5018,area:'กรุงเทพ',brands:['3M','STEK','XPEL','Lamina'],ws:true,sun:true},{id:'T0002',name:'ช่าง B',status:'active',verified:true,level:3,avg:4.45,lat:13.6900,lng:100.7500,area:'บางนา สมุทรปราการ',brands:['3M','Lamina'],ws:true,sun:true},{id:'T0003',name:'ช่าง C',status:'active',verified:false,level:2,avg:4.1,lat:13.8600,lng:100.5200,area:'นนทบุรี',brands:['Lamina','Hi-Kool'],ws:false,sun:false},{id:'T0004',name:'ช่าง D',status:'active',verified:false,level:1,avg:4.2,lat:14.3500,lng:100.5700,area:'อยุธยา',brands:['Hi-Kool'],ws:false,sun:false}],rules:DEF_RULES}));
+ const B=bookings();if(!B.some(b=>b.demo)){const mk=(id,loc,geo,car,film,sun,price)=>({id,demo:true,createdAt:new Date().toISOString(),status:'booked',customer:'ลูกค้าตัวอย่าง '+id.slice(-1),phone:'08x',location:loc,geo,date:'2026-10-20',time:'10:00',car:{brand:car[0],model:car[1],size:'M',color:'ขาว',plate:'9กก '+id.slice(-3),province:'กรุงเทพฯ'},sunroof:sun,film:{brand:film[0],series:film[1]},vlt:{front:'VLT 70%',frontSide:'VLT 40%',rearSide:'VLT 40%',rear:'VLT 40%'},windshieldUpgrade:'',price});
+  B.push(mk('BDEMO01','สาทร กรุงเทพ',{lat:13.72,lng:100.53},['Toyota','Yaris'],['lamina','Ceramatrix'],'',9000),mk('BDEMO02','บางนา',{lat:13.668,lng:100.634},['BMW','X5'],['3m','Crystalline'],'ซันรูฟ 1 ช่อง',42000),mk('BDEMO03','อยุธยา',null,['Honda','City'],['hi-kool','Ceramic'],'',6500));localStorage.setItem(BK_KEY,JSON.stringify(B));}}
+function demo(){demoShared();D=blank();D.inst={'T0001':{name:'ช่างเอก'}};D.jobs=[mkJob({id:'J0001',customer:'คุณสมชาย',phone:'0812345678',car:'Toyota Camry',plate:'1กข 1234',province:'กรุงเทพฯ',brand:'Toyota',model:'Camry',year:'2024',color:'ขาว',film:'3M Crystalline',inst:'T0001',carPhoto:demoImg('รูปรถ: Toyota Camry ขาว',210)}),mkJob({id:'J0002',customer:'คุณมาลี',phone:'0898765432',car:'Honda HR-V',film:'Lamina Ceramatrix',inst:'T0001'})];const h=blankIns();
+ h.car={plate:'1กข 1234',province:'กรุงเทพฯ',brand:'Toyota',model:'Camry',year:'2024',color:'ขาว'};h.exist.forEach((k,i)=>h.photo[k]=demoImg('ก่อน: '+PANELS.find(p=>p[0]===k)[1],20+i*5));h.interior=demoImg('ก่อน: ภายใน',60);
+ h.defects=[{id:'D1',loc:'front',type:'chip',note:'จุดบิ่นเล็กมุมล่างขวา',photo:demoImg('ตำหนิ: บิ่น',0)}];['front','side','rear'].forEach(z=>h.film[z]={brand:'3M',model:'Crystalline',shade:z==='front'?'70':'40'});
+ h.filmOk=true;D.ins.J0001=h;D.seq=2;cur='J0001';tab='s5';save();render();}
+load();syncTech();syncBookings();render();addEventListener('storage',e=>{if(e.key===BK_KEY||e.key==='filmpro_tech_v1')poll();});setInterval(poll,5000);
+</script><script>
+// v2: show customer's 4 booking photos (unified schema: car.photo + carPhotos{front,rear,left,right}) on step 1
+(function(){const _v1=vS1;vS1=function(){let h=_v1();try{const b=(JSON.parse(localStorage.getItem('filmpro_bookings_v1'))||[]).find(x=>x.id===cur);const P=b&&b.carPhotos||{};const L=[['front','หน้ารถ'],['rear','หลังรถ'],['left','ข้างซ้าย'],['right','ข้างขวา']].filter(([k])=>P[k]);
+ if(L.length)h+=`<div class="card p-4 mb-3"><h2 class="font-semibold">รูปรถจากลูกค้า (ตอนจอง)</h2><div class="text-xs text-gray-500 mb-2">${esc(b.car.color||'')} · ${esc(b.car.plate||'')} ${esc(b.car.province||'')}${b.deposit?' · มัดจำ: '+({paid:'ชำระแล้ว',unpaid:'ยังไม่ชำระ',refunded:'คืนแล้ว'}[b.deposit.status]||'-'):''}</div><div class="grid grid-cols-2 gap-2">${L.map(([k,n])=>`<div><img src="${P[k]}" class="rounded-lg w-full aspect-[4/3] object-cover" onclick="zoom(this.src)"><div class="text-[11px] text-gray-500 text-center">${n}</div></div>`).join('')}</div></div>`;}catch(e){}return h;};})();
+</script>
+<script>/* FilmPro Suite nav — links every page of the suite (same origin = shared localStorage) */
+(function(){var P=[['index.html','หน้าลูกค้า'],['tech.html','หลังบ้าน/ช่าง'],['inspect.html','ตรวจสภาพรถ'],['handover.html','ส่งมอบงาน'],['notify.html','แจ้งเตือนช่าง'],['admin-v2.html','Admin V2']];
+var cur=(location.pathname.split('/').pop()||'index.html');
+function go(){if(document.getElementById('fpSuiteNav'))return;var n=document.createElement('nav');n.id='fpSuiteNav';
+n.style.cssText='display:flex;gap:6px;overflow-x:auto;padding:6px 10px;background:#0E1B2A;font:13px Sarabun,sans-serif;position:relative;z-index:60;-webkit-overflow-scrolling:touch';
+n.innerHTML='<b style="color:#fff;white-space:nowrap;padding:4px 6px 4px 0">FilmPro</b>'+P.map(function(p){var on=p[0]===cur;return '<a href="'+p[0]+'" style="white-space:nowrap;text-decoration:none;padding:4px 10px;border-radius:999px;'+(on?'background:#2563EB;color:#fff':'color:#cbd5e1;border:1px solid #334155')+'">'+p[1]+'</a>';}).join('');
+document.body.insertBefore(n,document.body.firstChild);}
+if(document.body)go();else document.addEventListener('DOMContentLoaded',go);})();
+</script>
+</body></html>

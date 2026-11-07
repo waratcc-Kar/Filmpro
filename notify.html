@@ -1,0 +1,382 @@
+<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FilmPro ช่าง — แจ้งเตือน</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232563eb'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'%3EF%3C/text%3E%3C/svg%3E">
+<script src="https://cdn.tailwindcss.com"></script><style>@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap');body{font-family:'Sarabun',sans-serif;background:#f1f5f9}.fpx{font-family:'Sarabun',sans-serif;color:#1e293b}
+.fpx .card{background:#fff;border:1px solid #e2e8f0;border-radius:20px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.fpx .fbtn{background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%);border-radius:12px;color:#fff;padding:10px 14px;display:inline-block;text-align:center}
+.fpx .fbtn2{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:8px 12px;display:inline-block;text-align:center}
+.fpx .fred{background:#ef4444;color:#fff;border-radius:12px;padding:8px 12px}.fpx .fgreen{background:#10b981;color:#fff;border-radius:12px;padding:8px 12px}
+.fpx input:not([type=checkbox]):not([type=radio]):not([type=file]),.fpx select,.fpx textarea{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:10px 12px;width:100%}
+.fpx input[type=checkbox]{width:18px;height:18px;accent-color:#2563eb;flex:none;-webkit-appearance:checkbox!important;appearance:auto!important;opacity:1!important;display:inline-block!important}
+.fpx label.f{display:block;font-size:13px;font-weight:600;margin:10px 0 4px}
+.fpx .ftab{white-space:nowrap;border-radius:10px;padding:6px 12px;font-size:13px;background:#fff;border:1px solid #e2e8f0}.fpx .ftab.on{background:#2563eb;color:#fff;border-color:#2563eb}
+.fpx .pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px}
+.fpx .kpi{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:12px}.fpx .kpi b{display:block;font-size:20px;color:#1e40af}
+.fpx .qr svg{width:100%;height:auto;max-width:260px;margin:auto;display:block}
+.fpx h2{color:#1e40af}
+</style>
+<script>
+/* =====================================================================
+ * FilmPro Suite — shared data layer (store.js)
+ * One job id across all apps: the booking id (e.g. FP2610A3K9) is used as
+ * job id by Booking, Inspect, Tech, Handover, payments, claims and stock.
+ *
+ * Storage: an adapter with get/set/del/keys. LocalAdapter (localStorage) is
+ * active now. backend/supabase-adapter.js documents the same interface for a
+ * central DB (see backend/schema.sql). Existing apps (Inspect/Tech/Handover)
+ * still read their own localStorage keys; FP.sync() bridges them.
+ *
+ * Unified booking/job record (key 'filmpro_bookings_v1', array):
+ * { id, createdAt, status:'booked'|'cancelled', customer, phone, location,
+ *   geo:{lat,lng}|null, date:'YYYY-MM-DD', time:'HH:MM',
+ *   slot:{start,end,durationMin}, tech:null|techId (mirror of claims),
+ *   car:{brand,model,size,color,plate,province,photo /*=front*\/},
+ *   carPhotos:{front,rear,left,right}, sunroof, film:{brand,series},
+ *   vlt:{front,frontSide,rearSide,rear,sunroof,sunroof2,glassRoof},
+ *   windshieldUpgrade, price /*customer price, null=สอบถามราคา*\/,
+ *   coupon:{code,discount}|null, total, deposit:{amount,status,paidAt,payId},
+ *   consent:{pdpa:true,version,at}, history:[{at,ev,by,note}] }
+ * ===================================================================== */
+/* FilmPro shared data layer (inlined copy, identical in every FilmPro file — keys filmpro_*) */
+(function (W) {
+  if (W.FP) return;
+  'use strict';
+  const K = { bookings: 'filmpro_bookings_v1', claims: 'filmpro_claims_v1', assign: 'filmpro_assign_v1', techpub: 'filmpro_techpub_v1',
+    tech: 'filmpro_tech_v1', inspect: 'filmpro_inspect_v1', handover: 'filmpro_handover_v1', ratings: 'filmpro_ratings_v1',
+    warranty: 'filmpro_warranty_v1', film: 'filmpro_film_v1', suite: 'filmpro_suite_v1', session: 'filmpro_session' };
+
+  // ---------- adapter (swap for a remote adapter later) ----------
+  const LocalAdapter = {
+    name: 'localStorage',
+    get(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { console.warn('storage full', e); alert('พื้นที่เก็บข้อมูลในเครื่องเต็ม — กรุณาสำรองข้อมูล (Backup) แล้วลบข้อมูลเก่า'); return false; } },
+    del(k) { localStorage.removeItem(k); },
+    keys() { return Object.keys(localStorage).filter(k => k.startsWith('filmpro')); }
+  };
+  let A = LocalAdapter;
+  const get = (k, d) => A.get(k, d), set = (k, v) => A.set(k, v);
+
+  const DAY = 864e5, now = () => Date.now();
+  const DEF = {
+    settings: { shop: 'FilmPro', phone: '02-000-0000', promptpay: '0812345678', promptpayName: 'FilmPro', depositPct: 30, depositMin: 500, depositAsk: 1000,
+      open: '09:00', close: '18:00', slotStep: 60, travelMin: 60, crews: 2, cancelHours: 24, lowStockM: 15, consentVersion: 'v1-2026-10',
+      pins: { admin: '1234', finance: '5678', installer: '0000' }, lineId: '@filmpro', email: 'contact@filmpro.example', hours: 'ทุกวัน 09:00–18:00', area: 'กรุงเทพฯ และปริมณฑล (ช่างไปติดตั้งถึงที่)', showFloat: true },
+    duration: { 'C': 180, 'S|4D': 180, 'M': 210, 'L': 240, 'XL': 270, 'XXL': 300, 'GIGA': 330, sunroof: 60 },
+    usageM: { 'C': 7, 'S|4D': 8, 'M': 9, 'L': 11, 'XL': 13, 'XXL': 15, 'GIGA': 17 },
+    avail: {}, payments: [], refunds: [], notifications: [], coupons: [], prices: {}, catalog: {}, stock: [], stockUsed: {},
+    wclaims: [], pdpa: [], consents: [], otp: {}, audit: [], seq: { rc: 0, cl: 0, pay: 0 },
+    templates: {
+      booked: 'สวัสดีคุณ{name} FilmPro ได้รับการจอง {id} วันที่ {date} {time} แล้ว กรุณาชำระมัดจำ {amount} บาท ติดตามสถานะ: {link}',
+      deposit_paid: 'ได้รับมัดจำ {amount} บาท สำหรับงาน {id} แล้ว ใบเสร็จ: {link}',
+      assigned: 'งาน {id} ได้ช่าง {tech} แล้ว นัดหมาย {date} {time}',
+      reminder: 'แจ้งเตือน: พรุ่งนี้ {date} {time} ช่าง FilmPro จะเข้าติดตั้งฟิล์ม (งาน {id})',
+      rescheduled: 'เลื่อนนัดงาน {id} เป็น {date} {time} เรียบร้อย',
+      cancelled: 'ยกเลิกงาน {id} แล้ว {note}',
+      handover: 'ส่งมอบงาน {id} เรียบร้อย ดูใบส่งมอบและการรับประกัน: {link} ยอดคงเหลือ {amount} บาท',
+      rating: 'ขอบคุณที่ใช้บริการ FilmPro ช่วยให้คะแนนช่างได้ที่ {link}',
+      claim_received: 'ได้รับเรื่องเคลม {note} ของงาน {id} แล้ว ทีมงานจะติดต่อกลับภายใน 2 วันทำการ',
+      claim_decided: 'ผลการพิจารณาเคลม งาน {id}: {note}',
+      refund: 'คืนเงิน {amount} บาท งาน {id} เรียบร้อย',
+      low_stock: '[แอดมิน] ฟิล์มม้วน {note} เหลือน้อย',
+      tech_offer: '[ช่าง] งานใหม่ {id} {date} {time} รถ {note} — กดรับงานในแอปช่างภายในเวลาที่กำหนด',
+      tech_reminder: '[ช่าง] พรุ่งนี้ {date} {time} งาน {id} ที่ {note}',
+      tech_redo: '[ช่าง] งาน {id} มีเคลม/ต้องแก้ไข: {note}',
+      tech_payout: '[ช่าง] โอนค่าแรง {amount} บาท เรียบร้อย'
+    }
+  };
+  function suite() { const s = get(K.suite, null) || {}; for (const k in DEF) if (s[k] === undefined) s[k] = JSON.parse(JSON.stringify(DEF[k]));
+    s.settings = { ...DEF.settings, ...s.settings, pins: { ...DEF.settings.pins, ...(s.settings || {}).pins } }; s.templates = { ...DEF.templates, ...s.templates }; return s; }
+  function saveSuite(s) { return set(K.suite, s); }
+  function mut(fn) { const s = suite(); const r = fn(s); saveSuite(s); return r; }
+
+  // ---------- helpers ----------
+  const pad = (n, l = 2) => String(n).padStart(l, '0');
+  const ymd = d => { d = new Date(d); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+  const toMin = t => { const [h, m] = String(t || '0:0').split(':').map(Number); return h * 60 + (m || 0); };
+  const toHM = m => pad(Math.floor(m / 60)) + ':' + pad(m % 60);
+  const money = n => n == null || isNaN(n) ? '-' : Number(n).toLocaleString('th-TH', { maximumFractionDigits: 2 }) + ' บาท';
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const normPhone = p => String(p || '').replace(/\D/g, '');
+  function newId() { const d = new Date(), r = Math.random().toString(36).slice(2, 6).toUpperCase(); return 'FP' + String(d.getFullYear()).slice(2) + pad(d.getMonth() + 1) + pad(d.getDate()) + r; }
+
+  // ---------- session / roles (MOCK auth) ----------
+  const ROLES = { customer: 'ลูกค้า', installer: 'ช่าง', admin: 'แอดมิน', finance: 'การเงิน' };
+  const auth = {
+    me() { return get(K.session, null); },
+    sendOtp(phone) { phone = normPhone(phone); if (phone.length < 9) return { ok: false, why: 'เบอร์โทรไม่ถูกต้อง' };
+      const code = String(Math.floor(100000 + Math.random() * 900000)); mut(s => { s.otp[phone] = { code, exp: now() + 5 * 6e4 }; }); return { ok: true, code /* MOCK: shown on screen instead of SMS */ }; },
+    verifyOtp(phone, code) { phone = normPhone(phone); const o = suite().otp[phone]; if (!o || o.exp < now() || o.code !== String(code).trim()) return { ok: false, why: 'รหัส OTP ไม่ถูกต้องหรือหมดอายุ' };
+      mut(s => { delete s.otp[phone]; }); set(K.session, { role: 'customer', phone, name: phone, at: now() }); audit('login', 'customer', phone); return { ok: true }; },
+    loginStaff(role, pin, techId) { const s = suite(); if (!['admin', 'finance', 'installer'].includes(role)) return { ok: false, why: 'บทบาทไม่ถูกต้อง' };
+      if (String(pin) !== String(s.settings.pins[role])) return { ok: false, why: 'PIN ไม่ถูกต้อง' };
+      let name = ROLES[role]; if (role === 'installer') { const t = techs().find(x => x.id === techId); if (!t) return { ok: false, why: 'เลือกช่าง' }; name = t.name; localStorage.setItem('filmpro_me', techId); }
+      set(K.session, { role, techId: techId || null, name, at: now() }); audit('login', role, name); return { ok: true }; },
+    logout() { const m = auth.me(); if (m) audit('logout', m.role, m.name); A.del(K.session); },
+    can(roles) { const m = auth.me(); return !!m && (roles.includes(m.role)); },
+    // Blocks the page with an overlay unless the session has one of `roles`.
+    guard(roles, base = '') { if (auth.can(roles)) return true; const go = () => { const d = document.createElement('div'); d.id = 'fpGuard';
+        d.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.92);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Sarabun,sans-serif';
+        d.innerHTML = `<div style="background:#fff;border-radius:20px;padding:24px;max-width:360px;width:100%;text-align:center"><div style="font-size:18px;font-weight:700;color:#1e40af">ต้องเข้าสู่ระบบ</div><div style="font-size:14px;color:#475569;margin:8px 0 16px">หน้านี้สำหรับ: ${roles.map(r => ROLES[r]).join(' / ')}</div><a href="${base}login.html?next=${encodeURIComponent(location.pathname.split('/').pop() + location.search + location.hash)}" style="display:block;background:#2563eb;color:#fff;border-radius:12px;padding:12px">เข้าสู่ระบบ</a><a href="${base}index.html" style="display:block;margin-top:10px;color:#2563eb;font-size:14px">กลับหน้าหลัก</a></div>`;
+        document.body.appendChild(d); };
+      if (document.body) go(); else document.addEventListener('DOMContentLoaded', go); return false; }
+  };
+
+  // ---------- audit ----------
+  function audit(act, target, detail) { try { const m = get(K.session, null); mut(s => { s.audit.push({ at: now(), actor: m ? m.role + ':' + m.name : 'guest', act, target: String(target ?? ''), detail: detail == null ? '' : (typeof detail === 'string' ? detail : JSON.stringify(detail).slice(0, 300)) }); if (s.audit.length > 5000) s.audit.splice(0, s.audit.length - 5000); }); } catch (e) { } }
+
+  // ---------- bookings ----------
+  const bookings = { all() { return get(K.bookings, []); }, get(id) { return bookings.all().find(b => b.id === id); },
+    save(b) { const L = bookings.all(), i = L.findIndex(x => x.id === b.id); if (i < 0) L.push(b); else L[i] = b; set(K.bookings, L); return b; },
+    hist(b, ev, note) { const m = auth.me(); (b.history = b.history || []).push({ at: now(), ev, by: m ? m.role : 'customer', note: note || '' }); },
+    find(id, phone) { const b = bookings.get(String(id || '').trim().toUpperCase()); return b && normPhone(b.phone) === normPhone(phone) ? b : null; },
+    create(o) { const s = suite(); const id = newId(); const total = o.price == null ? null : Math.max(0, o.price - ((o.coupon && o.coupon.discount) || 0));
+      const dep = depositFor(total, s.settings);
+      const b = { id, createdAt: new Date().toISOString(), status: 'booked', tech: null, ...o, total, deposit: { amount: dep, status: 'unpaid', paidAt: null, payId: null },
+        history: [], consent: o.consent && o.consent.pdpa === false ? { pdpa: false } : { pdpa: true, version: s.settings.consentVersion, at: now() } };
+      bookings.hist(b, 'จองแล้ว'); bookings.save(b);
+      mut(x => { if (b.consent.pdpa) x.consents.push({ bid: id, phone: b.phone, version: s.settings.consentVersion, at: now(), scope: 'booking,photos,location' }); if (o.coupon) { const c = x.coupons.find(c => c.code === o.coupon.code); if (c) c.used = (c.used || 0) + 1; } });
+      audit('booking.create', id, { total, dep }); notify('booked', id, { amount: dep }); return b; },
+    applyCoupon(id, code) { const b = bookings.get(id); if (!b) return { ok: false, why: 'ไม่พบงาน' }; if (b.deposit.status !== 'unpaid') return { ok: false, why: 'ชำระมัดจำแล้ว ใช้โค้ดไม่ได้' }; if (b.coupon) return { ok: false, why: 'ใช้โค้ดไปแล้ว' };
+      const c = coupon.check(code, b.price); if (!c.ok) return c; b.coupon = { code: c.code, discount: c.discount }; b.total = Math.max(0, b.price - c.discount); b.deposit.amount = depositFor(b.total);
+      bookings.hist(b, 'ใช้โค้ดส่วนลด', c.code); bookings.save(b); mut(x => { const k = x.coupons.find(y => y.code === c.code); if (k) k.used = (k.used || 0) + 1; x.payments.filter(p => p.bid === id && p.status === 'pending').forEach(p => p.status = 'void'); }); audit('coupon.use', id, c.code); return { ok: true, discount: c.discount }; },
+    consent(id) { const b = bookings.get(id); if (!b) return; const v = suite().settings.consentVersion; b.consent = { pdpa: true, version: v, at: now() }; bookings.save(b); mut(x => { x.consents.push({ bid: id, phone: b.phone, version: v, at: now(), scope: 'booking,photos,location' }); }); audit('pdpa.consent', id, v); },
+    cancel(id, reason) { const b = bookings.get(id); if (!b) return { ok: false, why: 'ไม่พบงาน' }; const st = stage(b); if (st.key === 'inspected' || st.key === 'handover' || st.key === 'done') return { ok: false, why: 'งานเริ่มแล้ว ยกเลิกไม่ได้' };
+      b.status = 'cancelled'; bookings.hist(b, 'ยกเลิก', reason); bookings.save(b);
+      const C = get(K.claims, {}); delete C[id]; set(K.claims, C);
+      let refund = null; if (b.deposit.status === 'paid') refund = pay.requestRefund(id, 'ยกเลิกงาน: ' + (reason || ''));
+      audit('booking.cancel', id, reason); notify('cancelled', id, { note: refund ? 'มัดจำจะคืนภายใน 7 วันทำการ' : '' }); return { ok: true, refund }; },
+    reschedule(id, date, time) { const b = bookings.get(id); if (!b) return { ok: false, why: 'ไม่พบงาน' }; if (b.status === 'cancelled') return { ok: false, why: 'งานถูกยกเลิกแล้ว' };
+      const st = stage(b); if (['inspected', 'handover', 'done'].includes(st.key)) return { ok: false, why: 'งานเริ่มแล้ว เลื่อนไม่ได้' };
+      const dur = duration(b.car && b.car.size, b.sunroof); const sl = schedule.slots(date, b.car && b.car.size, b.sunroof, id).find(x => x.time === time);
+      if (!sl || sl.cap <= 0) return { ok: false, why: 'ช่วงเวลานี้เต็มแล้ว' };
+      if (b.tech && !schedule.techFree(b.tech, date, toMin(time), dur, id)) { const C = get(K.claims, {}); delete C[id]; set(K.claims, C); b.tech = null; }
+      const old = b.date + ' ' + b.time; b.date = date; b.time = time; b.slot = { start: time, end: toHM(toMin(time) + dur), durationMin: dur };
+      bookings.hist(b, 'เลื่อนนัด', old + ' → ' + date + ' ' + time); bookings.save(b); audit('booking.reschedule', id, old + '→' + date + ' ' + time); notify('rescheduled', id); return { ok: true }; }
+  };
+  function depositFor(total, S) { S = S || suite().settings; if (total == null) return S.depositAsk; return Math.min(total, Math.max(S.depositMin, Math.round(total * S.depositPct / 100))); }
+
+  // ---------- installers (published by FilmPro Tech) ----------
+  function techs() { const p = get(K.techpub, { techs: [] }); return (p.techs || []).filter(t => t.status !== 'suspended'); }
+  const techName = id => (techs().find(t => t.id === id) || {}).name || id || '-';
+
+  // ---------- scheduling ----------
+  function duration(size, sunroof) { const d = suite().duration; return (d[size] || d.M) + (sunroof && sunroof !== 'ไม่มี' ? d.sunroof : 0); }
+  const schedule = {
+    availOf(tid) { return suite().avail[tid] || { days: [1, 2, 3, 4, 5, 6], start: '09:00', end: '18:00', off: [] }; },
+    setAvail(tid, a) { mut(s => { s.avail[tid] = a; }); audit('avail.set', tid, a); },
+    // intervals [from,to] in minutes for a tech on a date (includes travel buffer)
+    busy(tid, date, exceptId) { const S = suite().settings, C = get(K.claims, {}); return bookings.all().filter(b => b.status !== 'cancelled' && b.id !== exceptId && b.date === date && (C[b.id] || {}).tech === tid)
+      .map(b => { const s = toMin(b.time), d = (b.slot && b.slot.durationMin) || duration(b.car && b.car.size, b.sunroof); return [s - S.travelMin, s + d + S.travelMin, b.id]; }); },
+    works(tid, date, from, dur) { const a = schedule.availOf(tid), wd = new Date(date + 'T00:00:00').getDay(); if (!a.days.includes(wd) || (a.off || []).includes(date)) return false; return from >= toMin(a.start) && from + dur <= toMin(a.end); },
+    techFree(tid, date, from, dur, exceptId) { if (!schedule.works(tid, date, from, dur)) return false; return !schedule.busy(tid, date, exceptId).some(([a, b]) => from < b && from + dur > a); },
+    // capacity per start time = free installers − unassigned bookings overlapping that window
+    slots(date, size, sunroof, exceptId) { const s = suite(), S = s.settings, dur = duration(size, sunroof), T = techs(), C = get(K.claims, {}); const out = [];
+      if (!date) return out; const today = ymd(now()), nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+      const unas = bookings.all().filter(b => b.status !== 'cancelled' && b.id !== exceptId && b.date === date && !(C[b.id] || {}).tech);
+      for (let t = toMin(S.open); t + dur <= toMin(S.close); t += S.slotStep) {
+        if (date < today || (date === today && t <= nowMin + 120)) continue;
+        const free = T.length ? T.filter(x => schedule.techFree(x.id, date, t, dur, exceptId)).length : S.crews - bookings.all().filter(b => b.status !== 'cancelled' && b.id !== exceptId && b.date === date && overlap(b, t, dur, S)).length;
+        const pend = T.length ? unas.filter(b => overlap(b, t, dur, S)).length : 0;
+        out.push({ time: toHM(t), end: toHM(t + dur), cap: Math.max(0, free - pend), dur }); }
+      return out; },
+    freeTechs(bid) { const b = bookings.get(bid); if (!b) return []; const dur = (b.slot && b.slot.durationMin) || duration(b.car && b.car.size, b.sunroof); return techs().filter(t => schedule.techFree(t.id, b.date, toMin(b.time), dur, bid)); },
+    assign(bid, tid, reason) { const b = bookings.get(bid); if (!b) return { ok: false, why: 'ไม่พบงาน' }; if (b.status === 'cancelled') return { ok: false, why: 'งานถูกยกเลิก' };
+      if (b.deposit.status !== 'paid') return { ok: false, why: 'ยังไม่ได้รับมัดจำ' };
+      const dur = (b.slot && b.slot.durationMin) || duration(b.car && b.car.size, b.sunroof); if (!schedule.techFree(tid, b.date, toMin(b.time), dur, bid)) return { ok: false, why: 'ช่างไม่ว่างช่วงเวลานี้ (ชนกับงานอื่น/นอกเวลาทำงาน)' };
+      const C = get(K.claims, {}), AS = get(K.assign, {}); C[bid] = { tech: tid, at: now(), by: 'admin', reason: reason || '' }; const a = AS[bid] = AS[bid] || { history: [] }; a.state = 'admin'; a.tech = tid; a.history.push({ tech: tid, res: 'admin', reason: reason || '', at: now() });
+      set(K.claims, C); set(K.assign, AS); b.tech = tid; bookings.hist(b, 'มอบหมายช่าง', techName(tid)); bookings.save(b); audit('assign', bid, tid); notify('assigned', bid, { tech: techName(tid) }); return { ok: true }; }
+  };
+  function overlap(b, t, dur, S) { const s = toMin(b.time), d = (b.slot && b.slot.durationMin) || duration(b.car && b.car.size, b.sunroof); return t < s + d + S.travelMin && t + dur > s - S.travelMin; }
+
+  const offers = {
+    mine(tid) { const S = get(K.assign, {}), C = get(K.claims, {}), t = now(); return Object.entries(S).filter(([b, a]) => a.state === 'offered' && a.tech === tid && t < a.expires && !(C[b] && C[b].tech)).map(([b, a]) => ({ bid: b, expires: a.expires, score: a.score, booking: bookings.get(b) })).filter(x => x.booking && x.booking.status !== 'cancelled'); },
+    accept(bid, tid) { const S = get(K.assign, {}), A = S[bid]; if (!A || A.state !== 'offered' || A.tech !== tid || now() >= A.expires) return { ok: false, why: 'ข้อเสนอหมดเวลา/มอบให้ช่างอื่นแล้ว' };
+      const b = bookings.get(bid), dur = (b.slot && b.slot.durationMin) || duration(b.car && b.car.size, b.sunroof); if (!schedule.techFree(tid, b.date, toMin(b.time), dur, bid)) return { ok: false, why: 'คุณมีงานชนช่วงเวลานี้' };
+      A.state = 'accepted'; A.history.push({ tech: tid, res: 'accept', at: now() }); set(K.assign, S); const C = get(K.claims, {}); C[bid] = { tech: tid, at: now(), by: 'system' }; set(K.claims, C);
+      b.tech = tid; bookings.hist(b, 'มอบหมายช่าง', techName(tid) + ' (รับงานเอง)'); bookings.save(b); audit('offer.accept', bid, tid); notify('assigned', bid, { tech: techName(tid) }); return { ok: true }; },
+    decline(bid, tid, reason) { const S = get(K.assign, {}), A = S[bid]; if (!A || A.state !== 'offered' || A.tech !== tid) return { ok: false, why: 'ไม่มีข้อเสนอนี้แล้ว' };
+      A.history.push({ tech: tid, res: 'decline', reason: reason || '', at: now() }); A.expires = now(); set(K.assign, S); audit('offer.decline', bid, tid + ' ' + (reason || '')); return { ok: true }; }
+  };
+  // ---------- PromptPay (EMVCo QR payload, Thai QR Payment / BOT spec) ----------
+  function crc16(s) { let c = 0xFFFF; for (let i = 0; i < s.length; i++) { c ^= s.charCodeAt(i) << 8; for (let j = 0; j < 8; j++) c = c & 0x8000 ? ((c << 1) ^ 0x1021) & 0xFFFF : (c << 1) & 0xFFFF; } return c.toString(16).toUpperCase().padStart(4, '0'); }
+  const tlv = (id, v) => id + pad(v.length) + v;
+  function promptpayPayload(target, amount) { const t = normPhone(target); let acc;
+    if (t.length >= 15) acc = tlv('03', t); else if (t.length === 13) acc = tlv('02', t); else acc = tlv('01', ('66' + t.replace(/^0/, '')).padStart(13, '0'));
+    let p = tlv('00', '01') + tlv('01', amount ? '12' : '11') + tlv('29', tlv('00', 'A000000677010111') + acc) + tlv('58', 'TH') + tlv('53', '764') + (amount ? tlv('54', Number(amount).toFixed(2)) : '') + '6304';
+    return p + crc16(p); }
+  function qrSVG(text, cell = 5) { if (typeof qrcode !== 'function') return '<div>QR library missing</div>'; const q = qrcode(0, 'M'); q.addData(text); q.make(); return q.createSvgTag({ cellSize: cell, margin: 2 }); }
+
+  // ---------- payments ----------
+  const pay = {
+    list(bid) { return suite().payments.filter(p => !bid || p.bid === bid); },
+    paidTotal(bid) { return pay.list(bid).filter(p => p.status === 'paid').reduce((a, p) => a + p.amount, 0) - suite().refunds.filter(r => r.bid === bid && r.status === 'refunded').reduce((a, r) => a + r.amount, 0); },
+    balance(bid) { const b = bookings.get(bid); if (!b || b.total == null) return null; return Math.max(0, b.total - pay.paidTotal(bid)); },
+    create(bid, kind, amount) { const b = bookings.get(bid); if (!b) return null; amount = Math.round(Number(amount) * 100) / 100; if (!(amount > 0)) return null;
+      const ex = pay.list(bid).find(p => p.kind === kind && p.status === 'pending' && p.amount === amount); if (ex) return ex;
+      return mut(s => { s.seq.pay++; const p = { id: 'PAY' + pad(s.seq.pay, 5), bid, kind, amount, status: 'pending', createdAt: now(), payload: promptpayPayload(s.settings.promptpay, amount), to: s.settings.promptpay }; s.payments.push(p); return p; }); },
+    markPaid(pid, method, ref) { let p; mut(s => { p = s.payments.find(x => x.id === pid); if (!p || p.status === 'paid') return; s.seq.rc++; p.status = 'paid'; p.paidAt = now(); p.method = method || 'PromptPay'; p.ref = ref || ''; p.receiptNo = 'RC' + new Date().getFullYear() + '-' + pad(s.seq.rc, 5); });
+      if (!p) return { ok: false }; const b = bookings.get(p.bid); if (b) { if (p.kind === 'deposit') { b.deposit = { ...b.deposit, status: 'paid', paidAt: now(), payId: pid }; } bookings.hist(b, p.kind === 'deposit' ? 'ชำระมัดจำ' : 'ชำระส่วนที่เหลือ', money(p.amount)); bookings.save(b); }
+      audit('payment.paid', pid, { bid: p.bid, amount: p.amount, method }); notify('deposit_paid', p.bid, { amount: p.amount, link: (W.FP_TRACK_URL || 'index.html') + '#receipt/' + pid }); return { ok: true, p: suite().payments.find(x => x.id === pid) }; },
+    requestRefund(bid, reason) { const amt = pay.paidTotal(bid); if (amt <= 0) return null; return mut(s => { if (s.refunds.some(r => r.bid === bid && r.status === 'requested')) return null; const r = { id: 'RF' + now().toString(36).toUpperCase(), bid, amount: amt, reason: reason || '', status: 'requested', at: now() }; s.refunds.push(r); return r; }); },
+    decideRefund(rid, ok, amount, note) { let r; mut(s => { r = s.refunds.find(x => x.id === rid); if (!r || r.status !== 'requested') { r = null; return; } r.status = ok ? 'refunded' : 'rejected'; if (ok && amount != null) r.amount = Math.min(r.amount, +amount); r.decidedAt = now(); r.note = note || ''; });
+      if (!r) return { ok: false }; const b = bookings.get(r.bid); if (b) { if (ok && b.deposit.status === 'paid') b.deposit.status = 'refunded'; bookings.hist(b, ok ? 'คืนเงินแล้ว' : 'ไม่อนุมัติคืนเงิน', money(r.amount)); bookings.save(b); }
+      audit('refund.' + (ok ? 'approve' : 'reject'), rid, { bid: r.bid, amount: r.amount }); if (ok) notify('refund', r.bid, { amount: r.amount }); return { ok: true, r }; }
+  };
+
+  // ---------- coupons ----------
+  const coupon = {
+    check(code, total) { code = String(code || '').trim().toUpperCase(); if (!code) return { ok: false, why: '' }; const c = suite().coupons.find(x => x.code === code && x.active !== false);
+      if (!c) return { ok: false, why: 'ไม่พบโค้ดนี้' }; if (c.expires && ymd(now()) > c.expires) return { ok: false, why: 'โค้ดหมดอายุ' }; if (c.maxUses && (c.used || 0) >= c.maxUses) return { ok: false, why: 'โค้ดถูกใช้ครบแล้ว' };
+      if (total == null) return { ok: false, why: 'ใช้โค้ดได้เมื่อมีราคา' }; if (c.minTotal && total < c.minTotal) return { ok: false, why: 'ยอดขั้นต่ำ ' + money(c.minTotal) };
+      const d = c.type === 'pct' ? Math.min(c.maxDiscount || Infinity, Math.round(total * c.value / 100)) : Math.min(total, c.value); return { ok: true, code, discount: d, c }; },
+    save(c) { c.code = String(c.code).trim().toUpperCase(); mut(s => { const i = s.coupons.findIndex(x => x.code === c.code); if (i < 0) s.coupons.push({ used: 0, active: true, ...c }); else s.coupons[i] = { ...s.coupons[i], ...c }; }); audit('coupon.save', c.code, c); }
+  };
+
+  // ---------- notifications (templates; NO real sending) ----------
+  function fill(t, v) { return String(t).replace(/\{(\w+)\}/g, (_, k) => v[k] ?? ''); }
+  function notify(ev, bid, extra = {}) { try { const s = suite(), b = bid ? bookings.get(bid) : null; const base = location.href.replace(/[^/]*$/, '');
+      const v = { shop: s.settings.shop, id: bid || '', name: b ? b.customer : '', date: b ? b.date : '', time: b ? b.time : '', tech: b ? techName(b.tech) : '', amount: extra.amount != null ? Number(extra.amount).toLocaleString() : '', note: extra.note || '',
+        link: base + (extra.link || ((W.FP_TRACK_URL || 'index.html') + '#track/' + (bid || '') + '/' + (b ? normPhone(b.phone) : ''))), ...extra, link2: '' };
+      if (extra.link) v.link = base + extra.link; const text = fill(s.templates[ev] || ev, v);
+      mut(x => { x.notifications.push({ id: 'N' + now().toString(36) + Math.random().toString(36).slice(2, 5), at: now(), ev, bid: bid || '', to: b ? normPhone(b.phone) : 'admin', text, status: 'draft' }); if (x.notifications.length > 3000) x.notifications.splice(0, x.notifications.length - 3000); });
+      return text; } catch (e) { return ''; } }
+  const shareLinks = (text, phone) => ({ line: 'https://line.me/R/share?text=' + encodeURIComponent(text), sms: 'sms:' + (phone || '') + '?body=' + encodeURIComponent(text) });
+
+  // ---------- stock (film rolls) ----------
+  const stock = {
+    list() { return suite().stock; },
+    add(r) { r.roll = String(r.roll).trim().toUpperCase(); mut(s => { if (s.stock.some(x => x.roll === r.roll)) throw new Error('dup'); s.stock.push({ remainingM: +r.lengthM, addedAt: now(), ...r, lengthM: +r.lengthM }); }); audit('stock.add', r.roll, r); },
+    low() { const S = suite(); return S.stock.filter(r => r.remainingM < (r.lowM ?? S.settings.lowStockM)); },
+    deduct(bid, rolls, size) { const s = suite(); if (s.stockUsed[bid]) return { ok: false, why: 'ตัดสต็อกงานนี้แล้ว' }; const need = s.usageM[size] || s.usageM.M; const R = String(rolls || '').split(/[,\s]+/).map(x => x.trim().toUpperCase()).filter(Boolean);
+      const roll = R.map(x => s.stock.find(r => r.roll === x)).find(Boolean); if (!roll) return { ok: false, why: 'ไม่พบเลขม้วนในสต็อก: ' + R.join(',') };
+      const wasLow = roll.remainingM < (roll.lowM ?? s.settings.lowStockM); roll.remainingM = Math.round((roll.remainingM - need) * 10) / 10; s.stockUsed[bid] = { roll: roll.roll, m: need, at: now() }; saveSuite(s);
+      audit('stock.deduct', roll.roll, { bid, m: need }); if (!wasLow && roll.remainingM < (roll.lowM ?? s.settings.lowStockM)) notify('low_stock', '', { note: roll.roll + ' (' + roll.brand + ' ' + roll.series + ' เหลือ ' + roll.remainingM + ' ม.)' }); return { ok: true, roll: roll.roll, m: need }; }
+  };
+
+  // ---------- warranty claims (customer portal) ----------
+  const claims = {
+    list(bid) { return suite().wclaims.filter(c => !bid || c.bid === bid); },
+    create(o) { const b = bookings.get(o.bid); if (!b) return { ok: false, why: 'ไม่พบงาน' }; let c; mut(s => { s.seq.cl++; c = { id: 'CL' + pad(s.seq.cl, 4), status: 'ใหม่', at: now(), ...o, log: [{ at: now(), m: 'ลูกค้าแจ้งเคลม' }] }; s.wclaims.push(c); });
+      bookings.hist(b, 'แจ้งเคลม', c.id + ' ' + (o.problem || '')); bookings.save(b); audit('claim.create', c.id, { bid: o.bid, problem: o.problem }); notify('claim_received', o.bid, { note: c.id }); sync(); return { ok: true, c }; },
+    // decision: installer = installer's fault → redo ticket + deduction in Tech; material = manufacturer claim; reject = not covered (hold released)
+    decide(id, decision, note, redoCost) { let c; const L = { installer: 'อนุมัติ — ช่างเข้าแก้ไข (ความผิดช่าง)', material: 'อนุมัติ — เคลมผู้ผลิต/เปลี่ยนฟิล์ม', reject: 'ไม่อยู่ในเงื่อนไขรับประกัน' };
+      mut(s => { c = s.wclaims.find(x => x.id === id); if (!c) return; c.decision = decision; c.redoCost = +redoCost || 0; c.status = decision === 'reject' ? 'ปิด (ไม่อนุมัติ)' : 'กำลังแก้ไข'; c.redoDeadline = decision === 'reject' ? null : now() + 3 * DAY; c.log.push({ at: now(), m: L[decision] + (note ? ' — ' + note : '') }); });
+      if (!c) return { ok: false }; audit('claim.decide', id, { decision, redoCost }); notify('claim_decided', c.bid, { note: L[decision] + (note ? ' ' + note : '') }); sync(); return { ok: true, c }; },
+    close(id, note) { mut(s => { const c = s.wclaims.find(x => x.id === id); if (c) { c.status = 'ปิด (แก้ไขแล้ว)'; c.closedAt = now(); c.log.push({ at: now(), m: 'ปิดเคลม' + (note ? ' — ' + note : '') }); } }); audit('claim.close', id); sync(); }
+  };
+
+  // ---------- PDPA ----------
+  const pdpa = {
+    request(bid, phone, type, note) { const b = bookings.find(bid, phone); if (!b) return { ok: false, why: 'ไม่พบงาน/เบอร์ไม่ตรง' }; mut(s => { s.pdpa.push({ id: 'DR' + now().toString(36).toUpperCase(), bid: b.id, phone: normPhone(phone), type, note: note || '', status: 'ใหม่', at: now() }); }); audit('pdpa.request', b.id, type); return { ok: true }; },
+    // anonymise personal data across stores; financial/tax records keep id+amount only
+    erase(reqId) { const s = suite(), r = s.pdpa.find(x => x.id === reqId); if (!r) return; const id = r.bid; const L = bookings.all(); const b = L.find(x => x.id === id);
+      if (b) { Object.assign(b, { customer: '(ลบตาม PDPA)', phone: '', location: '', geo: null, carPhotos: {}, erased: now() }); b.car = { ...b.car, plate: '', province: '', photo: null }; set(K.bookings, L); }
+      const I = get(K.inspect, null); if (I && I.jobs) { const j = I.jobs.find(x => x.id === id); if (j) Object.assign(j, { customer: '(ลบตาม PDPA)', phone: '', plate: '', carPhoto: null, pre: null }); if (I.ins && I.ins[id]) { I.ins[id].photo = {}; I.ins[id].interior = null; I.ins[id].sig = null; } set(K.inspect, I); }
+      const H = get(K.handover, null); if (H && H.jobs) { const j = H.jobs.find(x => x.id === id); if (j) Object.assign(j, { customer: '(ลบตาม PDPA)', phone: '', pre: null }); if (H.ho && H.ho[id]) Object.assign(H.ho[id], { after: {}, interior: null, sigC: null }); set(K.handover, H); }
+      mut(x => { const q = x.pdpa.find(y => y.id === reqId); q.status = 'ดำเนินการแล้ว'; q.doneAt = now(); x.consents.filter(c => c.bid === id).forEach(c => { c.phone = ''; c.withdrawn = now(); }); });
+      audit('pdpa.erase', id, reqId); }
+  };
+
+  // ---------- derived status / timeline ----------
+  const STAGES = [['booked', 'จองแล้ว'], ['paid', 'ชำระมัดจำ'], ['assigned', 'ได้ช่างแล้ว'], ['inspected', 'ตรวจสภาพรถ'], ['handover', 'ติดตั้ง & ส่งมอบ'], ['rated', 'ให้คะแนน'], ['done', 'ชำระครบ / ปิดงาน']];
+  function stage(b) { if (!b) return null; const C = get(K.claims, {}), I = get(K.inspect, { ins: {} }), H = get(K.handover, { ho: {} }), R = get(K.ratings, {});
+    const ins = (I.ins || {})[b.id], ho = (H.ho || {})[b.id]; const bal = pay.balance(b.id);
+    const f = { booked: true, paid: b.deposit && (b.deposit.status === 'paid' || b.deposit.status === 'refunded'), assigned: !!(C[b.id] && C[b.id].tech), inspected: !!(ins && ins.status === 'ตรวจแล้ว'),
+      handover: !!(ho && ho.status === 'ส่งมอบแล้ว'), rated: !!R[b.id], done: false };
+    f.done = f.handover && (bal === 0 || bal === null && pay.paidTotal(b.id) > 0) && f.rated;
+    let key = 'booked'; STAGES.forEach(([k]) => { if (f[k]) key = k; }); if (b.status === 'cancelled') key = 'cancelled';
+    const label = key === 'cancelled' ? 'ยกเลิกแล้ว' : STAGES.find(s => s[0] === key)[1];
+    return { key, label, flags: f, ho, ins, rating: R[b.id] || null, balance: bal, redo: ho && ho.status === 'ต้องแก้ไข' }; }
+
+  // ---------- cross-app sync (bridges legacy app stores) ----------
+  function sync() { try {
+      const L = get(K.bookings, []), C = get(K.claims, {}); let ch = false;
+      L.forEach(b => { const t = (C[b.id] || {}).tech || null; if (b.tech !== t) { b.tech = t; ch = true; } }); if (ch) set(K.bookings, L);
+      // stock deduction on handover (roll no. from warranty card)
+      const H = get(K.handover, { ho: {} }), s = suite();
+      Object.entries(H.ho || {}).forEach(([id, h]) => { if (h.status === 'ส่งมอบแล้ว' && !s.stockUsed[id] && h.warranty && h.warranty.roll) { const b = L.find(x => x.id === id); const r = stock.deduct(id, h.warranty.roll, b && b.car && b.car.size); if (!r.ok && !s.stockUsed[id]) { const x = suite(); x.stockUsed[id] = { error: r.why, at: now() }; saveSuite(x); } } });
+      // ratings → Tech payout jobs; warranty claims → retention hold / redo deduction
+      const T = get(K.tech, null); if (!T || !T.S || !Array.isArray(T.inst)) return; const R = get(K.ratings, {}), WC = suite().wclaims; let tc = false;
+      Object.values(R).forEach(r => { const i = T.inst.find(x => x.id === r.inst); if (!i || T.jobs.some(j => j.id === r.job)) return; const b = L.find(x => x.id === r.job);
+        T.jobs.push({ id: r.job, customer: r.customer || (b && b.customer) || '', phone: (b && b.phone) || '', car: r.car || '', film: r.film || '', tierReq: i.tier || 'gen', inst: i.id, tierAtJob: i.tier || 'gen', feeAtJob: (T.S.fees || {})[i.tier || 'gen'] || 0,
+          status: 'ลูกค้ายืนยัน', createdAt: b ? new Date(b.createdAt).getTime() : r.at, installedAt: r.at, confirmedAt: r.at, redoCost: T.S.redoCostDefault || 0, photoPct: 100, src: 'suite',
+          rating: { ...Object.fromEntries(Object.entries(r).filter(([k, v]) => typeof v === 'number' && !['at', 'wavg', 'redoCount', 'newDefects'].includes(k))), recommend: r.recommend, comment: r.comment || '', at: r.at }, redo: (r.redoCount || 0) > 0, redoByInstaller: false }); tc = true; });
+      T.jobs.forEach(j => { const cl = WC.filter(c => c.bid === j.id); if (!cl.length) return; const open = cl.some(c => !String(c.status).startsWith('ปิด')); const fault = cl.find(c => c.decision === 'installer');
+        if (!!j.warrantyClaim !== open) { j.warrantyClaim = open; tc = true; }
+        if (fault && !j.redoByInstaller) { j.redo = true; j.redoByInstaller = true; j.redoCost = fault.redoCost || j.redoCost; tc = true; }
+        if (R[j.id] && R[j.id].claim !== open) { R[j.id].claim = open || !!fault; set(K.ratings, R); } });
+      if (tc) set(K.tech, T);
+    } catch (e) { console.warn('FP.sync', e); } }
+
+  // ---------- backup / restore ----------
+  function backup() { const data = {}; A.keys().forEach(k => { data[k] = get(k, null); }); audit('backup', 'all', Object.keys(data).length + ' keys'); return { app: 'filmpro-suite', version: 1, at: new Date().toISOString(), data }; }
+  function restore(obj) { if (!obj || obj.app !== 'filmpro-suite' || !obj.data) return { ok: false, why: 'ไฟล์สำรองไม่ถูกต้อง' }; A.keys().forEach(k => { if (k !== K.session) A.del(k); }); Object.entries(obj.data).forEach(([k, v]) => { if (k !== K.session) set(k, v); }); audit('restore', 'all', obj.at); return { ok: true }; }
+  function download(name, text, type) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: (type || 'application/json') + ';charset=utf-8' })); a.download = name; document.body.appendChild(a); a.click(); a.remove(); }
+
+  // ---------- image compression ----------
+  function compress(file, cb, max = 1024, q = 0.7) { const r = new FileReader(); r.onload = () => { const im = new Image(); im.onload = () => { const s = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * s); c.height = Math.round(im.height * s); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); cb(c.toDataURL('image/jpeg', q)); }; im.onerror = () => alert('ไฟล์รูปไม่ถูกต้อง'); im.src = r.result; }; r.readAsDataURL(file); }
+
+  // ---------- shared UI header ----------
+  function header(title, opts = {}) { const m = auth.me(); return `<header class="fp-head noprint"><a href="${opts.base || ''}index.html" class="fp-logo">FilmPro</a><div class="fp-title">${esc(title)}</div><div class="fp-user">${m ? `${esc(ROLES[m.role])}: ${esc(m.name)} · <a href="#" onclick="FP.auth.logout();location.reload();return false">ออก</a>` : `<a href="${opts.base || ''}login.html?next=${encodeURIComponent(location.pathname.split('/').pop() + location.search)}">เข้าสู่ระบบ</a>`}</div></header>`; }
+
+  W.FP = { K, adapter: () => A, useAdapter(a) { A = a; }, LocalAdapter, get, set, suite, saveSuite, mut, audit, auth, ROLES, bookings, depositFor, techs, techName, duration, schedule, pay, promptpayPayload, crc16, qrSVG,
+    coupon, offers, notify, shareLinks, stock, claims, pdpa, stage, STAGES, sync, backup, restore, download, compress, header, util: { ymd, toMin, toHM, money, esc, normPhone, newId, DAY, now } };
+  W.addEventListener && W.addEventListener('storage', e => { if (e.key && e.key.startsWith('filmpro') && e.key !== K.suite && e.key !== K.tech) { /* other tab changed data */ } });
+})(window);
+
+</script><script>
+window.FP_TRACK_URL="index.html";
+function hdr(){const m=FP.auth.me();return `<div class="sticky top-0 z-20 bg-white/95 border-b px-3 py-3 flex items-center gap-2"><b class="text-blue-800">FilmPro ช่าง</b><span class="flex-1 text-sm text-gray-500">แจ้งเตือน & งาน</span>${m?`<span class="text-xs text-gray-500">${FP.util.esc(m.name)} · <a href="#" class="text-blue-600" onclick="FP.auth.logout();location.reload();return false">ออก</a></span>`:''}</div>`;}
+function loginForm(){document.getElementById('hd').innerHTML=hdr();const T=FP.techs();return `<div class="card p-4 mt-4"><b>เข้าสู่ระบบช่าง</b><label class="f">ช่าง</label><select id="lgT">${T.map(t=>`<option value="${t.id}">${FP.util.esc(t.name)}</option>`).join('')||'<option value="">ยังไม่มีช่าง (สร้าง/เผยแพร่ใน FilmPro Tech)</option>'}</select><label class="f">PIN</label><input id="lgP" type="password" inputmode="numeric"><button class="fbtn w-full mt-3" onclick="const r=FP.auth.loginStaff('installer',lgP.value,lgT.value);if(!r.ok)return alert(r.why);location.reload()">เข้าสู่ระบบ</button><div class="text-[11px] text-gray-400 mt-2">PIN ช่างตั้งได้ใน FilmPro Tech → ตั้งค่าร้าน (ค่าเริ่มต้น 0000) · ระบบจำลอง</div></div>`;}
+</script></head><body class="fpx"><div class="max-w-xl mx-auto pb-24"><div id="hd"></div>
+<main class="p-3"><div class="flex gap-1 overflow-x-auto pb-2" id="tabs"></div><div id="app"></div></main>
+<script>
+if(!(FP.auth.me()&&['installer','admin'].includes(FP.auth.me().role))){document.getElementById('app').innerHTML=loginForm();}else{
+const $=id=>document.getElementById(id),U=FP.util,E=U.esc,M=U.money;let tab=(location.hash||'#feed').slice(1),me=null;
+const SEEN='filmpro_technotify_v1',seen=()=>FP.get(SEEN,{}),markSeen=k=>{const s=seen();s[me]=s[me]||{};s[me][k]=Date.now();FP.set(SEEN,s);};
+function who(){const m=FP.auth.me();if(m.role==='installer')return m.techId;return localStorage.getItem('filmpro_tn_as')||(FP.techs()[0]||{}).id;}
+function myJobs(){return FP.bookings.all().filter(b=>b.status!=='cancelled'&&b.tech===me);}
+function ledger(){const T=FP.get(FP.K.tech,null);return T&&T.ledger?T.ledger.filter(l=>l.inst===me):[];}
+// derived alert feed
+function feed(){const A=[],H=FP.get(FP.K.handover,{ho:{}}).ho||{},tom=U.ymd(Date.now()+864e5),today=U.ymd(Date.now());
+ FP.offers.mine(me).forEach(o=>A.push({k:'offer:'+o.bid,at:o.expires-30*6e4,type:'offer',o}));
+ myJobs().forEach(b=>{const h=(b.history||[]).find(x=>x.ev==='มอบหมายช่าง');A.push({k:'asg:'+b.id,at:h?h.at:Date.parse(b.createdAt),type:'assigned',b});
+  if(b.date===tom||b.date===today)A.push({k:'rem:'+b.id+b.date+b.time,at:Date.now()-1,type:'reminder',b});
+  const ho=H[b.id];if(ho&&ho.status==='ต้องแก้ไข'&&ho.redo)A.push({k:'redo:'+ho.redo.id,at:ho.redo.created,type:'redo',b,note:ho.redo.items.join(' / '),due:ho.redo.deadline});
+  FP.claims.list(b.id).forEach(c=>A.push({k:'cl:'+c.id+c.status,at:c.log[c.log.length-1].at,type:'claim',b,c}));});
+ ledger().filter(l=>l.status==='จ่ายแล้ว').forEach(l=>A.push({k:'pay:'+l.job+l.kind,at:l.paidAt||Date.now(),type:'payout',l}));
+ ledger().filter(l=>l.status==='ระงับ (มีเคลม)').forEach(l=>A.push({k:'hold:'+l.job,at:Date.now()-2,type:'hold',l}));
+ return A.sort((a,b)=>b.at-a.at);}
+const ICON={offer:'🔔',assigned:'📌',reminder:'⏰',redo:'🛠',claim:'⚠️',payout:'💸',hold:'⏸'};
+function tpl(ev,v){return FP.suite().templates[ev].replace(/\{(\w+)\}/g,(_,k)=>v[k]??'');}
+function msgOf(x){const b=x.b||(x.o&&x.o.booking)||{};const v={id:b.id||(x.l&&x.l.job)||'',date:b.date||'',time:b.time||'',note:''};
+ if(x.type==='offer'){v.note=(b.car?b.car.brand+' '+b.car.model+' · '+b.location:'');return tpl('tech_offer',v);}
+ if(x.type==='reminder'){v.note=b.location;return tpl('tech_reminder',v);}
+ if(x.type==='redo'){v.note=x.note;return tpl('tech_redo',v);}if(x.type==='claim'){v.note=x.c.problem+' — '+x.c.status;return tpl('tech_redo',v);}
+ if(x.type==='payout'){v.amount=x.l.amount.toLocaleString();return tpl('tech_payout',v);}if(x.type==='hold')return 'เงินประกันงาน '+x.l.job+' ถูกระงับชั่วคราว ('+M(x.l.amount)+') ระหว่างพิจารณาเคลม';
+ return 'งาน '+v.id+' มอบหมายให้คุณ นัด '+v.date+' '+v.time;}
+function card(x){const s=(seen()[me]||{})[x.k],b=x.b||(x.o&&x.o.booking);return `<div class="card p-3 mb-2 text-sm ${s?'':'border-blue-300'}" onclick="markSeen('${x.k}')"><div class="flex justify-between"><b>${ICON[x.type]} ${E(msgOf(x).replace(/^\[ช่าง\] /,''))}</b>${s?'':'<span class="pill bg-blue-600 text-white whitespace-nowrap self-start ml-2">ใหม่</span>'}</div>
+ ${x.type==='offer'?`<div class="text-xs text-gray-500 mt-1">หมดเวลา ${new Date(x.o.expires).toLocaleTimeString('th-TH')} · ฟิล์ม ${E(String(b.film.brand).toUpperCase())} ${E(b.film.series)} · ไซส์ ${E(b.car.size)}</div><div class="grid grid-cols-2 gap-2 mt-2"><button class="fgreen" onclick="acc('${x.o.bid}')">รับงาน</button><button class="fbtn2" onclick="dec('${x.o.bid}')">ปฏิเสธ</button></div>`:''}
+ ${x.due?`<div class="text-xs text-red-600">กำหนดแก้ไข ${new Date(x.due).toLocaleString('th-TH')}</div>`:''}<div class="text-[11px] text-gray-400 mt-1">${new Date(x.at).toLocaleString('th-TH')}</div></div>`;}
+function acc(bid){const r=FP.offers.accept(bid,me);alert(r.ok?'รับงานแล้ว — ดูในตารางงาน':r.why);render();}
+function dec(bid){const r=prompt('เหตุผลที่ปฏิเสธ','ไม่ว่าง');if(r==null)return;FP.offers.decline(bid,me,r);render();}
+function vFeed(){const F=feed();return `<div class="flex justify-between items-center mb-2"><div class="text-xs text-gray-500">${F.filter(x=>!(seen()[me]||{})[x.k]).length} ใหม่</div><button class="fbtn2 text-xs" onclick="feed().forEach(x=>markSeen(x.k));render()">อ่านทั้งหมด</button></div>${F.map(card).join('')||'<div class="text-sm text-gray-500">ยังไม่มีการแจ้งเตือน</div>'}`;}
+function vSched(){const L=myJobs().filter(b=>b.date>=U.ymd(Date.now())).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));return (L.map(b=>{const st=FP.stage(b);return `<div class="card p-3 mb-2 text-sm"><div class="flex justify-between"><b>${E(b.date)} ${E(b.time)}–${E((b.slot||{}).end||'')}</b><span class="pill bg-blue-100 text-blue-700">${st.label}</span></div><div>${E(b.id)} · ${E(b.customer)} · ${E(b.phone)}</div><div class="text-xs">${E(b.car.brand)} ${E(b.car.model)} ${E(b.car.color||'')} · ${E(b.car.plate)} · ${E(b.location)}${b.geo?` · <a class="text-blue-600" target="_blank" href="https://maps.google.com/?q=${b.geo.lat},${b.geo.lng}">นำทาง</a>`:''}</div><div class="flex gap-2 mt-2 text-xs"><a class="fbtn2" href="inspect.html">ตรวจรถ</a><a class="fbtn2" href="handover.html">ส่งมอบ</a></div></div>`}).join('')||'<div class="text-sm text-gray-500">ไม่มีงานที่กำลังจะถึง</div>')+'';}
+function vPay(){const L=ledger(),sum=st=>L.filter(l=>st.includes(l.status)).reduce((a,l)=>a+l.amount,0);return `<div class="grid grid-cols-3 gap-2 mb-3"><div class="kpi"><div class="text-xs">พร้อมจ่าย</div><b>${M(sum(['พร้อมจ่าย']))}</b></div><div class="kpi"><div class="text-xs">เงินประกันงาน</div><b>${M(sum(['กันไว้','ระงับ (มีเคลม)']))}</b></div><div class="kpi"><div class="text-xs">ได้รับแล้ว</div><b>${M(sum(['จ่ายแล้ว']))}</b></div></div>${L.slice().reverse().map(l=>`<div class="card p-2 mb-1 text-xs flex justify-between"><span>${E(l.job)} · ${E(l.label)}</span><span class="${l.amount<0?'text-red-600':''}">${M(l.amount)} · ${E(l.status)}</span></div>`).join('')||'<div class="text-sm text-gray-500">ยังไม่มีรายการ</div>'}`;}
+function vHist(){const F=feed().filter(x=>(seen()[me]||{})[x.k]);return F.map(x=>`<div class="text-xs border-b py-1">${new Date((seen()[me]||{})[x.k]).toLocaleString('th-TH')} อ่านแล้ว · ${E(msgOf(x))}</div>`).join('')||'<div class="text-sm text-gray-500">ยังไม่มีประวัติ</div>';}
+function vTpl(){const F=feed().slice(0,8);return `<div class="text-xs text-gray-500 mb-2">ตัวอย่างข้อความที่ส่งถึงช่าง (ยังไม่ส่งจริง — แชร์/คัดลอกได้)</div>${F.map(x=>{const t=msgOf(x),l=FP.shareLinks(t,'');return `<div class="card p-3 mb-2 text-sm"><div class="text-[11px] text-gray-400">LINE / SMS</div><div class="bg-emerald-50 rounded-xl p-2">${E(t)}</div><div class="flex gap-2 mt-1 text-xs"><a class="fbtn2" target="_blank" href="${l.line}">LINE</a><a class="fbtn2" href="${l.sms}">SMS</a></div></div>`}).join('')||'<div class="text-sm text-gray-500">ไม่มีข้อความ</div>'}<div class="card p-3 text-xs"><b>แม่แบบ</b>${['tech_offer','tech_reminder','tech_redo','tech_payout'].map(k=>`<div class="mt-1"><b>${k}</b>: ${E(FP.suite().templates[k])}</div>`).join('')}<div class="text-gray-500 mt-1">แก้ไขแม่แบบได้ใน FilmPro Tech → แจ้งเตือน/แม่แบบ</div></div>`;}
+function render(){FP.sync();me=who();$('hd').innerHTML=hdr();const T=[['feed','แจ้งเตือน'],['sched','งานที่จะถึง'],['pay','รายได้'],['hist','ประวัติ'],['tpl','ข้อความ LINE/SMS']];
+ const n=feed().filter(x=>!(seen()[me]||{})[x.k]).length;
+ $('tabs').innerHTML=(FP.auth.me().role==='admin'?`<select class="!w-auto text-xs" onchange="localStorage.setItem('filmpro_tn_as',this.value);render()">${FP.techs().map(t=>`<option value="${t.id}" ${t.id===me?'selected':''}>${E(t.name)}</option>`).join('')}</select>`:'')+T.map(([k,l])=>`<button class="ftab ${tab===k?'on':''}" onclick="location.hash='${k}'">${l}${k==='feed'&&n?' ('+n+')':''}</button>`).join('');
+ $('app').innerHTML=me?({feed:vFeed,sched:vSched,pay:vPay,hist:vHist,tpl:vTpl}[tab]||vFeed)():'<div class="text-sm">ยังไม่มีช่างในระบบ</div>';}
+window.markSeen=markSeen;window.addEventListener('hashchange',()=>{tab=(location.hash||'#feed').slice(1);render();});render();setInterval(render,20000);window.addEventListener('storage',e=>{if(e.key&&e.key.startsWith('filmpro'))render();});}
+</script>
+</div><script>/* FilmPro Suite nav — links every page of the suite (same origin = shared localStorage) */
+(function(){var P=[['index.html','หน้าลูกค้า'],['tech.html','หลังบ้าน/ช่าง'],['inspect.html','ตรวจสภาพรถ'],['handover.html','ส่งมอบงาน'],['notify.html','แจ้งเตือนช่าง'],['admin-v2.html','Admin V2']];
+var cur=(location.pathname.split('/').pop()||'index.html');
+function go(){if(document.getElementById('fpSuiteNav'))return;var n=document.createElement('nav');n.id='fpSuiteNav';
+n.style.cssText='display:flex;gap:6px;overflow-x:auto;padding:6px 10px;background:#0E1B2A;font:13px Sarabun,sans-serif;position:relative;z-index:60;-webkit-overflow-scrolling:touch';
+n.innerHTML='<b style="color:#fff;white-space:nowrap;padding:4px 6px 4px 0">FilmPro</b>'+P.map(function(p){var on=p[0]===cur;return '<a href="'+p[0]+'" style="white-space:nowrap;text-decoration:none;padding:4px 10px;border-radius:999px;'+(on?'background:#2563EB;color:#fff':'color:#cbd5e1;border:1px solid #334155')+'">'+p[1]+'</a>';}).join('');
+document.body.insertBefore(n,document.body.firstChild);}
+if(document.body)go();else document.addEventListener('DOMContentLoaded',go);})();
+</script>
+</body></html>

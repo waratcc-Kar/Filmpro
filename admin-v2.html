@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FilmPro Back-office</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+body{font-family:'Sarabun',sans-serif;background:#f1f5f9;color:#1e293b}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:20px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.btn{background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%);border-radius:12px;color:#fff}.btn:disabled{opacity:.4}
+.btn2{background:#fff;border:1px solid #e2e8f0;border-radius:12px}
+.btnr{background:#ef4444;color:#fff;border-radius:12px}.btng{background:#10b981;color:#fff;border-radius:12px}
+input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:10px 12px;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:#3b82f6;flex:none}
+h1,h2{color:#1e40af}button:active{transform:scale(.98)}
+.tab{white-space:nowrap}.tab.on{background:#2563eb;color:#fff}
+.pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px}
+label.f{display:block;font-size:13px;font-weight:500;margin-top:8px}
+.ph{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;background:#e2e8f0}
+.phx{width:100%;aspect-ratio:4/3;border-radius:10px;border:2px dashed #cbd5e1;display:flex;align-items:center;justify-content:center;font-size:11px;color:#94a3b8;text-align:center}
+.star{font-size:30px;line-height:1;color:#d1d5db}.star.on{color:#f59e0b}
+.kpi{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:10px;text-align:center}.kpi b{display:block;font-size:18px;color:#1e40af}
+.bubble{max-width:80%;padding:6px 10px;border-radius:14px;font-size:14px}
+</style></head>
+<body><div class="max-w-md mx-auto pb-24">
+<header class="sticky top-0 z-10 bg-white/95 backdrop-blur border-b px-3 py-2">
+ <div class="flex items-center justify-between gap-2"><div><b class="text-blue-800">FilmPro</b> <span class="text-xs text-gray-500">หลังบ้าน</span></div><div id="who" class="flex gap-1 items-center"></div></div>
+ <nav id="tabs" class="flex gap-1 overflow-x-auto mt-2 pb-1"></nav></header>
+<main id="app" class="p-3"></main>
+<div class="text-[10px] text-gray-400 text-center">FilmPro · ต้นแบบ — ข้อมูลเก็บในเครื่องนี้ (localStorage) · การชำระเงินเป็นการจำลอง</div>
+</div>
+<div id="toast" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 bg-blue-700 text-white text-sm px-4 py-2 rounded-xl shadow z-50"></div>
+<script>
+/* ================= FilmPro Phase 1 shared store (identical in fp-tech / fp-admin / fp-customer) =================
+ * localStorage key 'filmpro_p1_v1'. One job id across apps. Money in baht (integers). Escrow is SIMULATED (real: Omise/2C2P). */
+const KN='filmpro_p1_v1',DAY=864e5,MIN=6e4;
+const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const now=()=>Date.now(),baht=n=>(Math.round(n)||0).toLocaleString()+' ฿',fmt=t=>t?new Date(t).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'}):'-';
+const mmss=ms=>{const s=Math.max(0,Math.round(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+const CATS=[['clean','ความสะอาดและความสุภาพ',1],['install','ความเรียบร้อยของงาน',2],['overall','ความพึงพอใจของลูกค้า',1]];
+const wavg=r=>r?CATS.reduce((a,[k,,w])=>a+(+r[k]||0)*w,0)/4:0;
+const DEF_SVC={
+ film:{name:'ฟิล์มกรองแสง',icon:'🪟',unit:'คัน',seal:true,lv:[['ทั่วไป',500],['มืออาชีพ',1000],['ชำนาญการ',1500]],price:[0,0,0],
+  check:['ทำความสะอาดกระจกก่อนติด','ไม่มีฟอง/ฝุ่น/รอยพับ','ขอบฟิล์มตัดเรียบ ไม่มีรอยมีดบนยาง/สี','เส้นไล่ฝ้าใช้งานได้','กระจกไฟฟ้าขึ้น-ลงได้ปกติ','เก็บเศษฟิล์ม/ทำความสะอาดภายในรถ']}};
+// windows: key, name, price factor
+const WIN=[['ws','กระจกบังลมหน้า',2],['fl','ประตูหน้าซ้าย',1],['fr','ประตูหน้าขวา',1],['rl','ประตูหลังซ้าย',1],['rr','ประตูหลังขวา',1],['rw','กระจกหลัง',1.5],['sr','ซันรูฟ',1.5]];
+const DEF_SET={confirmMin:30,feePct:15,autoReleaseH:48,w:{rating:45,skill:20,dist:20,load:15},maxLoad:5,premiumMin:15000,warrantyY:5,
+ bonus:[[4.8,150],[4.5,100],[4.0,50]],bonusMinJobs:10,invitePerMonth:2,probJobs:15,probAvg:4.3,refBonus:800,
+ // film catalog: [brand, series, required skill level 1-3, price per window unit, shades%]
+ films:[['Lamina','L-Series',1,500,[20,40,60,80]],['3M','FX Premium',1,700,[5,20,35,50]],['Hi-Kool','Ceramic Plus',2,1200,[20,40,60]],['V-Kool','VK40/VK70',3,2400,[40,70]],['3M','Crystalline',3,2600,[40,70,90]]]};
+const PERKS={courses:[['c1','ฟิล์มกระจกโค้ง/บานหน้าขั้นสูง','film',3,1500],['c2','งานฟิล์มเซรามิกระดับมืออาชีพ','film',2,990]],
+ deals:[['d1','ชุดรีดน้ำ/มีดตัดฟิล์ม','ลด 20%'],['d2','ไดร์เป่าลมร้อน','ลด 15%'],['d3','น้ำยาติดฟิล์ม','ลด 10%']],
+ ins:[['i1','อุบัติเหตุระหว่างทำงาน',99],['i2','ความรับผิดต่อรถลูกค้า (สูงสุด 100,000 ฿)',199]]};
+const filmOf=(b,se)=>D.set.films.find(f=>f[0]===b&&f[1]===se);
+// price & required level from per-window selection {ws:{b,s,shade},...}
+function quote(wins){let p=0,lv=1;for(const [k,,f] of WIN){const w=wins[k];if(!w)continue;const F=filmOf(w.b,w.s);if(!F)continue;p+=Math.round(F[3]*f);lv=Math.max(lv,F[2]);}return {price:p,level:lv};}
+function blank(){return {v:1,svc:JSON.parse(JSON.stringify(DEF_SVC)),set:JSON.parse(JSON.stringify(DEF_SET)),techs:[],jobs:[],ledger:[],invites:[],alerts:[],seq:1};}
+let D;function load(){try{D=JSON.parse(localStorage.getItem(KN))||blank();}catch(e){D=blank();}D.svc=D.svc||blank().svc;D.set={...DEF_SET,...D.set};return D;}
+function save(){try{localStorage.setItem(KN,JSON.stringify(D));}catch(e){alert('พื้นที่เก็บข้อมูลเต็ม');}}
+const nid=p=>p+String(D.seq++).padStart(4,'0');
+const tech=id=>D.techs.find(t=>t.id===id),job=id=>D.jobs.find(j=>j.id===id);
+function toast(m){const t=$('toast');if(!t)return;t.textContent=m;t.classList.remove('hidden');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.add('hidden'),3500);}
+function shrink(file,cb){if(!file)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1024/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k|0;c.height=im.height*k|0;c.getContext('2d').drawImage(im,0,0,c.width,c.height);cb(c.toDataURL('image/jpeg',.7));};im.src=r.result;};r.readAsDataURL(file);}
+function pbox(onpick,src,label){return `<label class="block cursor-pointer">${src?`<img class="ph" src="${src}">`:`<div class="phx">📷 ${esc(label||'ถ่ายรูป')}</div>`}<input type="file" accept="image/*" capture="environment" class="hidden" onchange="shrink(this.files[0],u=>{${onpick};save();render()})"></label>`;}
+function alertAdmin(msg,job){D.alerts.push({at:now(),msg,job,read:false});}
+// ---------- tech metrics
+function techStats(t){const J=D.jobs.filter(j=>j.tech===t.id&&j.status==='done'),R=J.filter(j=>j.rating&&!j.rating.excluded),b=t.base||{jobs:0,avg:0};
+ const n=b.jobs+J.length,avg=(b.avg*b.jobs+R.reduce((a,j)=>a+wavg(j.rating),0))/((b.jobs+R.length)||1);
+ const per=Object.fromEntries(CATS.map(([k])=>[k,R.length?R.reduce((a,j)=>a+(+j.rating[k]||0),0)/R.length:null]));
+ const load=D.jobs.filter(j=>j.tech===t.id&&['accepted','onsite','working','handover'].includes(j.status)).length;return {n,avg,per,load,done:J.length};}
+const skillLv=(t,s)=>{const k=(t.skills||{})[s];return k&&k.state==='approved'?k.lv:0;};
+const topLv=t=>Math.max(0,...Object.keys(t.skills||{}).map(s=>skillLv(t,s)));
+function hav(a,b,c,d){const r=x=>x*Math.PI/180,h=Math.sin(r(c-a)/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(r(d-b)/2)**2;return 12742*Math.asin(Math.sqrt(h));}
+function laborOf(j,t){const L=D.svc[j.svc].lv,lv=t?Math.max(j.level,skillLv(t,j.svc)):j.level;return L[Math.min(L.length,lv)-1][1]*(j.qty||1);}
+// ---------- matching: active + verified skill level + availability + distance; score: rating heavy
+function elig(t,j){const no=[];if(t.status!=='active')no.push('ยังไม่ผ่านการตรวจสอบจากบริษัท');const lv=skillLv(t,j.svc);
+ if(!lv)no.push('ไม่มีทักษะ '+D.svc[j.svc].name+' ที่บริษัทรับรอง');else if(lv<j.level)no.push(`ต้องระดับ ${D.svc[j.svc].lv[j.level-1][0]} ขึ้นไป`);
+ if(j.price>=D.set.premiumMin&&!t.premium)no.push('งานพรีเมียม: เฉพาะช่าง ✔ Verified Premium');
+ const a=t.avail||{};if(a.online===false)no.push('ปิดรับงาน');if(j.date){const d=new Date(j.date+'T00:00');if((a.days||[0,1,2,3,4,5,6]).indexOf(d.getDay())<0||(a.off||[]).includes(j.date))no.push('ไม่ว่างวันนั้น');}
+ const z=t.zone||{};let km=null;if(z.lat!=null&&j.loc&&j.loc.lat!=null){km=hav(z.lat,z.lng,j.loc.lat,j.loc.lng);if(km>(z.radius||20))no.push(`นอกพื้นที่ (${km.toFixed(1)} กม. > ${z.radius||20})`);}
+ else if(!(z.area&&j.loc&&String(j.loc.text||'').includes(z.area)))no.push('ไม่ทราบระยะทาง/พื้นที่ไม่ตรง');
+ const s=techStats(t),W=D.set.w,tw=W.rating+W.skill+W.dist+W.load,part={rating:Math.max(0,Math.min(1,(s.avg-3)/2)),skill:lv/3,dist:km!=null?Math.max(0,1-km/(z.radius||20)):.5,load:Math.max(0,1-s.load/D.set.maxLoad)};
+ return {ok:!no.length,no,km,score:Math.round((W.rating*part.rating+W.skill*part.skill+W.dist*part.dist+W.load*part.load)/tw*100),load:s.load};}
+const rank=j=>D.techs.map(t=>({t,e:elig(t,j)})).filter(x=>x.e.ok).sort((a,b)=>b.e.score-a.e.score);
+function offerNext(j,t0=now()){const skip=new Set((j.offer.history||[]).map(h=>h.tech)),r=rank(j).filter(x=>!skip.has(x.t.id));
+ if(!r.length){j.offer.tech=null;j.status='unassigned';alertAdmin('ไม่มีช่างรับงาน '+j.id+' — กรุณามอบหมายเอง',j.id);return;}
+ j.offer.tech=r[0].t.id;j.offer.score=r[0].e.score;j.offer.at=t0;j.offer.expires=t0+D.set.confirmMin*MIN;j.status='offered';}
+// time-driven: offers timeout, escrow auto-release
+function tick(t0=now()){let ch=false;D.jobs.forEach(j=>{
+  if(j.status==='paid'){j.offer={history:[]};offerNext(j,t0);ch=true;}
+  else if(j.status==='offered'&&t0>=j.offer.expires){j.offer.history.push({tech:j.offer.tech,res:'timeout',at:j.offer.expires});offerNext(j,t0);ch=true;}
+  else if(j.status==='handover'&&j.handoverAt&&t0-j.handoverAt>=D.set.autoReleaseH*3600e3&&!j.dispute){j.autoConfirmed=true;complete(j,null);ch=true;}});if(ch)save();}
+function accept(j,tid){if(j.status!=='offered'||j.offer.tech!==tid)return 'งานนี้ไม่ได้เสนอให้คุณแล้ว';j.offer.history.push({tech:tid,res:'accept',at:now()});j.tech=tid;j.labor=laborOf(j,tech(tid));j.status='accepted';j.acceptedAt=now();sys(j,'ช่างรับงานแล้ว');save();return '';}
+function decline(j,tid,why){if(j.status!=='offered'||j.offer.tech!==tid)return 'งานนี้ไม่ได้เสนอให้คุณแล้ว';j.offer.history.push({tech:tid,res:'decline',reason:why,at:now()});offerNext(j);save();return '';}
+function adminAssign(j,tid,why){j.offer=j.offer||{history:[]};j.offer.history.push({tech:tid,res:'admin',reason:why,at:now()});j.tech=tid;j.labor=laborOf(j,tech(tid));j.status='accepted';j.acceptedAt=now();sys(j,'แอดมินมอบหมายช่าง');save();}
+function sys(j,text){(j.chat=j.chat||[]).push({from:'sys',text,at:now()});}
+// escrow: customer pays -> held; release on customer confirm (or auto after X h) -> tech ledger labor (+bonus monthly)
+function complete(j,rating){if(rating)j.rating={...rating,at:now()};j.status='done';j.doneAt=now();j.escrow.state='released';j.escrow.releasedAt=now();
+ if(!j.warranty)j.warranty={code:wcode(),from:now(),until:now()+D.set.warrantyY*365*DAY};
+ D.ledger.push({id:nid('L'),tech:j.tech,job:j.id,kind:'labor',amount:j.labor,at:now(),label:'ค่าแรง '+D.svc[j.svc].name});sys(j,j.autoConfirmed?'ยืนยันอัตโนมัติ — ปล่อยเงินให้ช่าง':'ลูกค้ายืนยันงาน — ปล่อยเงินให้ช่าง');
+ // probation (invited)
+ const t=tech(j.tech);if(t&&t.prob&&t.prob.state==='ทดลองงาน'){const s=techStats(t);if(s.done>=D.set.probJobs){if(s.avg>=D.set.probAvg){t.prob.state='ผ่าน';const inv=tech(t.invitedBy);if(inv)D.ledger.push({id:nid('L'),tech:inv.id,job:'-',kind:'ref',amount:D.set.refBonus,at:now(),label:'โบนัสแนะนำ '+t.name});}else{t.prob.state='ไม่ผ่าน';const inv=tech(t.invitedBy);if(inv)inv.inviteBanUntil=now()+90*DAY;}}}
+ save();}
+const wcode=()=>{const C='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let c;do{c='W-'+Array.from({length:7},()=>C[Math.floor(Math.random()*C.length)]).join('');}while(D.jobs.some(j=>j.warranty&&j.warranty.code===c));return c;};
+function monthBonus(t,ym){const J=D.jobs.filter(j=>j.tech===t.id&&j.status==='done'&&new Date(j.doneAt).toISOString().slice(0,7)===ym),R=J.filter(j=>j.rating&&!j.rating.excluded),a=R.length?R.reduce((s,j)=>s+wavg(j.rating),0)/R.length:0;
+ const claims=D.jobs.filter(j=>j.tech===t.id&&j.claim&&j.claim.valid&&new Date(j.claim.at).toISOString().slice(0,7)===ym).length;let ti=D.set.bonus.findIndex(([m])=>a>=m);if(ti>=0)ti+=claims;
+ const b=J.length>=D.set.bonusMinJobs&&ti>=0&&ti<D.set.bonus.length?D.set.bonus[ti][1]:0;return {jobs:J.length,avg:a,per:b,total:b*J.length,claims};}
+function demoImg(label,hue){const c=document.createElement('canvas');c.width=320;c.height=240;const x=c.getContext('2d');if(!x||!x.fillRect)return 'data:image/gif;base64,R0lGODlhAQABAAAAACw=';x.fillStyle=`hsl(${hue},45%,30%)`;x.fillRect(0,0,320,240);x.fillStyle='#fff';x.font='bold 20px sans-serif';x.fillText(label,20,125);return c.toDataURL('image/jpeg',.7);}
+function demoAll(){D=blank();const sk=lv=>({film:{lv,state:'approved',evidence:[],test:{score:90,at:now()}}});
+ const T=(name,lv,z,extra={})=>{const t={id:nid('T'),name,phone:'08x-xxx-'+String(D.seq).padStart(4,'0'),pin:'1234',status:'active',skills:sk(lv),zone:z,avail:{online:true,days:[0,1,2,3,4,5,6],off:[]},base:{jobs:0,avg:0},insurance:[],courses:[],createdAt:now(),...extra};D.techs.push(t);return t;};
+ T('ช่างเอก',3,{lat:13.7563,lng:100.5018,radius:25,area:'กรุงเทพ'},{base:{jobs:520,avg:4.8},premium:true});
+ T('ช่างบอย',2,{lat:13.69,lng:100.75,radius:20,area:'บางนา'},{base:{jobs:180,avg:4.5}});
+ T('ช่างต้น',1,{lat:13.74,lng:100.56,radius:15,area:'กรุงเทพ'},{base:{jobs:40,avg:4.2}});
+ const p=T('ช่างใหม่ (รอตรวจ)',0,{lat:13.75,lng:100.55,radius:15,area:'กรุงเทพ'},{status:'pending'});p.skills={film:{lv:0,state:'pending',evidence:[],claimLv:2}};
+ const W=(b,se,sh,sun)=>Object.fromEntries(WIN.filter(([k])=>k!=='sr'||sun).map(([k])=>[k,{b,s:se,shade:k==='ws'?Math.max(...filmOf(b,se)[4]):filmOf(b,se)[4][0]}]));
+ D.jobs.push(mkJob({customer:{name:'คุณสมชาย',phone:'0812345678'},car:{brand:'Toyota',model:'Camry',plate:'1กข 1234',province:'กรุงเทพมหานคร',color:'ขาว',photo:null},wins:W('Hi-Kool','Ceramic Plus'),loc:{text:'สาทร กรุงเทพ',lat:13.72,lng:100.53},date:new Date(now()+2*DAY).toISOString().slice(0,10),time:'10:00'}));
+ save();tick();}
+function mkJob(o){const q=quote(o.wins||{}),price=o.price||q.price;return {id:'F'+new Date().toISOString().slice(2,7).replace('-','')+String(D.seq++).padStart(4,'0'),createdAt:now(),svc:'film',qty:1,...o,level:q.level,price,
+ escrow:{state:'held',amount:price,fee:Math.round(price*D.set.feePct/100),paidAt:now(),method:'จำลอง (PromptPay/บัตร)'},status:'paid',offer:{history:[]},chat:[],
+ seal:null,recv:null,pre:{photos:{},interior:null,defects:[],filmOk:false,sealPhoto:null,sealNo:''},check:{},after:{},recheck:{},sign:null};}
+// seal: admin dispatch -> tech receives (type no + photo) -> inspection intact seal photo+no. Any mismatch -> admin alert.
+function sealMatch(j,no){return !!(j.seal&&no&&String(no).trim().toUpperCase()===j.seal.no);}
+
+// ================= FilmPro แอดมิน (back-office) =================
+let tab='dash',ui={},ADM=sessionStorage.getItem('fp_admin')==='1';
+function render(){load();tick();$('who').innerHTML=`<button class="btn2 text-xs px-2 py-1" onclick="if(confirm('โหลดข้อมูลตัวอย่าง (ล้างข้อมูลเดิม)?')){demoAll();render()}">ข้อมูลตัวอย่าง</button>`;
+ if(!ADM){$('tabs').innerHTML='';$('app').innerHTML=`<div class="card p-4"><h2 class="font-semibold">เข้าสู่ระบบแอดมิน</h2><input id="ap" type="password" placeholder="รหัสผ่าน (ต้นแบบ: admin)"><button class="btn w-full py-3 mt-2" onclick="if($('ap').value==='admin'){ADM=true;sessionStorage.setItem('fp_admin','1');render()}else alert('รหัสผ่านไม่ถูกต้อง')">เข้าสู่ระบบ</button></div>`;return;}
+ const al=D.alerts.filter(a=>!a.read).length,pend=D.techs.filter(t=>t.status==='pending'||Object.values(t.skills||{}).some(s=>s.state==='pending')).length;
+ const TB=[['dash','ภาพรวม'+(al?` <span class="pill bg-red-500 text-white">${al}</span>`:'')],['techs','ตรวจสอบช่าง'+(pend?` (${pend})`:'')],['jobs','งาน/มอบงาน'],['money','เงิน/escrow'],['reviews','รีวิว'],['inv','คำเชิญ'],['seal','ซีลฟิล์ม'],['set','ตั้งค่า']];
+ $('tabs').innerHTML=TB.map(([k,n])=>`<button class="tab btn2 text-xs px-3 py-1 ${tab===k?'on':''}" onclick="tab='${k}';render()">${n}</button>`).join('');
+ $('app').innerHTML=({dash:vDash,techs:vTechs,jobs:vJobsA,money:vMoney,reviews:vRev,inv:vInv,seal:vSeal,set:vSet}[tab])();}
+function vDash(){const J=D.jobs,c=s=>J.filter(j=>j.status===s).length,held=J.filter(j=>j.escrow.state==='held'||j.escrow.state==='disputed').reduce((a,j)=>a+j.price,0),rev=J.filter(j=>j.escrow.state==='released').reduce((a,j)=>a+j.escrow.fee,0);
+ return `<div class="grid grid-cols-3 gap-2 mb-3"><div class="kpi"><b>${J.length}</b><span class="text-[11px]">งานทั้งหมด</span></div><div class="kpi"><b>${baht(held)}</b><span class="text-[11px]">พักใน escrow</span></div><div class="kpi"><b>${baht(rev)}</b><span class="text-[11px]">ค่าบริการแพลตฟอร์ม</span></div>
+ <div class="kpi"><b>${c('offered')}</b><span class="text-[11px]">รอช่างยืนยัน</span></div><div class="kpi"><b class="text-red-600">${c('unassigned')}</b><span class="text-[11px]">ต้องมอบหมายเอง</span></div><div class="kpi"><b>${J.filter(j=>j.dispute&&j.escrow.state==='disputed').length}</b><span class="text-[11px]">ข้อพิพาท</span></div></div>
+ <div class="card p-4"><div class="flex justify-between"><h2 class="font-semibold">🚨 แจ้งเตือน</h2><button class="text-xs text-blue-600" onclick="D.alerts.forEach(a=>a.read=true);save();render()">อ่านแล้วทั้งหมด</button></div>${D.alerts.slice().reverse().slice(0,30).map(a=>`<div class="text-sm border-t py-1 ${a.read?'text-gray-400':''}">${esc(a.msg)}<div class="text-[11px]">${fmt(a.at)}</div></div>`).join('')||'<div class="text-xs text-gray-400">ไม่มี</div>'}</div>`;}
+// ---- verification per skill (evaluation form) + activation
+const VCH=['ตรวจบัตรประชาชน/ตัวตน (KYC)','ตรวจประวัติอาชญากรรม','ทดสอบติดฟิล์มบานประตู','ทดสอบติดบานหน้า/บานโค้ง','ความสะอาด ไม่มีฟอง/ฝุ่น','การป้องกันรถลูกค้า/สื่อสาร'];
+function vTechs(){return D.techs.map(t=>{const s=techStats(t),st=FPstats(t.id);return `<div class="card p-4 mb-2"><div class="flex justify-between"><b>${esc(t.id)} ${esc(t.name)}</b><span class="pill ${t.status==='active'?'bg-emerald-100 text-emerald-700':t.status==='suspended'?'bg-red-100 text-red-700':'bg-amber-100 text-amber-700'}">${t.status==='active'?'Active':t.status==='suspended'?'ระงับ':'รอตรวจสอบ'}</span></div>
+ <div class="text-xs text-gray-500">${esc(t.phone)} · ${esc((t.zone||{}).area||'')} · ${s.avg.toFixed(2)} ★ / ${s.n} งาน · เสนอ ${st.offer} รับ ${st.accept} ปฏิเสธ <b class="${st.decline?'text-red-600':''}">${st.decline}</b> หมดเวลา <b class="${st.timeout?'text-red-600':''}">${st.timeout}</b>${t.invitedBy?' · เชิญโดย '+esc(t.invitedBy)+' ('+esc((t.prob||{}).state||'')+')':''}</div>
+ ${Object.entries(t.skills||{}).map(([k,x])=>{const sv=D.svc[k],f=(ui.vf=ui.vf||{})[t.id+k]=(ui.vf[t.id+k]||{c:{},lv:x.claimLv||x.lv||1,score:''});return `<div class="border-t mt-2 pt-2"><div class="flex justify-between text-sm"><span>${sv.icon} ${sv.name}</span><span class="pill ${x.state==='approved'?'bg-emerald-100 text-emerald-700':x.state==='rejected'?'bg-red-100 text-red-700':'bg-amber-100 text-amber-700'}">${x.state==='approved'?sv.lv[x.lv-1][0]:x.state==='rejected'?'ไม่ผ่าน':'รอตรวจ (ขอ '+sv.lv[(x.claimLv||1)-1][0]+')'}</span></div>
+  ${x.state==='pending'?`<div class="grid grid-cols-3 gap-1 mt-1">${(x.evidence||[]).filter(Boolean).map(p=>`<img class="ph" src="${p}">`).join('')||'<div class="text-[11px] text-gray-400 col-span-3">ยังไม่มีหลักฐาน</div>'}</div>
+   <div class="text-xs mt-1 font-medium">แบบประเมินทดสอบฝีมือ</div>${VCH.map((c,i)=>`<label class="flex gap-2 text-xs py-0.5"><input type="checkbox" ${f.c[i]?'checked':''} onchange="ui.vf['${t.id+k}'].c[${i}]=this.checked">${c}</label>`).join('')}
+   <div class="grid grid-cols-3 gap-2 mt-1"><input placeholder="คะแนนสอบ" value="${f.score}" oninput="ui.vf['${t.id+k}'].score=this.value"><select onchange="ui.vf['${t.id+k}'].lv=+this.value">${sv.lv.map((l,i)=>`<option value="${i+1}" ${f.lv===i+1?'selected':''}>${l[0]}</option>`).join('')}</select><div class="flex gap-1"><button class="btng px-2 text-xs" onclick="vSkill('${t.id}','${k}',true)">ผ่าน</button><button class="btnr px-2 text-xs" onclick="vSkill('${t.id}','${k}',false)">ไม่ผ่าน</button></div></div>`
+  :`<button class="text-[11px] text-blue-600" onclick="tech('${t.id}').skills['${k}'].state='pending';save();render()">ประเมินใหม่</button>`}</div>`;}).join('')}
+ <label class="flex gap-2 text-xs mt-2"><input type="checkbox" id="pm_${t.id}" ${t.premium?'checked':''} onchange="tech('${t.id}').premium=this.checked;save();render()">💎 Verified Premium (รับงานราคา ≥ ${baht(D.set.premiumMin)})</label><div class="flex gap-2 mt-2">${t.status!=='active'?`<button class="btn flex-1 py-2 text-sm" onclick="activate('${t.id}')">เปิดใช้งานช่าง (Active)</button>`:`<button class="btn2 flex-1 py-2 text-sm text-red-600" onclick="tech('${t.id}').status='suspended';save();render()">ระงับ</button>`}</div></div>`;}).join('');}
+function FPstats(id){const o={offer:0,accept:0,decline:0,timeout:0};D.jobs.forEach(j=>{(j.offer&&j.offer.history||[]).forEach(h=>{if(h.tech!==id)return;if(h.res!=='admin')o.offer++;if(o[h.res]!=null)o[h.res]++;});if(j.status==='offered'&&j.offer.tech===id)o.offer++;});return o;}
+function vSkill(tid,k,ok){const pr=$('pm_'+tid);if(pr)tech(tid).premium=pr.checked;const f=ui.vf[tid+k],x=tech(tid).skills[k];if(ok){if(Object.values(f.c).filter(Boolean).length<VCH.length)return alert('ต้องผ่านแบบประเมินครบทุกข้อ');x.state='approved';x.lv=f.lv;x.test={score:+f.score||0,checks:f.c,at:now()};}else x.state='rejected';delete ui.vf[tid+k];save();render();}
+function activate(id){const t=tech(id);if(!Object.values(t.skills||{}).some(s=>s.state==='approved'))return alert('ต้องรับรองอย่างน้อย 1 ทักษะก่อน');t.status='active';save();render();}
+// ---- jobs: status, auto-assign trail, override, seal entry
+const AST={paid:'ชำระแล้ว',offered:'เสนอช่าง',unassigned:'⚠️ ไม่มีช่างรับ',accepted:'ช่างรับแล้ว',onsite:'ตรวจสภาพ',pre_sent:'รอลูกค้ารับทราบ',working:'กำลังทำ',handover:'รอลูกค้ายืนยัน',done:'เสร็จ',cancelled:'ยกเลิก'};
+function vJobsA(){const f=ui.jf||'ทั้งหมด',FL={'ทั้งหมด':()=>1,'ต้องมอบหมาย':j=>j.status==='unassigned','รอยืนยัน':j=>j.status==='offered','กำลังทำ':j=>['accepted','onsite','pre_sent','working','handover'].includes(j.status),'เสร็จ':j=>j.status==='done'};
+ return `<div class="flex gap-1 mb-2 overflow-x-auto">${Object.keys(FL).map(x=>`<button class="tab btn2 text-xs px-3 py-1 ${f===x?'on':''}" onclick="ui.jf='${x}';render()">${x} (${D.jobs.filter(FL[x]).length})</button>`).join('')}</div>
+ ${D.jobs.filter(FL[f]).slice().reverse().map(j=>{const s=D.svc[j.svc],rk=rank(j);return `<div class="card p-3 mb-2 text-sm"><div class="flex justify-between"><b>🪟 ${esc(j.id)} · ${esc(j.customer.name)}${j.price>=D.set.premiumMin?' 💎':''}</b><span class="pill ${j.status==='unassigned'?'bg-red-100 text-red-700':'bg-blue-100 text-blue-700'}">${AST[j.status]}</span></div>
+ <div class="text-xs text-gray-500">${esc(j.car.brand)} ${esc(j.car.model)} ${esc(j.car.plate)} (ต้อง ${s.lv[j.level-1][0]}+) · ${esc(j.date)} ${esc(j.time)} · 📍${esc(j.loc.text)} · ราคา ${baht(j.price)}${j.labor?' · ค่าแรง '+baht(j.labor):''}</div>
+ ${j.status==='offered'?`<div class="text-xs">เสนอ ${esc(tech(j.offer.tech).name)} (Match ${j.offer.score}) · ⏱ ${mmss(j.offer.expires-now())}</div>`:j.tech?`<div class="text-xs">ช่าง: <b>${esc(tech(j.tech).name)}</b></div>`:''}
+ ${(j.offer.history||[]).length?`<div class="text-[11px] text-gray-500">ประวัติ: ${j.offer.history.map(h=>`${esc((tech(h.tech)||{}).name||h.tech)} ${({accept:'✔',decline:'✕ ปฏิเสธ',timeout:'⏱ หมดเวลา',admin:'👤 แอดมิน'})[h.res]}${h.reason?' ('+esc(h.reason)+')':''}`).join(' → ')}</div>`:''}
+ <div class="text-[11px] mt-1">อันดับ: ${rk.slice(0,4).map((x,i)=>`${i+1}. ${esc(x.t.name)} (${x.e.score})`).join(' · ')||'<span class="text-red-600">ไม่มีช่างที่ผ่านเกณฑ์</span>'}</div>
+
+ ${!['done','cancelled'].includes(j.status)?`<div class="grid grid-cols-2 gap-2 mt-1"><select class="text-xs" id="aw_${j.id}"><option value="">เหตุผล</option>${['VIP','งานด่วน','ลูกค้าขอช่างคนนี้','ไม่มีช่างรับ'].map(r=>`<option>${r}</option>`).join('')}</select><select class="text-xs" onchange="if(this.value){adminAssign(job('${j.id}'),this.value,$('aw_${j.id}').value);render()}"><option value="">มอบหมายช่าง (override)</option>${D.techs.filter(t=>t.status==='active').map(t=>`<option value="${t.id}">${esc(t.name)}${skillLv(t,j.svc)?'':' (ไม่มีทักษะ)'}</option>`).join('')}</select></div>`:''}</div>`;}).join('')||'<div class="card p-4 text-sm">ไม่มีงาน</div>'}`;}
+function dispatch(id){const no=$('sn_'+id).value.trim().toUpperCase(),roll=$('sr_'+id).value.trim().toUpperCase();if(!no||!roll)return alert('กรอกเลขซีลและเลขม้วน');if(D.jobs.some(j=>j.id!==id&&j.seal&&j.seal.no===no))return alert('เลขซีลซ้ำกับงานอื่น');const j=job(id);j.seal={no,roll,at:now()};sys(j,'บริษัทส่งฟิล์มแล้ว (แพ็กซีล)');save();render();}
+function vSeal(){const P=D.jobs.filter(j=>j.tech&&!j.seal&&!['done','cancelled'].includes(j.status)),R=D.jobs.filter(j=>j.seal),ok=b=>b==null?'<span class="text-gray-400">–</span>':b?'<b class="text-emerald-600">✔</b>':'<b class="text-red-600">✕</b>';
+ return `<div class="card p-4 mb-3"><h2 class="font-semibold">📦 ส่งฟิล์มให้ช่าง (ต่อแพ็ก)</h2>${P.map(j=>`<div class="border-t py-2 text-sm"><b>${esc(j.id)}</b> → ${esc(tech(j.tech).name)} · ${esc(j.date)}<div class="text-[11px] text-gray-500">${WIN.filter(([k])=>j.wins[k]).map(([k,n])=>n+': '+esc(j.wins[k].b+' '+j.wins[k].s+' '+j.wins[k].shade+'%')).join(' · ')}</div><div class="grid grid-cols-3 gap-2 mt-1"><input id="sn_${j.id}" placeholder="เลขซีล"><input id="sr_${j.id}" placeholder="เลขม้วน"><button class="btn text-xs" onclick="dispatch('${j.id}')">ส่ง</button></div></div>`).join('')||'<div class="text-xs text-gray-400">ไม่มีงานรอส่งฟิล์ม</div>'}</div>
+ <div class="card p-4"><h2 class="font-semibold">🔎 กระทบยอดซีล</h2><table class="w-full text-xs"><tr class="text-gray-500"><td>งาน</td><td>ซีล/ม้วน</td><td>รับ</td><td>ก่อนแกะ</td><td>สถานะ</td></tr>${R.slice().reverse().map(j=>{const r=j.recv&&j.recv.no?sealMatch(j,j.recv.no):null,p=j.pre.sealNo?sealMatch(j,j.pre.sealNo):null;return `<tr class="border-t ${r===false||p===false?'bg-red-50':''}"><td>${esc(j.id)}</td><td>${esc(j.seal.no)}<br>${esc(j.seal.roll)}</td><td>${ok(r)}</td><td>${ok(p)}</td><td>${AST[j.status]}</td></tr>`;}).join('')}</table></div>`;}
+// ---- money: escrow, disputes, monthly payout per tech
+function vMoney(){const ym=ui.ym||new Date().toISOString().slice(0,7),dis=D.jobs.filter(j=>j.escrow.state==='disputed'),cl=D.jobs.filter(j=>j.claim&&j.claim.valid==null);
+ return `${cl.length?`<div class="card p-4 mb-3"><h2 class="font-semibold text-amber-700">🛡️ เคลมประกัน</h2>${cl.map(j=>`<div class="border-t py-2 text-sm"><b>${esc(j.warranty.code)}</b> ${esc(j.id)} · ช่าง ${esc(tech(j.tech).name)} · ${esc(j.claim.why)}<div class="grid grid-cols-2 gap-2 mt-1"><button class="btnr py-1 text-xs" onclick="job('${j.id}').claim.valid=true;save();render()">เคลมจริง (ช่างลดขั้นโบนัส)</button><button class="btn2 py-1 text-xs" onclick="job('${j.id}').claim.valid=false;save();render()">ไม่ใช่ความผิดงานติด</button></div></div>`).join('')}</div>`:''}${dis.length?`<div class="card p-4 mb-3 border-red-300"><h2 class="font-semibold text-red-700">⚖️ ข้อพิพาท</h2>${dis.map(j=>`<div class="border-t py-2 text-sm"><b>${esc(j.id)}</b> · ${esc(j.dispute.why)}<div class="grid grid-cols-2 gap-2 mt-1"><button class="btng py-1 text-xs" onclick="j_=job('${j.id}');j_.dispute.resolved='release';complete(j_,null);render()">ปล่อยเงินให้ช่าง</button><button class="btnr py-1 text-xs" onclick="refund('${j.id}')">คืนเงินลูกค้า</button></div></div>`).join('')}</div>`:''}
+ <div class="card p-4 mb-3"><h2 class="font-semibold">Escrow</h2>${D.jobs.slice().reverse().map(j=>`<div class="flex justify-between text-xs border-t py-1"><span>${esc(j.id)} · ${D.svc[j.svc].name}</span><span>${baht(j.price)} · <b class="${j.escrow.state==='released'?'text-emerald-600':j.escrow.state==='held'?'text-amber-600':'text-red-600'}">${({held:'พักไว้',released:'ปล่อยแล้ว',refunded:'คืนเงิน',disputed:'ข้อพิพาท'})[j.escrow.state]}</b></span></div>`).join('')}</div>
+ <div class="card p-4"><div class="flex justify-between items-center"><h2 class="font-semibold">สรุปจ่ายช่างรายเดือน</h2><input type="month" class="!w-36" value="${ym}" onchange="ui.ym=this.value;render()"></div>
+ <table class="w-full text-xs mt-2"><tr class="text-gray-500"><td>ช่าง</td><td class="text-right">ค่าแรง</td><td class="text-right">โบนัส</td><td class="text-right">อื่น ๆ</td><td class="text-right">ประกัน</td><td class="text-right">สุทธิ</td></tr>${D.techs.filter(t=>t.status==='active').map(t=>{const L=D.ledger.filter(l=>l.tech===t.id&&new Date(l.at).toISOString().slice(0,7)===ym),lab=L.filter(l=>l.kind==='labor').reduce((a,l)=>a+l.amount,0),oth=L.filter(l=>l.kind!=='labor').reduce((a,l)=>a+l.amount,0),b=monthBonus(t,ym),ins=(t.insurance||[]).reduce((a,id)=>a+(PERKS.ins.find(x=>x[0]===id)||[0,0,0])[2],0);
+  return `<tr class="border-t"><td>${esc(t.name)}<div class="text-[10px] text-gray-400">${b.jobs} งาน · ${b.avg.toFixed(2)}★${b.claims?' · เคลม '+b.claims:''}</div></td><td class="text-right">${baht(lab)}</td><td class="text-right">${baht(b.total)}</td><td class="text-right">${baht(oth)}</td><td class="text-right text-red-600">-${baht(ins)}</td><td class="text-right font-bold">${baht(lab+b.total+oth-ins)}</td></tr>`;}).join('')}</table></div>`;}
+function refund(id){const j=job(id);j.escrow.state='refunded';j.status='cancelled';j.dispute.resolved='refund';sys(j,'คืนเงินลูกค้าแล้ว');save();render();}
+function vRev(){const L=D.jobs.filter(j=>j.rating);return L.slice().reverse().map(j=>{const r=j.rating,low=CATS.some(([k])=>+r[k]===1);return `<div class="card p-3 mb-2 text-sm ${r.excluded?'opacity-50':''}"><div class="flex justify-between"><b>${esc(j.id)} · ${esc((tech(j.tech)||{}).name)}</b><span class="text-amber-500">${wavg(r).toFixed(2)} ★</span></div><div class="text-xs">${CATS.map(([k,n])=>`${n}: <b class="${+r[k]===1?'text-red-600':''}">${r[k]}</b>`).join(' · ')} · ${r.recommend?'แนะนำ':'ไม่แนะนำ'}</div>${r.comment?`<div class="text-xs text-gray-600">“${esc(r.comment)}”</div>`:''}${low?`<button class="btn2 text-xs px-2 py-1 mt-1" onclick="job('${j.id}').rating.excluded=${!r.excluded};save();render()">${r.excluded?'นำกลับมาคำนวณ':'คัดออก (รีวิวไม่เป็นธรรม)'}</button>`:''}</div>`;}).join('')||'<div class="card p-4 text-sm">ยังไม่มีรีวิว</div>';}
+function vInv(){return D.invites.slice().reverse().map(i=>`<div class="card p-3 mb-2 text-sm flex justify-between items-center"><div>${esc(i.name)} ← ${esc((tech(i.by)||{}).name)}<div class="text-[11px] text-gray-500">${fmt(i.at)}${i.code?' · รหัส '+esc(i.code):''}</div></div>${i.state==='pending'?`<div class="flex gap-1"><button class="btng px-2 py-1 text-xs" onclick="Object.assign(D.invites.find(x=>x.id==='${i.id}'),{state:'approved',code:'INV'+String(D.seq++).padStart(4,'0')});save();render()">อนุมัติ</button><button class="btnr px-2 py-1 text-xs" onclick="D.invites.find(x=>x.id==='${i.id}').state='rejected';save();render()">ปฏิเสธ</button></div>`:`<span class="pill bg-gray-100">${({approved:'อนุมัติ (รอสมัคร)',used:'สมัครแล้ว',rejected:'ปฏิเสธ'})[i.state]}</span>`}</div>`).join('')||'<div class="card p-4 text-sm">ไม่มีคำเชิญ</div>';}
+function vSet(){const S=D.set,n=(path,l,step=1)=>`<label class="flex justify-between items-center gap-2 text-sm py-1"><span>${l}</span><input type="number" step="${step}" class="!w-24" value="${path.split('.').reduce((o,k)=>o[k],S)}" onchange="setP(D.set,'${path}',+this.value)"></label>`;
+ return `<div class="card p-4 mb-3"><h2 class="font-semibold">ระบบมอบงาน & เงิน</h2>${n('confirmMin','เวลาให้ช่างยืนยัน (นาที)')}${n('feePct','ค่าบริการแพลตฟอร์ม (%)')}${n('autoReleaseH','ยืนยันอัตโนมัติหลังส่งมอบ (ชม.)')}${n('maxLoad','งานค้างที่ถือว่าเต็ม')}
+ <div class="text-xs text-gray-500 mt-2">น้ำหนักคะแนน Match</div>${n('w.rating','คะแนนรีวิว (หนักสุด)')}${n('w.skill','ระดับทักษะ')}${n('w.dist','ระยะทาง')}${n('w.load','งานค้างน้อย')}
+ <div class="text-xs text-gray-500 mt-2">โบนัสรายเดือน (฿/งาน)</div>${S.bonus.map((b,i)=>n('bonus.'+i+'.0','เฉลี่ย ≥',0.01)+n('bonus.'+i+'.1','→ ฿/งาน')).join('')}${n('bonusMinJobs','งานขั้นต่ำ/เดือน')}
+ <div class="text-xs text-gray-500 mt-2">ระบบเชิญ</div>${n('invitePerMonth','เชิญได้/เดือน')}${n('probJobs','งานทดลอง')}${n('probAvg','คะแนนผ่านทดลอง ≥',0.1)}${n('refBonus','โบนัสแนะนำ (฿)')}</div>
+ <div class="card p-4 mb-2"><h2 class="font-semibold">ค่าแรงช่างต่อคัน</h2>${D.svc.film.lv.map((l,i)=>`<label class="flex justify-between items-center text-sm py-1"><span>${esc(l[0])}</span><input type="number" class="!w-28" value="${l[1]}" onchange="D.svc.film.lv[${i}][1]=+this.value;save()"></label>`).join('')}
+ ${n('premiumMin','งานพรีเมียม (ราคา ≥ ฿)')}${n('warrantyY','รับประกัน (ปี)')}</div>
+ <div class="card p-4 mb-2"><h2 class="font-semibold">แคตตาล็อกฟิล์ม (ราคา/บาน · บานหน้า x2 · หลัง/ซันรูฟ x1.5)</h2><table class="w-full text-xs"><tr class="text-gray-500"><td>ยี่ห้อ</td><td>รุ่น</td><td>ระดับช่าง</td><td>฿/บาน</td><td>ความเข้ม %</td><td></td></tr>${S.films.map((f,i)=>`<tr>${[0,1].map(c=>`<td><input class="!py-1" value="${esc(f[c])}" onchange="D.set.films[${i}][${c}]=this.value;save()"></td>`).join('')}<td><select class="!py-1" onchange="D.set.films[${i}][2]=+this.value;save()">${[1,2,3].map(v=>`<option ${f[2]===v?'selected':''}>${v}</option>`).join('')}</select></td><td><input type="number" class="!py-1" value="${f[3]}" onchange="D.set.films[${i}][3]=+this.value;save()"></td><td><input class="!py-1" value="${f[4].join(',')}" onchange="D.set.films[${i}][4]=this.value.split(',').map(Number).filter(x=>x>0);save()"></td><td><button class="text-red-600" onclick="D.set.films.splice(${i},1);save();render()">✕</button></td></tr>`).join('')}</table><button class="btn2 text-xs px-2 py-1 mt-1" onclick="D.set.films.push(['ยี่ห้อ','รุ่นใหม่',1,500,[40]]);save();render()">+ เพิ่มฟิล์ม</button>
+ <label class="f text-xs">QC เช็กลิสต์ (บรรทัดละข้อ)<textarea rows="4" onchange="D.svc.film.check=this.value.split('\\n').map(x=>x.trim()).filter(Boolean);save()">${esc(D.svc.film.check.join('\n'))}</textarea></label></div>`;}
+function setP(o,path,v){const k=path.split('.');k.slice(0,-1).reduce((a,x)=>a[x],o)[k[k.length-1]]=v;save();render();}
+/* ---- Bridge: นำงานจองจากเว็บลูกค้า (filmpro_bookings_v1) ที่ชำระเงินแล้ว เข้ามาเป็นงานใน Back-office นี้ ---- */
+function fpImport(){try{const B=JSON.parse(localStorage.getItem('filmpro_bookings_v1'))||[];let n=0;
+ const MAP={front:['ws'],frontSide:['fl','fr'],rearSide:['rl','rr'],rear:['rw'],sunroof:['sr'],glassRoof:['sr']};
+ B.forEach(b=>{if(!b||b.status==='cancelled'||!b.deposit||b.deposit.status!=='paid'||D.jobs.some(j=>j.id===b.id))return;
+  const f=b.film||{},V=b.vlt||{},wins={};Object.keys(MAP).forEach(k=>{if(V[k]==null||V[k]==='')return;MAP[k].forEach(w=>{wins[w]={b:f.brandName||String(f.brand||'').toUpperCase(),s:f.series||'',shade:V[k]};});});
+  const c=b.car||{},j=mkJob({customer:{name:b.customer,phone:b.phone},car:{brand:c.brand||'',model:c.model||'',plate:c.plate||'',province:c.province||'',color:c.color||'',photo:c.photo||null},
+   wins,loc:{text:b.location||'',lat:b.geo?b.geo.lat:null,lng:b.geo?b.geo.lng:null},date:b.date,time:b.time,price:b.total||b.price||0});
+  j.id=b.id;j.src='web';j.escrow.paidAt=b.deposit.paidAt||now();j.escrow.method='PromptPay (เว็บจอง)';sys(j,'นำเข้าจากเว็บจอง '+b.id);D.jobs.push(j);n++;});
+ if(n){save();}}catch(e){console.warn('fpImport',e);}}
+{const _load=load;load=function(){_load();fpImport();return D;};}
+var j_;load();render();addEventListener('storage',e=>{if(e.key===KN||e.key==='filmpro_bookings_v1')render();});setInterval(()=>{if(!document.querySelector('input:focus,select:focus,textarea:focus'))render();},15000);
+
+</script><script>/* FilmPro Suite nav — links every page of the suite (same origin = shared localStorage) */
+(function(){var P=[['index.html','หน้าลูกค้า'],['tech.html','หลังบ้าน/ช่าง'],['inspect.html','ตรวจสภาพรถ'],['handover.html','ส่งมอบงาน'],['notify.html','แจ้งเตือนช่าง'],['admin-v2.html','Admin V2']];
+var cur=(location.pathname.split('/').pop()||'index.html');
+function go(){if(document.getElementById('fpSuiteNav'))return;var n=document.createElement('nav');n.id='fpSuiteNav';
+n.style.cssText='display:flex;gap:6px;overflow-x:auto;padding:6px 10px;background:#0E1B2A;font:13px Sarabun,sans-serif;position:relative;z-index:60;-webkit-overflow-scrolling:touch';
+n.innerHTML='<b style="color:#fff;white-space:nowrap;padding:4px 6px 4px 0">FilmPro</b>'+P.map(function(p){var on=p[0]===cur;return '<a href="'+p[0]+'" style="white-space:nowrap;text-decoration:none;padding:4px 10px;border-radius:999px;'+(on?'background:#2563EB;color:#fff':'color:#cbd5e1;border:1px solid #334155')+'">'+p[1]+'</a>';}).join('');
+document.body.insertBefore(n,document.body.firstChild);}
+if(document.body)go();else document.addEventListener('DOMContentLoaded',go);})();
+</script>
+</body></html>

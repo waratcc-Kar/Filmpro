@@ -1,0 +1,2876 @@
+<!DOCTYPE html>
+<html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FilmPro Handover — ส่งมอบงาน</title>
+<!-- Extended: reads jobs from FilmPro Inspect (pre photos, inspect.exist/defects/filmZones, carPhoto); writes ratings to shared localStorage 'filmpro_ratings_v1' {jobId:{...CATS, wavg, recommend, comment, inst, at, claim}} read by FilmPro Tech. -->
+<!-- FilmPro Part 3: Job completion / handover. Job record compatible with filmpro-tech-v1 (id, customer, car, film, inst). Export JSON {ratings:[{job,rating}]} matches Part 2 job.rating shape. -->
+<script src="https://cdn.tailwindcss.com"></script>
+<style>.fpx{font-family:'Sarabun',sans-serif;color:#1e293b}
+.fpx .card{background:#fff;border:1px solid #e2e8f0;border-radius:20px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.fpx .fbtn{background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%);border-radius:12px;color:#fff;padding:10px 14px;display:inline-block;text-align:center}
+.fpx .fbtn2{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:8px 12px;display:inline-block;text-align:center}
+.fpx .fred{background:#ef4444;color:#fff;border-radius:12px;padding:8px 12px}.fpx .fgreen{background:#10b981;color:#fff;border-radius:12px;padding:8px 12px}
+.fpx input:not([type=checkbox]):not([type=radio]):not([type=file]),.fpx select,.fpx textarea{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:10px 12px;width:100%}
+.fpx input[type=checkbox]{width:18px;height:18px;accent-color:#2563eb;flex:none;-webkit-appearance:checkbox!important;appearance:auto!important;opacity:1!important;display:inline-block!important}
+.fpx label.f{display:block;font-size:13px;font-weight:600;margin:10px 0 4px}
+.fpx .ftab{white-space:nowrap;border-radius:10px;padding:6px 12px;font-size:13px;background:#fff;border:1px solid #e2e8f0}.fpx .ftab.on{background:#2563eb;color:#fff;border-color:#2563eb}
+.fpx .pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px}
+.fpx .kpi{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:12px}.fpx .kpi b{display:block;font-size:20px;color:#1e40af}
+.fpx .qr svg{width:100%;height:auto;max-width:260px;margin:auto;display:block}
+.fpx h2{color:#1e40af}
+</style>
+<script>/* qrcode-generator (MIT) */
+//---------------------------------------------------------------------
+//
+// QR Code Generator for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//  http://www.opensource.org/licenses/mit-license.php
+//
+// The word 'QR Code' is registered trademark of
+// DENSO WAVE INCORPORATED
+//  http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+
+var qrcode = function() {
+
+  //---------------------------------------------------------------------
+  // qrcode
+  //---------------------------------------------------------------------
+
+  /**
+   * qrcode
+   * @param typeNumber 1 to 40
+   * @param errorCorrectionLevel 'L','M','Q','H'
+   */
+  var qrcode = function(typeNumber, errorCorrectionLevel) {
+
+    var PAD0 = 0xEC;
+    var PAD1 = 0x11;
+
+    var _typeNumber = typeNumber;
+    var _errorCorrectionLevel = QRErrorCorrectionLevel[errorCorrectionLevel];
+    var _modules = null;
+    var _moduleCount = 0;
+    var _dataCache = null;
+    var _dataList = [];
+
+    var _this = {};
+
+    var makeImpl = function(test, maskPattern) {
+
+      _moduleCount = _typeNumber * 4 + 17;
+      _modules = function(moduleCount) {
+        var modules = new Array(moduleCount);
+        for (var row = 0; row < moduleCount; row += 1) {
+          modules[row] = new Array(moduleCount);
+          for (var col = 0; col < moduleCount; col += 1) {
+            modules[row][col] = null;
+          }
+        }
+        return modules;
+      }(_moduleCount);
+
+      setupPositionProbePattern(0, 0);
+      setupPositionProbePattern(_moduleCount - 7, 0);
+      setupPositionProbePattern(0, _moduleCount - 7);
+      setupPositionAdjustPattern();
+      setupTimingPattern();
+      setupTypeInfo(test, maskPattern);
+
+      if (_typeNumber >= 7) {
+        setupTypeNumber(test);
+      }
+
+      if (_dataCache == null) {
+        _dataCache = createData(_typeNumber, _errorCorrectionLevel, _dataList);
+      }
+
+      mapData(_dataCache, maskPattern);
+    };
+
+    var setupPositionProbePattern = function(row, col) {
+
+      for (var r = -1; r <= 7; r += 1) {
+
+        if (row + r <= -1 || _moduleCount <= row + r) continue;
+
+        for (var c = -1; c <= 7; c += 1) {
+
+          if (col + c <= -1 || _moduleCount <= col + c) continue;
+
+          if ( (0 <= r && r <= 6 && (c == 0 || c == 6) )
+              || (0 <= c && c <= 6 && (r == 0 || r == 6) )
+              || (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+            _modules[row + r][col + c] = true;
+          } else {
+            _modules[row + r][col + c] = false;
+          }
+        }
+      }
+    };
+
+    var getBestMaskPattern = function() {
+
+      var minLostPoint = 0;
+      var pattern = 0;
+
+      for (var i = 0; i < 8; i += 1) {
+
+        makeImpl(true, i);
+
+        var lostPoint = QRUtil.getLostPoint(_this);
+
+        if (i == 0 || minLostPoint > lostPoint) {
+          minLostPoint = lostPoint;
+          pattern = i;
+        }
+      }
+
+      return pattern;
+    };
+
+    var setupTimingPattern = function() {
+
+      for (var r = 8; r < _moduleCount - 8; r += 1) {
+        if (_modules[r][6] != null) {
+          continue;
+        }
+        _modules[r][6] = (r % 2 == 0);
+      }
+
+      for (var c = 8; c < _moduleCount - 8; c += 1) {
+        if (_modules[6][c] != null) {
+          continue;
+        }
+        _modules[6][c] = (c % 2 == 0);
+      }
+    };
+
+    var setupPositionAdjustPattern = function() {
+
+      var pos = QRUtil.getPatternPosition(_typeNumber);
+
+      for (var i = 0; i < pos.length; i += 1) {
+
+        for (var j = 0; j < pos.length; j += 1) {
+
+          var row = pos[i];
+          var col = pos[j];
+
+          if (_modules[row][col] != null) {
+            continue;
+          }
+
+          for (var r = -2; r <= 2; r += 1) {
+
+            for (var c = -2; c <= 2; c += 1) {
+
+              if (r == -2 || r == 2 || c == -2 || c == 2
+                  || (r == 0 && c == 0) ) {
+                _modules[row + r][col + c] = true;
+              } else {
+                _modules[row + r][col + c] = false;
+              }
+            }
+          }
+        }
+      }
+    };
+
+    var setupTypeNumber = function(test) {
+
+      var bits = QRUtil.getBCHTypeNumber(_typeNumber);
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[Math.floor(i / 3)][i % 3 + _moduleCount - 8 - 3] = mod;
+      }
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[i % 3 + _moduleCount - 8 - 3][Math.floor(i / 3)] = mod;
+      }
+    };
+
+    var setupTypeInfo = function(test, maskPattern) {
+
+      var data = (_errorCorrectionLevel << 3) | maskPattern;
+      var bits = QRUtil.getBCHTypeInfo(data);
+
+      // vertical
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 6) {
+          _modules[i][8] = mod;
+        } else if (i < 8) {
+          _modules[i + 1][8] = mod;
+        } else {
+          _modules[_moduleCount - 15 + i][8] = mod;
+        }
+      }
+
+      // horizontal
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 8) {
+          _modules[8][_moduleCount - i - 1] = mod;
+        } else if (i < 9) {
+          _modules[8][15 - i - 1 + 1] = mod;
+        } else {
+          _modules[8][15 - i - 1] = mod;
+        }
+      }
+
+      // fixed module
+      _modules[_moduleCount - 8][8] = (!test);
+    };
+
+    var mapData = function(data, maskPattern) {
+
+      var inc = -1;
+      var row = _moduleCount - 1;
+      var bitIndex = 7;
+      var byteIndex = 0;
+      var maskFunc = QRUtil.getMaskFunction(maskPattern);
+
+      for (var col = _moduleCount - 1; col > 0; col -= 2) {
+
+        if (col == 6) col -= 1;
+
+        while (true) {
+
+          for (var c = 0; c < 2; c += 1) {
+
+            if (_modules[row][col - c] == null) {
+
+              var dark = false;
+
+              if (byteIndex < data.length) {
+                dark = ( ( (data[byteIndex] >>> bitIndex) & 1) == 1);
+              }
+
+              var mask = maskFunc(row, col - c);
+
+              if (mask) {
+                dark = !dark;
+              }
+
+              _modules[row][col - c] = dark;
+              bitIndex -= 1;
+
+              if (bitIndex == -1) {
+                byteIndex += 1;
+                bitIndex = 7;
+              }
+            }
+          }
+
+          row += inc;
+
+          if (row < 0 || _moduleCount <= row) {
+            row -= inc;
+            inc = -inc;
+            break;
+          }
+        }
+      }
+    };
+
+    var createBytes = function(buffer, rsBlocks) {
+
+      var offset = 0;
+
+      var maxDcCount = 0;
+      var maxEcCount = 0;
+
+      var dcdata = new Array(rsBlocks.length);
+      var ecdata = new Array(rsBlocks.length);
+
+      for (var r = 0; r < rsBlocks.length; r += 1) {
+
+        var dcCount = rsBlocks[r].dataCount;
+        var ecCount = rsBlocks[r].totalCount - dcCount;
+
+        maxDcCount = Math.max(maxDcCount, dcCount);
+        maxEcCount = Math.max(maxEcCount, ecCount);
+
+        dcdata[r] = new Array(dcCount);
+
+        for (var i = 0; i < dcdata[r].length; i += 1) {
+          dcdata[r][i] = 0xff & buffer.getBuffer()[i + offset];
+        }
+        offset += dcCount;
+
+        var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+        var rawPoly = qrPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+        var modPoly = rawPoly.mod(rsPoly);
+        ecdata[r] = new Array(rsPoly.getLength() - 1);
+        for (var i = 0; i < ecdata[r].length; i += 1) {
+          var modIndex = i + modPoly.getLength() - ecdata[r].length;
+          ecdata[r][i] = (modIndex >= 0)? modPoly.getAt(modIndex) : 0;
+        }
+      }
+
+      var totalCodeCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalCodeCount += rsBlocks[i].totalCount;
+      }
+
+      var data = new Array(totalCodeCount);
+      var index = 0;
+
+      for (var i = 0; i < maxDcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < dcdata[r].length) {
+            data[index] = dcdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      for (var i = 0; i < maxEcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < ecdata[r].length) {
+            data[index] = ecdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      return data;
+    };
+
+    var createData = function(typeNumber, errorCorrectionLevel, dataList) {
+
+      var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectionLevel);
+
+      var buffer = qrBitBuffer();
+
+      for (var i = 0; i < dataList.length; i += 1) {
+        var data = dataList[i];
+        buffer.put(data.getMode(), 4);
+        buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
+        data.write(buffer);
+      }
+
+      // calc num max data.
+      var totalDataCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalDataCount += rsBlocks[i].dataCount;
+      }
+
+      if (buffer.getLengthInBits() > totalDataCount * 8) {
+        throw 'code length overflow. ('
+          + buffer.getLengthInBits()
+          + '>'
+          + totalDataCount * 8
+          + ')';
+      }
+
+      // end code
+      if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+        buffer.put(0, 4);
+      }
+
+      // padding
+      while (buffer.getLengthInBits() % 8 != 0) {
+        buffer.putBit(false);
+      }
+
+      // padding
+      while (true) {
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD0, 8);
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD1, 8);
+      }
+
+      return createBytes(buffer, rsBlocks);
+    };
+
+    _this.addData = function(data, mode) {
+
+      mode = mode || 'Byte';
+
+      var newData = null;
+
+      switch(mode) {
+      case 'Numeric' :
+        newData = qrNumber(data);
+        break;
+      case 'Alphanumeric' :
+        newData = qrAlphaNum(data);
+        break;
+      case 'Byte' :
+        newData = qr8BitByte(data);
+        break;
+      case 'Kanji' :
+        newData = qrKanji(data);
+        break;
+      default :
+        throw 'mode:' + mode;
+      }
+
+      _dataList.push(newData);
+      _dataCache = null;
+    };
+
+    _this.isDark = function(row, col) {
+      if (row < 0 || _moduleCount <= row || col < 0 || _moduleCount <= col) {
+        throw row + ',' + col;
+      }
+      return _modules[row][col];
+    };
+
+    _this.getModuleCount = function() {
+      return _moduleCount;
+    };
+
+    _this.make = function() {
+      if (_typeNumber < 1) {
+        var typeNumber = 1;
+
+        for (; typeNumber < 40; typeNumber++) {
+          var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, _errorCorrectionLevel);
+          var buffer = qrBitBuffer();
+
+          for (var i = 0; i < _dataList.length; i++) {
+            var data = _dataList[i];
+            buffer.put(data.getMode(), 4);
+            buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
+            data.write(buffer);
+          }
+
+          var totalDataCount = 0;
+          for (var i = 0; i < rsBlocks.length; i++) {
+            totalDataCount += rsBlocks[i].dataCount;
+          }
+
+          if (buffer.getLengthInBits() <= totalDataCount * 8) {
+            break;
+          }
+        }
+
+        _typeNumber = typeNumber;
+      }
+
+      makeImpl(false, getBestMaskPattern() );
+    };
+
+    _this.createTableTag = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var qrHtml = '';
+
+      qrHtml += '<table style="';
+      qrHtml += ' border-width: 0px; border-style: none;';
+      qrHtml += ' border-collapse: collapse;';
+      qrHtml += ' padding: 0px; margin: ' + margin + 'px;';
+      qrHtml += '">';
+      qrHtml += '<tbody>';
+
+      for (var r = 0; r < _this.getModuleCount(); r += 1) {
+
+        qrHtml += '<tr>';
+
+        for (var c = 0; c < _this.getModuleCount(); c += 1) {
+          qrHtml += '<td style="';
+          qrHtml += ' border-width: 0px; border-style: none;';
+          qrHtml += ' border-collapse: collapse;';
+          qrHtml += ' padding: 0px; margin: 0px;';
+          qrHtml += ' width: ' + cellSize + 'px;';
+          qrHtml += ' height: ' + cellSize + 'px;';
+          qrHtml += ' background-color: ';
+          qrHtml += _this.isDark(r, c)? '#000000' : '#ffffff';
+          qrHtml += ';';
+          qrHtml += '"/>';
+        }
+
+        qrHtml += '</tr>';
+      }
+
+      qrHtml += '</tbody>';
+      qrHtml += '</table>';
+
+      return qrHtml;
+    };
+
+    _this.createSvgTag = function(cellSize, margin, alt, title) {
+
+      var opts = {};
+      if (typeof arguments[0] == 'object') {
+        // Called by options.
+        opts = arguments[0];
+        // overwrite cellSize and margin.
+        cellSize = opts.cellSize;
+        margin = opts.margin;
+        alt = opts.alt;
+        title = opts.title;
+      }
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      // Compose alt property surrogate
+      alt = (typeof alt === 'string') ? {text: alt} : alt || {};
+      alt.text = alt.text || null;
+      alt.id = (alt.text) ? alt.id || 'qrcode-description' : null;
+
+      // Compose title property surrogate
+      title = (typeof title === 'string') ? {text: title} : title || {};
+      title.text = title.text || null;
+      title.id = (title.text) ? title.id || 'qrcode-title' : null;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var c, mc, r, mr, qrSvg='', rect;
+
+      rect = 'l' + cellSize + ',0 0,' + cellSize +
+        ' -' + cellSize + ',0 0,-' + cellSize + 'z ';
+
+      qrSvg += '<svg version="1.1" xmlns="http://www.w3.org/2000/svg"';
+      qrSvg += !opts.scalable ? ' width="' + size + 'px" height="' + size + 'px"' : '';
+      qrSvg += ' viewBox="0 0 ' + size + ' ' + size + '" ';
+      qrSvg += ' preserveAspectRatio="xMinYMin meet"';
+      qrSvg += (title.text || alt.text) ? ' role="img" aria-labelledby="' +
+          escapeXml([title.id, alt.id].join(' ').trim() ) + '"' : '';
+      qrSvg += '>';
+      qrSvg += (title.text) ? '<title id="' + escapeXml(title.id) + '">' +
+          escapeXml(title.text) + '</title>' : '';
+      qrSvg += (alt.text) ? '<description id="' + escapeXml(alt.id) + '">' +
+          escapeXml(alt.text) + '</description>' : '';
+      qrSvg += '<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>';
+      qrSvg += '<path d="';
+
+      for (r = 0; r < _this.getModuleCount(); r += 1) {
+        mr = r * cellSize + margin;
+        for (c = 0; c < _this.getModuleCount(); c += 1) {
+          if (_this.isDark(r, c) ) {
+            mc = c*cellSize+margin;
+            qrSvg += 'M' + mc + ',' + mr + rect;
+          }
+        }
+      }
+
+      qrSvg += '" stroke="transparent" fill="black"/>';
+      qrSvg += '</svg>';
+
+      return qrSvg;
+    };
+
+    _this.createDataURL = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      return createDataURL(size, size, function(x, y) {
+        if (min <= x && x < max && min <= y && y < max) {
+          var c = Math.floor( (x - min) / cellSize);
+          var r = Math.floor( (y - min) / cellSize);
+          return _this.isDark(r, c)? 0 : 1;
+        } else {
+          return 1;
+        }
+      } );
+    };
+
+    _this.createImgTag = function(cellSize, margin, alt) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+
+      var img = '';
+      img += '<img';
+      img += '\u0020src="';
+      img += _this.createDataURL(cellSize, margin);
+      img += '"';
+      img += '\u0020width="';
+      img += size;
+      img += '"';
+      img += '\u0020height="';
+      img += size;
+      img += '"';
+      if (alt) {
+        img += '\u0020alt="';
+        img += escapeXml(alt);
+        img += '"';
+      }
+      img += '/>';
+
+      return img;
+    };
+
+    var escapeXml = function(s) {
+      var escaped = '';
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charAt(i);
+        switch(c) {
+        case '<': escaped += '&lt;'; break;
+        case '>': escaped += '&gt;'; break;
+        case '&': escaped += '&amp;'; break;
+        case '"': escaped += '&quot;'; break;
+        default : escaped += c; break;
+        }
+      }
+      return escaped;
+    };
+
+    var _createHalfASCII = function(margin) {
+      var cellSize = 1;
+      margin = (typeof margin == 'undefined')? cellSize * 2 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      var y, x, r1, r2, p;
+
+      var blocks = {
+        '██': '█',
+        '█ ': '▀',
+        ' █': '▄',
+        '  ': ' '
+      };
+
+      var blocksLastLineNoMargin = {
+        '██': '▀',
+        '█ ': '▀',
+        ' █': ' ',
+        '  ': ' '
+      };
+
+      var ascii = '';
+      for (y = 0; y < size; y += 2) {
+        r1 = Math.floor((y - min) / cellSize);
+        r2 = Math.floor((y + 1 - min) / cellSize);
+        for (x = 0; x < size; x += 1) {
+          p = '█';
+
+          if (min <= x && x < max && min <= y && y < max && _this.isDark(r1, Math.floor((x - min) / cellSize))) {
+            p = ' ';
+          }
+
+          if (min <= x && x < max && min <= y+1 && y+1 < max && _this.isDark(r2, Math.floor((x - min) / cellSize))) {
+            p += ' ';
+          }
+          else {
+            p += '█';
+          }
+
+          // Output 2 characters per pixel, to create full square. 1 character per pixels gives only half width of square.
+          ascii += (margin < 1 && y+1 >= max) ? blocksLastLineNoMargin[p] : blocks[p];
+        }
+
+        ascii += '\n';
+      }
+
+      if (size % 2 && margin > 0) {
+        return ascii.substring(0, ascii.length - size - 1) + Array(size+1).join('▀');
+      }
+
+      return ascii.substring(0, ascii.length-1);
+    };
+
+    _this.createASCII = function(cellSize, margin) {
+      cellSize = cellSize || 1;
+
+      if (cellSize < 2) {
+        return _createHalfASCII(margin);
+      }
+
+      cellSize -= 1;
+      margin = (typeof margin == 'undefined')? cellSize * 2 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      var y, x, r, p;
+
+      var white = Array(cellSize+1).join('██');
+      var black = Array(cellSize+1).join('  ');
+
+      var ascii = '';
+      var line = '';
+      for (y = 0; y < size; y += 1) {
+        r = Math.floor( (y - min) / cellSize);
+        line = '';
+        for (x = 0; x < size; x += 1) {
+          p = 1;
+
+          if (min <= x && x < max && min <= y && y < max && _this.isDark(r, Math.floor((x - min) / cellSize))) {
+            p = 0;
+          }
+
+          // Output 2 characters per pixel, to create full square. 1 character per pixels gives only half width of square.
+          line += p ? white : black;
+        }
+
+        for (r = 0; r < cellSize; r += 1) {
+          ascii += line + '\n';
+        }
+      }
+
+      return ascii.substring(0, ascii.length-1);
+    };
+
+    _this.renderTo2dContext = function(context, cellSize) {
+      cellSize = cellSize || 2;
+      var length = _this.getModuleCount();
+      for (var row = 0; row < length; row++) {
+        for (var col = 0; col < length; col++) {
+          context.fillStyle = _this.isDark(row, col) ? 'black' : 'white';
+          context.fillRect(row * cellSize, col * cellSize, cellSize, cellSize);
+        }
+      }
+    }
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrcode.stringToBytes
+  //---------------------------------------------------------------------
+
+  qrcode.stringToBytesFuncs = {
+    'default' : function(s) {
+      var bytes = [];
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charCodeAt(i);
+        bytes.push(c & 0xff);
+      }
+      return bytes;
+    }
+  };
+
+  qrcode.stringToBytes = qrcode.stringToBytesFuncs['default'];
+
+  //---------------------------------------------------------------------
+  // qrcode.createStringToBytes
+  //---------------------------------------------------------------------
+
+  /**
+   * @param unicodeData base64 string of byte array.
+   * [16bit Unicode],[16bit Bytes], ...
+   * @param numChars
+   */
+  qrcode.createStringToBytes = function(unicodeData, numChars) {
+
+    // create conversion map.
+
+    var unicodeMap = function() {
+
+      var bin = base64DecodeInputStream(unicodeData);
+      var read = function() {
+        var b = bin.read();
+        if (b == -1) throw 'eof';
+        return b;
+      };
+
+      var count = 0;
+      var unicodeMap = {};
+      while (true) {
+        var b0 = bin.read();
+        if (b0 == -1) break;
+        var b1 = read();
+        var b2 = read();
+        var b3 = read();
+        var k = String.fromCharCode( (b0 << 8) | b1);
+        var v = (b2 << 8) | b3;
+        unicodeMap[k] = v;
+        count += 1;
+      }
+      if (count != numChars) {
+        throw count + ' != ' + numChars;
+      }
+
+      return unicodeMap;
+    }();
+
+    var unknownChar = '?'.charCodeAt(0);
+
+    return function(s) {
+      var bytes = [];
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charCodeAt(i);
+        if (c < 128) {
+          bytes.push(c);
+        } else {
+          var b = unicodeMap[s.charAt(i)];
+          if (typeof b == 'number') {
+            if ( (b & 0xff) == b) {
+              // 1byte
+              bytes.push(b);
+            } else {
+              // 2bytes
+              bytes.push(b >>> 8);
+              bytes.push(b & 0xff);
+            }
+          } else {
+            bytes.push(unknownChar);
+          }
+        }
+      }
+      return bytes;
+    };
+  };
+
+  //---------------------------------------------------------------------
+  // QRMode
+  //---------------------------------------------------------------------
+
+  var QRMode = {
+    MODE_NUMBER :    1 << 0,
+    MODE_ALPHA_NUM : 1 << 1,
+    MODE_8BIT_BYTE : 1 << 2,
+    MODE_KANJI :     1 << 3
+  };
+
+  //---------------------------------------------------------------------
+  // QRErrorCorrectionLevel
+  //---------------------------------------------------------------------
+
+  var QRErrorCorrectionLevel = {
+    L : 1,
+    M : 0,
+    Q : 3,
+    H : 2
+  };
+
+  //---------------------------------------------------------------------
+  // QRMaskPattern
+  //---------------------------------------------------------------------
+
+  var QRMaskPattern = {
+    PATTERN000 : 0,
+    PATTERN001 : 1,
+    PATTERN010 : 2,
+    PATTERN011 : 3,
+    PATTERN100 : 4,
+    PATTERN101 : 5,
+    PATTERN110 : 6,
+    PATTERN111 : 7
+  };
+
+  //---------------------------------------------------------------------
+  // QRUtil
+  //---------------------------------------------------------------------
+
+  var QRUtil = function() {
+
+    var PATTERN_POSITION_TABLE = [
+      [],
+      [6, 18],
+      [6, 22],
+      [6, 26],
+      [6, 30],
+      [6, 34],
+      [6, 22, 38],
+      [6, 24, 42],
+      [6, 26, 46],
+      [6, 28, 50],
+      [6, 30, 54],
+      [6, 32, 58],
+      [6, 34, 62],
+      [6, 26, 46, 66],
+      [6, 26, 48, 70],
+      [6, 26, 50, 74],
+      [6, 30, 54, 78],
+      [6, 30, 56, 82],
+      [6, 30, 58, 86],
+      [6, 34, 62, 90],
+      [6, 28, 50, 72, 94],
+      [6, 26, 50, 74, 98],
+      [6, 30, 54, 78, 102],
+      [6, 28, 54, 80, 106],
+      [6, 32, 58, 84, 110],
+      [6, 30, 58, 86, 114],
+      [6, 34, 62, 90, 118],
+      [6, 26, 50, 74, 98, 122],
+      [6, 30, 54, 78, 102, 126],
+      [6, 26, 52, 78, 104, 130],
+      [6, 30, 56, 82, 108, 134],
+      [6, 34, 60, 86, 112, 138],
+      [6, 30, 58, 86, 114, 142],
+      [6, 34, 62, 90, 118, 146],
+      [6, 30, 54, 78, 102, 126, 150],
+      [6, 24, 50, 76, 102, 128, 154],
+      [6, 28, 54, 80, 106, 132, 158],
+      [6, 32, 58, 84, 110, 136, 162],
+      [6, 26, 54, 82, 110, 138, 166],
+      [6, 30, 58, 86, 114, 142, 170]
+    ];
+    var G15 = (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0);
+    var G18 = (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0);
+    var G15_MASK = (1 << 14) | (1 << 12) | (1 << 10) | (1 << 4) | (1 << 1);
+
+    var _this = {};
+
+    var getBCHDigit = function(data) {
+      var digit = 0;
+      while (data != 0) {
+        digit += 1;
+        data >>>= 1;
+      }
+      return digit;
+    };
+
+    _this.getBCHTypeInfo = function(data) {
+      var d = data << 10;
+      while (getBCHDigit(d) - getBCHDigit(G15) >= 0) {
+        d ^= (G15 << (getBCHDigit(d) - getBCHDigit(G15) ) );
+      }
+      return ( (data << 10) | d) ^ G15_MASK;
+    };
+
+    _this.getBCHTypeNumber = function(data) {
+      var d = data << 12;
+      while (getBCHDigit(d) - getBCHDigit(G18) >= 0) {
+        d ^= (G18 << (getBCHDigit(d) - getBCHDigit(G18) ) );
+      }
+      return (data << 12) | d;
+    };
+
+    _this.getPatternPosition = function(typeNumber) {
+      return PATTERN_POSITION_TABLE[typeNumber - 1];
+    };
+
+    _this.getMaskFunction = function(maskPattern) {
+
+      switch (maskPattern) {
+
+      case QRMaskPattern.PATTERN000 :
+        return function(i, j) { return (i + j) % 2 == 0; };
+      case QRMaskPattern.PATTERN001 :
+        return function(i, j) { return i % 2 == 0; };
+      case QRMaskPattern.PATTERN010 :
+        return function(i, j) { return j % 3 == 0; };
+      case QRMaskPattern.PATTERN011 :
+        return function(i, j) { return (i + j) % 3 == 0; };
+      case QRMaskPattern.PATTERN100 :
+        return function(i, j) { return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 == 0; };
+      case QRMaskPattern.PATTERN101 :
+        return function(i, j) { return (i * j) % 2 + (i * j) % 3 == 0; };
+      case QRMaskPattern.PATTERN110 :
+        return function(i, j) { return ( (i * j) % 2 + (i * j) % 3) % 2 == 0; };
+      case QRMaskPattern.PATTERN111 :
+        return function(i, j) { return ( (i * j) % 3 + (i + j) % 2) % 2 == 0; };
+
+      default :
+        throw 'bad maskPattern:' + maskPattern;
+      }
+    };
+
+    _this.getErrorCorrectPolynomial = function(errorCorrectLength) {
+      var a = qrPolynomial([1], 0);
+      for (var i = 0; i < errorCorrectLength; i += 1) {
+        a = a.multiply(qrPolynomial([1, QRMath.gexp(i)], 0) );
+      }
+      return a;
+    };
+
+    _this.getLengthInBits = function(mode, type) {
+
+      if (1 <= type && type < 10) {
+
+        // 1 - 9
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 10;
+        case QRMode.MODE_ALPHA_NUM : return 9;
+        case QRMode.MODE_8BIT_BYTE : return 8;
+        case QRMode.MODE_KANJI     : return 8;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else if (type < 27) {
+
+        // 10 - 26
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 12;
+        case QRMode.MODE_ALPHA_NUM : return 11;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 10;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else if (type < 41) {
+
+        // 27 - 40
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 14;
+        case QRMode.MODE_ALPHA_NUM : return 13;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 12;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else {
+        throw 'type:' + type;
+      }
+    };
+
+    _this.getLostPoint = function(qrcode) {
+
+      var moduleCount = qrcode.getModuleCount();
+
+      var lostPoint = 0;
+
+      // LEVEL1
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount; col += 1) {
+
+          var sameCount = 0;
+          var dark = qrcode.isDark(row, col);
+
+          for (var r = -1; r <= 1; r += 1) {
+
+            if (row + r < 0 || moduleCount <= row + r) {
+              continue;
+            }
+
+            for (var c = -1; c <= 1; c += 1) {
+
+              if (col + c < 0 || moduleCount <= col + c) {
+                continue;
+              }
+
+              if (r == 0 && c == 0) {
+                continue;
+              }
+
+              if (dark == qrcode.isDark(row + r, col + c) ) {
+                sameCount += 1;
+              }
+            }
+          }
+
+          if (sameCount > 5) {
+            lostPoint += (3 + sameCount - 5);
+          }
+        }
+      };
+
+      // LEVEL2
+
+      for (var row = 0; row < moduleCount - 1; row += 1) {
+        for (var col = 0; col < moduleCount - 1; col += 1) {
+          var count = 0;
+          if (qrcode.isDark(row, col) ) count += 1;
+          if (qrcode.isDark(row + 1, col) ) count += 1;
+          if (qrcode.isDark(row, col + 1) ) count += 1;
+          if (qrcode.isDark(row + 1, col + 1) ) count += 1;
+          if (count == 0 || count == 4) {
+            lostPoint += 3;
+          }
+        }
+      }
+
+      // LEVEL3
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount - 6; col += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row, col + 1)
+              &&  qrcode.isDark(row, col + 2)
+              &&  qrcode.isDark(row, col + 3)
+              &&  qrcode.isDark(row, col + 4)
+              && !qrcode.isDark(row, col + 5)
+              &&  qrcode.isDark(row, col + 6) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount - 6; row += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row + 1, col)
+              &&  qrcode.isDark(row + 2, col)
+              &&  qrcode.isDark(row + 3, col)
+              &&  qrcode.isDark(row + 4, col)
+              && !qrcode.isDark(row + 5, col)
+              &&  qrcode.isDark(row + 6, col) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      // LEVEL4
+
+      var darkCount = 0;
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount; row += 1) {
+          if (qrcode.isDark(row, col) ) {
+            darkCount += 1;
+          }
+        }
+      }
+
+      var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+      lostPoint += ratio * 10;
+
+      return lostPoint;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // QRMath
+  //---------------------------------------------------------------------
+
+  var QRMath = function() {
+
+    var EXP_TABLE = new Array(256);
+    var LOG_TABLE = new Array(256);
+
+    // initialize tables
+    for (var i = 0; i < 8; i += 1) {
+      EXP_TABLE[i] = 1 << i;
+    }
+    for (var i = 8; i < 256; i += 1) {
+      EXP_TABLE[i] = EXP_TABLE[i - 4]
+        ^ EXP_TABLE[i - 5]
+        ^ EXP_TABLE[i - 6]
+        ^ EXP_TABLE[i - 8];
+    }
+    for (var i = 0; i < 255; i += 1) {
+      LOG_TABLE[EXP_TABLE[i] ] = i;
+    }
+
+    var _this = {};
+
+    _this.glog = function(n) {
+
+      if (n < 1) {
+        throw 'glog(' + n + ')';
+      }
+
+      return LOG_TABLE[n];
+    };
+
+    _this.gexp = function(n) {
+
+      while (n < 0) {
+        n += 255;
+      }
+
+      while (n >= 256) {
+        n -= 255;
+      }
+
+      return EXP_TABLE[n];
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrPolynomial
+  //---------------------------------------------------------------------
+
+  function qrPolynomial(num, shift) {
+
+    if (typeof num.length == 'undefined') {
+      throw num.length + '/' + shift;
+    }
+
+    var _num = function() {
+      var offset = 0;
+      while (offset < num.length && num[offset] == 0) {
+        offset += 1;
+      }
+      var _num = new Array(num.length - offset + shift);
+      for (var i = 0; i < num.length - offset; i += 1) {
+        _num[i] = num[i + offset];
+      }
+      return _num;
+    }();
+
+    var _this = {};
+
+    _this.getAt = function(index) {
+      return _num[index];
+    };
+
+    _this.getLength = function() {
+      return _num.length;
+    };
+
+    _this.multiply = function(e) {
+
+      var num = new Array(_this.getLength() + e.getLength() - 1);
+
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        for (var j = 0; j < e.getLength(); j += 1) {
+          num[i + j] ^= QRMath.gexp(QRMath.glog(_this.getAt(i) ) + QRMath.glog(e.getAt(j) ) );
+        }
+      }
+
+      return qrPolynomial(num, 0);
+    };
+
+    _this.mod = function(e) {
+
+      if (_this.getLength() - e.getLength() < 0) {
+        return _this;
+      }
+
+      var ratio = QRMath.glog(_this.getAt(0) ) - QRMath.glog(e.getAt(0) );
+
+      var num = new Array(_this.getLength() );
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        num[i] = _this.getAt(i);
+      }
+
+      for (var i = 0; i < e.getLength(); i += 1) {
+        num[i] ^= QRMath.gexp(QRMath.glog(e.getAt(i) ) + ratio);
+      }
+
+      // recursive call
+      return qrPolynomial(num, 0).mod(e);
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // QRRSBlock
+  //---------------------------------------------------------------------
+
+  var QRRSBlock = function() {
+
+    var RS_BLOCK_TABLE = [
+
+      // L
+      // M
+      // Q
+      // H
+
+      // 1
+      [1, 26, 19],
+      [1, 26, 16],
+      [1, 26, 13],
+      [1, 26, 9],
+
+      // 2
+      [1, 44, 34],
+      [1, 44, 28],
+      [1, 44, 22],
+      [1, 44, 16],
+
+      // 3
+      [1, 70, 55],
+      [1, 70, 44],
+      [2, 35, 17],
+      [2, 35, 13],
+
+      // 4
+      [1, 100, 80],
+      [2, 50, 32],
+      [2, 50, 24],
+      [4, 25, 9],
+
+      // 5
+      [1, 134, 108],
+      [2, 67, 43],
+      [2, 33, 15, 2, 34, 16],
+      [2, 33, 11, 2, 34, 12],
+
+      // 6
+      [2, 86, 68],
+      [4, 43, 27],
+      [4, 43, 19],
+      [4, 43, 15],
+
+      // 7
+      [2, 98, 78],
+      [4, 49, 31],
+      [2, 32, 14, 4, 33, 15],
+      [4, 39, 13, 1, 40, 14],
+
+      // 8
+      [2, 121, 97],
+      [2, 60, 38, 2, 61, 39],
+      [4, 40, 18, 2, 41, 19],
+      [4, 40, 14, 2, 41, 15],
+
+      // 9
+      [2, 146, 116],
+      [3, 58, 36, 2, 59, 37],
+      [4, 36, 16, 4, 37, 17],
+      [4, 36, 12, 4, 37, 13],
+
+      // 10
+      [2, 86, 68, 2, 87, 69],
+      [4, 69, 43, 1, 70, 44],
+      [6, 43, 19, 2, 44, 20],
+      [6, 43, 15, 2, 44, 16],
+
+      // 11
+      [4, 101, 81],
+      [1, 80, 50, 4, 81, 51],
+      [4, 50, 22, 4, 51, 23],
+      [3, 36, 12, 8, 37, 13],
+
+      // 12
+      [2, 116, 92, 2, 117, 93],
+      [6, 58, 36, 2, 59, 37],
+      [4, 46, 20, 6, 47, 21],
+      [7, 42, 14, 4, 43, 15],
+
+      // 13
+      [4, 133, 107],
+      [8, 59, 37, 1, 60, 38],
+      [8, 44, 20, 4, 45, 21],
+      [12, 33, 11, 4, 34, 12],
+
+      // 14
+      [3, 145, 115, 1, 146, 116],
+      [4, 64, 40, 5, 65, 41],
+      [11, 36, 16, 5, 37, 17],
+      [11, 36, 12, 5, 37, 13],
+
+      // 15
+      [5, 109, 87, 1, 110, 88],
+      [5, 65, 41, 5, 66, 42],
+      [5, 54, 24, 7, 55, 25],
+      [11, 36, 12, 7, 37, 13],
+
+      // 16
+      [5, 122, 98, 1, 123, 99],
+      [7, 73, 45, 3, 74, 46],
+      [15, 43, 19, 2, 44, 20],
+      [3, 45, 15, 13, 46, 16],
+
+      // 17
+      [1, 135, 107, 5, 136, 108],
+      [10, 74, 46, 1, 75, 47],
+      [1, 50, 22, 15, 51, 23],
+      [2, 42, 14, 17, 43, 15],
+
+      // 18
+      [5, 150, 120, 1, 151, 121],
+      [9, 69, 43, 4, 70, 44],
+      [17, 50, 22, 1, 51, 23],
+      [2, 42, 14, 19, 43, 15],
+
+      // 19
+      [3, 141, 113, 4, 142, 114],
+      [3, 70, 44, 11, 71, 45],
+      [17, 47, 21, 4, 48, 22],
+      [9, 39, 13, 16, 40, 14],
+
+      // 20
+      [3, 135, 107, 5, 136, 108],
+      [3, 67, 41, 13, 68, 42],
+      [15, 54, 24, 5, 55, 25],
+      [15, 43, 15, 10, 44, 16],
+
+      // 21
+      [4, 144, 116, 4, 145, 117],
+      [17, 68, 42],
+      [17, 50, 22, 6, 51, 23],
+      [19, 46, 16, 6, 47, 17],
+
+      // 22
+      [2, 139, 111, 7, 140, 112],
+      [17, 74, 46],
+      [7, 54, 24, 16, 55, 25],
+      [34, 37, 13],
+
+      // 23
+      [4, 151, 121, 5, 152, 122],
+      [4, 75, 47, 14, 76, 48],
+      [11, 54, 24, 14, 55, 25],
+      [16, 45, 15, 14, 46, 16],
+
+      // 24
+      [6, 147, 117, 4, 148, 118],
+      [6, 73, 45, 14, 74, 46],
+      [11, 54, 24, 16, 55, 25],
+      [30, 46, 16, 2, 47, 17],
+
+      // 25
+      [8, 132, 106, 4, 133, 107],
+      [8, 75, 47, 13, 76, 48],
+      [7, 54, 24, 22, 55, 25],
+      [22, 45, 15, 13, 46, 16],
+
+      // 26
+      [10, 142, 114, 2, 143, 115],
+      [19, 74, 46, 4, 75, 47],
+      [28, 50, 22, 6, 51, 23],
+      [33, 46, 16, 4, 47, 17],
+
+      // 27
+      [8, 152, 122, 4, 153, 123],
+      [22, 73, 45, 3, 74, 46],
+      [8, 53, 23, 26, 54, 24],
+      [12, 45, 15, 28, 46, 16],
+
+      // 28
+      [3, 147, 117, 10, 148, 118],
+      [3, 73, 45, 23, 74, 46],
+      [4, 54, 24, 31, 55, 25],
+      [11, 45, 15, 31, 46, 16],
+
+      // 29
+      [7, 146, 116, 7, 147, 117],
+      [21, 73, 45, 7, 74, 46],
+      [1, 53, 23, 37, 54, 24],
+      [19, 45, 15, 26, 46, 16],
+
+      // 30
+      [5, 145, 115, 10, 146, 116],
+      [19, 75, 47, 10, 76, 48],
+      [15, 54, 24, 25, 55, 25],
+      [23, 45, 15, 25, 46, 16],
+
+      // 31
+      [13, 145, 115, 3, 146, 116],
+      [2, 74, 46, 29, 75, 47],
+      [42, 54, 24, 1, 55, 25],
+      [23, 45, 15, 28, 46, 16],
+
+      // 32
+      [17, 145, 115],
+      [10, 74, 46, 23, 75, 47],
+      [10, 54, 24, 35, 55, 25],
+      [19, 45, 15, 35, 46, 16],
+
+      // 33
+      [17, 145, 115, 1, 146, 116],
+      [14, 74, 46, 21, 75, 47],
+      [29, 54, 24, 19, 55, 25],
+      [11, 45, 15, 46, 46, 16],
+
+      // 34
+      [13, 145, 115, 6, 146, 116],
+      [14, 74, 46, 23, 75, 47],
+      [44, 54, 24, 7, 55, 25],
+      [59, 46, 16, 1, 47, 17],
+
+      // 35
+      [12, 151, 121, 7, 152, 122],
+      [12, 75, 47, 26, 76, 48],
+      [39, 54, 24, 14, 55, 25],
+      [22, 45, 15, 41, 46, 16],
+
+      // 36
+      [6, 151, 121, 14, 152, 122],
+      [6, 75, 47, 34, 76, 48],
+      [46, 54, 24, 10, 55, 25],
+      [2, 45, 15, 64, 46, 16],
+
+      // 37
+      [17, 152, 122, 4, 153, 123],
+      [29, 74, 46, 14, 75, 47],
+      [49, 54, 24, 10, 55, 25],
+      [24, 45, 15, 46, 46, 16],
+
+      // 38
+      [4, 152, 122, 18, 153, 123],
+      [13, 74, 46, 32, 75, 47],
+      [48, 54, 24, 14, 55, 25],
+      [42, 45, 15, 32, 46, 16],
+
+      // 39
+      [20, 147, 117, 4, 148, 118],
+      [40, 75, 47, 7, 76, 48],
+      [43, 54, 24, 22, 55, 25],
+      [10, 45, 15, 67, 46, 16],
+
+      // 40
+      [19, 148, 118, 6, 149, 119],
+      [18, 75, 47, 31, 76, 48],
+      [34, 54, 24, 34, 55, 25],
+      [20, 45, 15, 61, 46, 16]
+    ];
+
+    var qrRSBlock = function(totalCount, dataCount) {
+      var _this = {};
+      _this.totalCount = totalCount;
+      _this.dataCount = dataCount;
+      return _this;
+    };
+
+    var _this = {};
+
+    var getRsBlockTable = function(typeNumber, errorCorrectionLevel) {
+
+      switch(errorCorrectionLevel) {
+      case QRErrorCorrectionLevel.L :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+      case QRErrorCorrectionLevel.M :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+      case QRErrorCorrectionLevel.Q :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+      case QRErrorCorrectionLevel.H :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+      default :
+        return undefined;
+      }
+    };
+
+    _this.getRSBlocks = function(typeNumber, errorCorrectionLevel) {
+
+      var rsBlock = getRsBlockTable(typeNumber, errorCorrectionLevel);
+
+      if (typeof rsBlock == 'undefined') {
+        throw 'bad rs block @ typeNumber:' + typeNumber +
+            '/errorCorrectionLevel:' + errorCorrectionLevel;
+      }
+
+      var length = rsBlock.length / 3;
+
+      var list = [];
+
+      for (var i = 0; i < length; i += 1) {
+
+        var count = rsBlock[i * 3 + 0];
+        var totalCount = rsBlock[i * 3 + 1];
+        var dataCount = rsBlock[i * 3 + 2];
+
+        for (var j = 0; j < count; j += 1) {
+          list.push(qrRSBlock(totalCount, dataCount) );
+        }
+      }
+
+      return list;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrBitBuffer
+  //---------------------------------------------------------------------
+
+  var qrBitBuffer = function() {
+
+    var _buffer = [];
+    var _length = 0;
+
+    var _this = {};
+
+    _this.getBuffer = function() {
+      return _buffer;
+    };
+
+    _this.getAt = function(index) {
+      var bufIndex = Math.floor(index / 8);
+      return ( (_buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+    };
+
+    _this.put = function(num, length) {
+      for (var i = 0; i < length; i += 1) {
+        _this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+      }
+    };
+
+    _this.getLengthInBits = function() {
+      return _length;
+    };
+
+    _this.putBit = function(bit) {
+
+      var bufIndex = Math.floor(_length / 8);
+      if (_buffer.length <= bufIndex) {
+        _buffer.push(0);
+      }
+
+      if (bit) {
+        _buffer[bufIndex] |= (0x80 >>> (_length % 8) );
+      }
+
+      _length += 1;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrNumber
+  //---------------------------------------------------------------------
+
+  var qrNumber = function(data) {
+
+    var _mode = QRMode.MODE_NUMBER;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _data;
+
+      var i = 0;
+
+      while (i + 2 < data.length) {
+        buffer.put(strToNum(data.substring(i, i + 3) ), 10);
+        i += 3;
+      }
+
+      if (i < data.length) {
+        if (data.length - i == 1) {
+          buffer.put(strToNum(data.substring(i, i + 1) ), 4);
+        } else if (data.length - i == 2) {
+          buffer.put(strToNum(data.substring(i, i + 2) ), 7);
+        }
+      }
+    };
+
+    var strToNum = function(s) {
+      var num = 0;
+      for (var i = 0; i < s.length; i += 1) {
+        num = num * 10 + chatToNum(s.charAt(i) );
+      }
+      return num;
+    };
+
+    var chatToNum = function(c) {
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      }
+      throw 'illegal char :' + c;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrAlphaNum
+  //---------------------------------------------------------------------
+
+  var qrAlphaNum = function(data) {
+
+    var _mode = QRMode.MODE_ALPHA_NUM;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var s = _data;
+
+      var i = 0;
+
+      while (i + 1 < s.length) {
+        buffer.put(
+          getCode(s.charAt(i) ) * 45 +
+          getCode(s.charAt(i + 1) ), 11);
+        i += 2;
+      }
+
+      if (i < s.length) {
+        buffer.put(getCode(s.charAt(i) ), 6);
+      }
+    };
+
+    var getCode = function(c) {
+
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      } else if ('A' <= c && c <= 'Z') {
+        return c.charCodeAt(0) - 'A'.charCodeAt(0) + 10;
+      } else {
+        switch (c) {
+        case ' ' : return 36;
+        case '$' : return 37;
+        case '%' : return 38;
+        case '*' : return 39;
+        case '+' : return 40;
+        case '-' : return 41;
+        case '.' : return 42;
+        case '/' : return 43;
+        case ':' : return 44;
+        default :
+          throw 'illegal char :' + c;
+        }
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qr8BitByte
+  //---------------------------------------------------------------------
+
+  var qr8BitByte = function(data) {
+
+    var _mode = QRMode.MODE_8BIT_BYTE;
+    var _data = data;
+    var _bytes = qrcode.stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _bytes.length;
+    };
+
+    _this.write = function(buffer) {
+      for (var i = 0; i < _bytes.length; i += 1) {
+        buffer.put(_bytes[i], 8);
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrKanji
+  //---------------------------------------------------------------------
+
+  var qrKanji = function(data) {
+
+    var _mode = QRMode.MODE_KANJI;
+    var _data = data;
+
+    var stringToBytes = qrcode.stringToBytesFuncs['SJIS'];
+    if (!stringToBytes) {
+      throw 'sjis not supported.';
+    }
+    !function(c, code) {
+      // self test for sjis support.
+      var test = stringToBytes(c);
+      if (test.length != 2 || ( (test[0] << 8) | test[1]) != code) {
+        throw 'sjis not supported.';
+      }
+    }('\u53cb', 0x9746);
+
+    var _bytes = stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return ~~(_bytes.length / 2);
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _bytes;
+
+      var i = 0;
+
+      while (i + 1 < data.length) {
+
+        var c = ( (0xff & data[i]) << 8) | (0xff & data[i + 1]);
+
+        if (0x8140 <= c && c <= 0x9FFC) {
+          c -= 0x8140;
+        } else if (0xE040 <= c && c <= 0xEBBF) {
+          c -= 0xC140;
+        } else {
+          throw 'illegal char at ' + (i + 1) + '/' + c;
+        }
+
+        c = ( (c >>> 8) & 0xff) * 0xC0 + (c & 0xff);
+
+        buffer.put(c, 13);
+
+        i += 2;
+      }
+
+      if (i < data.length) {
+        throw 'illegal char at ' + (i + 1);
+      }
+    };
+
+    return _this;
+  };
+
+  //=====================================================================
+  // GIF Support etc.
+  //
+
+  //---------------------------------------------------------------------
+  // byteArrayOutputStream
+  //---------------------------------------------------------------------
+
+  var byteArrayOutputStream = function() {
+
+    var _bytes = [];
+
+    var _this = {};
+
+    _this.writeByte = function(b) {
+      _bytes.push(b & 0xff);
+    };
+
+    _this.writeShort = function(i) {
+      _this.writeByte(i);
+      _this.writeByte(i >>> 8);
+    };
+
+    _this.writeBytes = function(b, off, len) {
+      off = off || 0;
+      len = len || b.length;
+      for (var i = 0; i < len; i += 1) {
+        _this.writeByte(b[i + off]);
+      }
+    };
+
+    _this.writeString = function(s) {
+      for (var i = 0; i < s.length; i += 1) {
+        _this.writeByte(s.charCodeAt(i) );
+      }
+    };
+
+    _this.toByteArray = function() {
+      return _bytes;
+    };
+
+    _this.toString = function() {
+      var s = '';
+      s += '[';
+      for (var i = 0; i < _bytes.length; i += 1) {
+        if (i > 0) {
+          s += ',';
+        }
+        s += _bytes[i];
+      }
+      s += ']';
+      return s;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // base64EncodeOutputStream
+  //---------------------------------------------------------------------
+
+  var base64EncodeOutputStream = function() {
+
+    var _buffer = 0;
+    var _buflen = 0;
+    var _length = 0;
+    var _base64 = '';
+
+    var _this = {};
+
+    var writeEncoded = function(b) {
+      _base64 += String.fromCharCode(encode(b & 0x3f) );
+    };
+
+    var encode = function(n) {
+      if (n < 0) {
+        // error.
+      } else if (n < 26) {
+        return 0x41 + n;
+      } else if (n < 52) {
+        return 0x61 + (n - 26);
+      } else if (n < 62) {
+        return 0x30 + (n - 52);
+      } else if (n == 62) {
+        return 0x2b;
+      } else if (n == 63) {
+        return 0x2f;
+      }
+      throw 'n:' + n;
+    };
+
+    _this.writeByte = function(n) {
+
+      _buffer = (_buffer << 8) | (n & 0xff);
+      _buflen += 8;
+      _length += 1;
+
+      while (_buflen >= 6) {
+        writeEncoded(_buffer >>> (_buflen - 6) );
+        _buflen -= 6;
+      }
+    };
+
+    _this.flush = function() {
+
+      if (_buflen > 0) {
+        writeEncoded(_buffer << (6 - _buflen) );
+        _buffer = 0;
+        _buflen = 0;
+      }
+
+      if (_length % 3 != 0) {
+        // padding
+        var padlen = 3 - _length % 3;
+        for (var i = 0; i < padlen; i += 1) {
+          _base64 += '=';
+        }
+      }
+    };
+
+    _this.toString = function() {
+      return _base64;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // base64DecodeInputStream
+  //---------------------------------------------------------------------
+
+  var base64DecodeInputStream = function(str) {
+
+    var _str = str;
+    var _pos = 0;
+    var _buffer = 0;
+    var _buflen = 0;
+
+    var _this = {};
+
+    _this.read = function() {
+
+      while (_buflen < 8) {
+
+        if (_pos >= _str.length) {
+          if (_buflen == 0) {
+            return -1;
+          }
+          throw 'unexpected end of file./' + _buflen;
+        }
+
+        var c = _str.charAt(_pos);
+        _pos += 1;
+
+        if (c == '=') {
+          _buflen = 0;
+          return -1;
+        } else if (c.match(/^\s$/) ) {
+          // ignore if whitespace.
+          continue;
+        }
+
+        _buffer = (_buffer << 6) | decode(c.charCodeAt(0) );
+        _buflen += 6;
+      }
+
+      var n = (_buffer >>> (_buflen - 8) ) & 0xff;
+      _buflen -= 8;
+      return n;
+    };
+
+    var decode = function(c) {
+      if (0x41 <= c && c <= 0x5a) {
+        return c - 0x41;
+      } else if (0x61 <= c && c <= 0x7a) {
+        return c - 0x61 + 26;
+      } else if (0x30 <= c && c <= 0x39) {
+        return c - 0x30 + 52;
+      } else if (c == 0x2b) {
+        return 62;
+      } else if (c == 0x2f) {
+        return 63;
+      } else {
+        throw 'c:' + c;
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // gifImage (B/W)
+  //---------------------------------------------------------------------
+
+  var gifImage = function(width, height) {
+
+    var _width = width;
+    var _height = height;
+    var _data = new Array(width * height);
+
+    var _this = {};
+
+    _this.setPixel = function(x, y, pixel) {
+      _data[y * _width + x] = pixel;
+    };
+
+    _this.write = function(out) {
+
+      //---------------------------------
+      // GIF Signature
+
+      out.writeString('GIF87a');
+
+      //---------------------------------
+      // Screen Descriptor
+
+      out.writeShort(_width);
+      out.writeShort(_height);
+
+      out.writeByte(0x80); // 2bit
+      out.writeByte(0);
+      out.writeByte(0);
+
+      //---------------------------------
+      // Global Color Map
+
+      // black
+      out.writeByte(0x00);
+      out.writeByte(0x00);
+      out.writeByte(0x00);
+
+      // white
+      out.writeByte(0xff);
+      out.writeByte(0xff);
+      out.writeByte(0xff);
+
+      //---------------------------------
+      // Image Descriptor
+
+      out.writeString(',');
+      out.writeShort(0);
+      out.writeShort(0);
+      out.writeShort(_width);
+      out.writeShort(_height);
+      out.writeByte(0);
+
+      //---------------------------------
+      // Local Color Map
+
+      //---------------------------------
+      // Raster Data
+
+      var lzwMinCodeSize = 2;
+      var raster = getLZWRaster(lzwMinCodeSize);
+
+      out.writeByte(lzwMinCodeSize);
+
+      var offset = 0;
+
+      while (raster.length - offset > 255) {
+        out.writeByte(255);
+        out.writeBytes(raster, offset, 255);
+        offset += 255;
+      }
+
+      out.writeByte(raster.length - offset);
+      out.writeBytes(raster, offset, raster.length - offset);
+      out.writeByte(0x00);
+
+      //---------------------------------
+      // GIF Terminator
+      out.writeString(';');
+    };
+
+    var bitOutputStream = function(out) {
+
+      var _out = out;
+      var _bitLength = 0;
+      var _bitBuffer = 0;
+
+      var _this = {};
+
+      _this.write = function(data, length) {
+
+        if ( (data >>> length) != 0) {
+          throw 'length over';
+        }
+
+        while (_bitLength + length >= 8) {
+          _out.writeByte(0xff & ( (data << _bitLength) | _bitBuffer) );
+          length -= (8 - _bitLength);
+          data >>>= (8 - _bitLength);
+          _bitBuffer = 0;
+          _bitLength = 0;
+        }
+
+        _bitBuffer = (data << _bitLength) | _bitBuffer;
+        _bitLength = _bitLength + length;
+      };
+
+      _this.flush = function() {
+        if (_bitLength > 0) {
+          _out.writeByte(_bitBuffer);
+        }
+      };
+
+      return _this;
+    };
+
+    var getLZWRaster = function(lzwMinCodeSize) {
+
+      var clearCode = 1 << lzwMinCodeSize;
+      var endCode = (1 << lzwMinCodeSize) + 1;
+      var bitLength = lzwMinCodeSize + 1;
+
+      // Setup LZWTable
+      var table = lzwTable();
+
+      for (var i = 0; i < clearCode; i += 1) {
+        table.add(String.fromCharCode(i) );
+      }
+      table.add(String.fromCharCode(clearCode) );
+      table.add(String.fromCharCode(endCode) );
+
+      var byteOut = byteArrayOutputStream();
+      var bitOut = bitOutputStream(byteOut);
+
+      // clear code
+      bitOut.write(clearCode, bitLength);
+
+      var dataIndex = 0;
+
+      var s = String.fromCharCode(_data[dataIndex]);
+      dataIndex += 1;
+
+      while (dataIndex < _data.length) {
+
+        var c = String.fromCharCode(_data[dataIndex]);
+        dataIndex += 1;
+
+        if (table.contains(s + c) ) {
+
+          s = s + c;
+
+        } else {
+
+          bitOut.write(table.indexOf(s), bitLength);
+
+          if (table.size() < 0xfff) {
+
+            if (table.size() == (1 << bitLength) ) {
+              bitLength += 1;
+            }
+
+            table.add(s + c);
+          }
+
+          s = c;
+        }
+      }
+
+      bitOut.write(table.indexOf(s), bitLength);
+
+      // end code
+      bitOut.write(endCode, bitLength);
+
+      bitOut.flush();
+
+      return byteOut.toByteArray();
+    };
+
+    var lzwTable = function() {
+
+      var _map = {};
+      var _size = 0;
+
+      var _this = {};
+
+      _this.add = function(key) {
+        if (_this.contains(key) ) {
+          throw 'dup key:' + key;
+        }
+        _map[key] = _size;
+        _size += 1;
+      };
+
+      _this.size = function() {
+        return _size;
+      };
+
+      _this.indexOf = function(key) {
+        return _map[key];
+      };
+
+      _this.contains = function(key) {
+        return typeof _map[key] != 'undefined';
+      };
+
+      return _this;
+    };
+
+    return _this;
+  };
+
+  var createDataURL = function(width, height, getPixel) {
+    var gif = gifImage(width, height);
+    for (var y = 0; y < height; y += 1) {
+      for (var x = 0; x < width; x += 1) {
+        gif.setPixel(x, y, getPixel(x, y) );
+      }
+    }
+
+    var b = byteArrayOutputStream();
+    gif.write(b);
+
+    var base64 = base64EncodeOutputStream();
+    var bytes = b.toByteArray();
+    for (var i = 0; i < bytes.length; i += 1) {
+      base64.writeByte(bytes[i]);
+    }
+    base64.flush();
+
+    return 'data:image/gif;base64,' + base64;
+  };
+
+  //---------------------------------------------------------------------
+  // returns qrcode function.
+
+  return qrcode;
+}();
+
+// multibyte support
+!function() {
+
+  qrcode.stringToBytesFuncs['UTF-8'] = function(s) {
+    // http://stackoverflow.com/questions/18729405/how-to-convert-utf8-string-to-byte-array
+    function toUTF8Array(str) {
+      var utf8 = [];
+      for (var i=0; i < str.length; i++) {
+        var charcode = str.charCodeAt(i);
+        if (charcode < 0x80) utf8.push(charcode);
+        else if (charcode < 0x800) {
+          utf8.push(0xc0 | (charcode >> 6),
+              0x80 | (charcode & 0x3f));
+        }
+        else if (charcode < 0xd800 || charcode >= 0xe000) {
+          utf8.push(0xe0 | (charcode >> 12),
+              0x80 | ((charcode>>6) & 0x3f),
+              0x80 | (charcode & 0x3f));
+        }
+        // surrogate pair
+        else {
+          i++;
+          // UTF-16 encodes 0x10000-0x10FFFF by
+          // subtracting 0x10000 and splitting the
+          // 20 bits of 0x0-0xFFFFF into two halves
+          charcode = 0x10000 + (((charcode & 0x3ff)<<10)
+            | (str.charCodeAt(i) & 0x3ff));
+          utf8.push(0xf0 | (charcode >>18),
+              0x80 | ((charcode>>12) & 0x3f),
+              0x80 | ((charcode>>6) & 0x3f),
+              0x80 | (charcode & 0x3f));
+        }
+      }
+      return utf8;
+    }
+    return toUTF8Array(s);
+  };
+
+}();
+
+(function (factory) {
+  if (typeof define === 'function' && define.amd) {
+      define([], factory);
+  } else if (typeof exports === 'object') {
+      module.exports = factory();
+  }
+}(function () {
+    return qrcode;
+}));
+
+</script>
+<script>
+/* =====================================================================
+ * FilmPro Suite — shared data layer (store.js)
+ * One job id across all apps: the booking id (e.g. FP2610A3K9) is used as
+ * job id by Booking, Inspect, Tech, Handover, payments, claims and stock.
+ *
+ * Storage: an adapter with get/set/del/keys. LocalAdapter (localStorage) is
+ * active now. backend/supabase-adapter.js documents the same interface for a
+ * central DB (see backend/schema.sql). Existing apps (Inspect/Tech/Handover)
+ * still read their own localStorage keys; FP.sync() bridges them.
+ *
+ * Unified booking/job record (key 'filmpro_bookings_v1', array):
+ * { id, createdAt, status:'booked'|'cancelled', customer, phone, location,
+ *   geo:{lat,lng}|null, date:'YYYY-MM-DD', time:'HH:MM',
+ *   slot:{start,end,durationMin}, tech:null|techId (mirror of claims),
+ *   car:{brand,model,size,color,plate,province,photo /*=front*\/},
+ *   carPhotos:{front,rear,left,right}, sunroof, film:{brand,series},
+ *   vlt:{front,frontSide,rearSide,rear,sunroof,sunroof2,glassRoof},
+ *   windshieldUpgrade, price /*customer price, null=สอบถามราคา*\/,
+ *   coupon:{code,discount}|null, total, deposit:{amount,status,paidAt,payId},
+ *   consent:{pdpa:true,version,at}, history:[{at,ev,by,note}] }
+ * ===================================================================== */
+/* FilmPro shared data layer (inlined copy, identical in every FilmPro file — keys filmpro_*) */
+(function (W) {
+  if (W.FP) return;
+  'use strict';
+  const K = { bookings: 'filmpro_bookings_v1', claims: 'filmpro_claims_v1', assign: 'filmpro_assign_v1', techpub: 'filmpro_techpub_v1',
+    tech: 'filmpro_tech_v1', inspect: 'filmpro_inspect_v1', handover: 'filmpro_handover_v1', ratings: 'filmpro_ratings_v1',
+    warranty: 'filmpro_warranty_v1', film: 'filmpro_film_v1', suite: 'filmpro_suite_v1', session: 'filmpro_session' };
+
+  // ---------- adapter (swap for a remote adapter later) ----------
+  const LocalAdapter = {
+    name: 'localStorage',
+    get(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { console.warn('storage full', e); alert('พื้นที่เก็บข้อมูลในเครื่องเต็ม — กรุณาสำรองข้อมูล (Backup) แล้วลบข้อมูลเก่า'); return false; } },
+    del(k) { localStorage.removeItem(k); },
+    keys() { return Object.keys(localStorage).filter(k => k.startsWith('filmpro')); }
+  };
+  let A = LocalAdapter;
+  const get = (k, d) => A.get(k, d), set = (k, v) => A.set(k, v);
+
+  const DAY = 864e5, now = () => Date.now();
+  const DEF = {
+    settings: { shop: 'FilmPro', phone: '02-000-0000', promptpay: '0812345678', promptpayName: 'FilmPro', depositPct: 30, depositMin: 500, depositAsk: 1000,
+      open: '09:00', close: '18:00', slotStep: 60, travelMin: 60, crews: 2, cancelHours: 24, lowStockM: 15, consentVersion: 'v1-2026-10',
+      pins: { admin: '1234', finance: '5678', installer: '0000' }, lineId: '@filmpro', email: 'contact@filmpro.example', hours: 'ทุกวัน 09:00–18:00', area: 'กรุงเทพฯ และปริมณฑล (ช่างไปติดตั้งถึงที่)', showFloat: true },
+    duration: { 'C': 180, 'S|4D': 180, 'M': 210, 'L': 240, 'XL': 270, 'XXL': 300, 'GIGA': 330, sunroof: 60 },
+    usageM: { 'C': 7, 'S|4D': 8, 'M': 9, 'L': 11, 'XL': 13, 'XXL': 15, 'GIGA': 17 },
+    avail: {}, payments: [], refunds: [], notifications: [], coupons: [], prices: {}, catalog: {}, stock: [], stockUsed: {},
+    wclaims: [], pdpa: [], consents: [], otp: {}, audit: [], seq: { rc: 0, cl: 0, pay: 0 },
+    templates: {
+      booked: 'สวัสดีคุณ{name} FilmPro ได้รับการจอง {id} วันที่ {date} {time} แล้ว กรุณาชำระมัดจำ {amount} บาท ติดตามสถานะ: {link}',
+      deposit_paid: 'ได้รับมัดจำ {amount} บาท สำหรับงาน {id} แล้ว ใบเสร็จ: {link}',
+      assigned: 'งาน {id} ได้ช่าง {tech} แล้ว นัดหมาย {date} {time}',
+      reminder: 'แจ้งเตือน: พรุ่งนี้ {date} {time} ช่าง FilmPro จะเข้าติดตั้งฟิล์ม (งาน {id})',
+      rescheduled: 'เลื่อนนัดงาน {id} เป็น {date} {time} เรียบร้อย',
+      cancelled: 'ยกเลิกงาน {id} แล้ว {note}',
+      handover: 'ส่งมอบงาน {id} เรียบร้อย ดูใบส่งมอบและการรับประกัน: {link} ยอดคงเหลือ {amount} บาท',
+      rating: 'ขอบคุณที่ใช้บริการ FilmPro ช่วยให้คะแนนช่างได้ที่ {link}',
+      claim_received: 'ได้รับเรื่องเคลม {note} ของงาน {id} แล้ว ทีมงานจะติดต่อกลับภายใน 2 วันทำการ',
+      claim_decided: 'ผลการพิจารณาเคลม งาน {id}: {note}',
+      refund: 'คืนเงิน {amount} บาท งาน {id} เรียบร้อย',
+      low_stock: '[แอดมิน] ฟิล์มม้วน {note} เหลือน้อย',
+      tech_offer: '[ช่าง] งานใหม่ {id} {date} {time} รถ {note} — กดรับงานในแอปช่างภายในเวลาที่กำหนด',
+      tech_reminder: '[ช่าง] พรุ่งนี้ {date} {time} งาน {id} ที่ {note}',
+      tech_redo: '[ช่าง] งาน {id} มีเคลม/ต้องแก้ไข: {note}',
+      tech_payout: '[ช่าง] โอนค่าแรง {amount} บาท เรียบร้อย'
+    }
+  };
+  function suite() { const s = get(K.suite, null) || {}; for (const k in DEF) if (s[k] === undefined) s[k] = JSON.parse(JSON.stringify(DEF[k]));
+    s.settings = { ...DEF.settings, ...s.settings, pins: { ...DEF.settings.pins, ...(s.settings || {}).pins } }; s.templates = { ...DEF.templates, ...s.templates }; return s; }
+  function saveSuite(s) { return set(K.suite, s); }
+  function mut(fn) { const s = suite(); const r = fn(s); saveSuite(s); return r; }
+
+  // ---------- helpers ----------
+  const pad = (n, l = 2) => String(n).padStart(l, '0');
+  const ymd = d => { d = new Date(d); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+  const toMin = t => { const [h, m] = String(t || '0:0').split(':').map(Number); return h * 60 + (m || 0); };
+  const toHM = m => pad(Math.floor(m / 60)) + ':' + pad(m % 60);
+  const money = n => n == null || isNaN(n) ? '-' : Number(n).toLocaleString('th-TH', { maximumFractionDigits: 2 }) + ' บาท';
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const normPhone = p => String(p || '').replace(/\D/g, '');
+  function newId() { const d = new Date(), r = Math.random().toString(36).slice(2, 6).toUpperCase(); return 'FP' + String(d.getFullYear()).slice(2) + pad(d.getMonth() + 1) + pad(d.getDate()) + r; }
+
+  // ---------- session / roles (MOCK auth) ----------
+  const ROLES = { customer: 'ลูกค้า', installer: 'ช่าง', admin: 'แอดมิน', finance: 'การเงิน' };
+  const auth = {
+    me() { return get(K.session, null); },
+    sendOtp(phone) { phone = normPhone(phone); if (phone.length < 9) return { ok: false, why: 'เบอร์โทรไม่ถูกต้อง' };
+      const code = String(Math.floor(100000 + Math.random() * 900000)); mut(s => { s.otp[phone] = { code, exp: now() + 5 * 6e4 }; }); return { ok: true, code /* MOCK: shown on screen instead of SMS */ }; },
+    verifyOtp(phone, code) { phone = normPhone(phone); const o = suite().otp[phone]; if (!o || o.exp < now() || o.code !== String(code).trim()) return { ok: false, why: 'รหัส OTP ไม่ถูกต้องหรือหมดอายุ' };
+      mut(s => { delete s.otp[phone]; }); set(K.session, { role: 'customer', phone, name: phone, at: now() }); audit('login', 'customer', phone); return { ok: true }; },
+    loginStaff(role, pin, techId) { const s = suite(); if (!['admin', 'finance', 'installer'].includes(role)) return { ok: false, why: 'บทบาทไม่ถูกต้อง' };
+      if (String(pin) !== String(s.settings.pins[role])) return { ok: false, why: 'PIN ไม่ถูกต้อง' };
+      let name = ROLES[role]; if (role === 'installer') { const t = techs().find(x => x.id === techId); if (!t) return { ok: false, why: 'เลือกช่าง' }; name = t.name; localStorage.setItem('filmpro_me', techId); }
+      set(K.session, { role, techId: techId || null, name, at: now() }); audit('login', role, name); return { ok: true }; },
+    logout() { const m = auth.me(); if (m) audit('logout', m.role, m.name); A.del(K.session); },
+    can(roles) { const m = auth.me(); return !!m && (roles.includes(m.role)); },
+    // Blocks the page with an overlay unless the session has one of `roles`.
+    guard(roles, base = '') { if (auth.can(roles)) return true; const go = () => { const d = document.createElement('div'); d.id = 'fpGuard';
+        d.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.92);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Sarabun,sans-serif';
+        d.innerHTML = `<div style="background:#fff;border-radius:20px;padding:24px;max-width:360px;width:100%;text-align:center"><div style="font-size:18px;font-weight:700;color:#1e40af">ต้องเข้าสู่ระบบ</div><div style="font-size:14px;color:#475569;margin:8px 0 16px">หน้านี้สำหรับ: ${roles.map(r => ROLES[r]).join(' / ')}</div><a href="${base}login.html?next=${encodeURIComponent(location.pathname.split('/').pop() + location.search + location.hash)}" style="display:block;background:#2563eb;color:#fff;border-radius:12px;padding:12px">เข้าสู่ระบบ</a><a href="${base}index.html" style="display:block;margin-top:10px;color:#2563eb;font-size:14px">กลับหน้าหลัก</a></div>`;
+        document.body.appendChild(d); };
+      if (document.body) go(); else document.addEventListener('DOMContentLoaded', go); return false; }
+  };
+
+  // ---------- audit ----------
+  function audit(act, target, detail) { try { const m = get(K.session, null); mut(s => { s.audit.push({ at: now(), actor: m ? m.role + ':' + m.name : 'guest', act, target: String(target ?? ''), detail: detail == null ? '' : (typeof detail === 'string' ? detail : JSON.stringify(detail).slice(0, 300)) }); if (s.audit.length > 5000) s.audit.splice(0, s.audit.length - 5000); }); } catch (e) { } }
+
+  // ---------- bookings ----------
+  const bookings = { all() { return get(K.bookings, []); }, get(id) { return bookings.all().find(b => b.id === id); },
+    save(b) { const L = bookings.all(), i = L.findIndex(x => x.id === b.id); if (i < 0) L.push(b); else L[i] = b; set(K.bookings, L); return b; },
+    hist(b, ev, note) { const m = auth.me(); (b.history = b.history || []).push({ at: now(), ev, by: m ? m.role : 'customer', note: note || '' }); },
+    find(id, phone) { const b = bookings.get(String(id || '').trim().toUpperCase()); return b && normPhone(b.phone) === normPhone(phone) ? b : null; },
+    create(o) { const s = suite(); const id = newId(); const total = o.price == null ? null : Math.max(0, o.price - ((o.coupon && o.coupon.discount) || 0));
+      const dep = depositFor(total, s.settings);
+      const b = { id, createdAt: new Date().toISOString(), status: 'booked', tech: null, ...o, total, deposit: { amount: dep, status: 'unpaid', paidAt: null, payId: null },
+        history: [], consent: o.consent && o.consent.pdpa === false ? { pdpa: false } : { pdpa: true, version: s.settings.consentVersion, at: now() } };
+      bookings.hist(b, 'จองแล้ว'); bookings.save(b);
+      mut(x => { if (b.consent.pdpa) x.consents.push({ bid: id, phone: b.phone, version: s.settings.consentVersion, at: now(), scope: 'booking,photos,location' }); if (o.coupon) { const c = x.coupons.find(c => c.code === o.coupon.code); if (c) c.used = (c.used || 0) + 1; } });
+      audit('booking.create', id, { total, dep }); notify('booked', id, { amount: dep }); return b; },
+    applyCoupon(id, code) { const b = bookings.get(id); if (!b) return { ok: false, why: 'ไม่พบงาน' }; if (b.deposit.status !== 'unpaid') return { ok: false, why: 'ชำระมัดจำแล้ว ใช้โค้ดไม่ได้' }; if (b.coupon) return { ok: false, why: 'ใช้โค้ดไปแล้ว' };
+      const c = coupon.check(code, b.price); if (!c.ok) return c; b.coupon = { code: c.code, discount: c.discount }; b.total = Math.max(0, b.price - c.discount); b.deposit.amount = depositFor(b.total);
+      bookings.hist(b, 'ใช้โค้ดส่วนลด', c.code); bookings.save(b); mut(x => { const k = x.coupons.find(y => y.code === c.code); if (k) k.used = (k.used || 0) + 1; x.payments.filter(p => p.bid === id && p.status === 'pending').forEach(p => p.status = 'void'); }); audit('coupon.use', id, c.code); return { ok: true, discount: c.discount }; },
+    consent(id) { const b = bookings.get(id); if (!b) return; const v = suite().settings.consentVersion; b.consent = { pdpa: true, version: v, at: now() }; bookings.save(b); mut(x => { x.consents.push({ bid: id, phone: b.phone, version: v, at: now(), scope: 'booking,photos,location' }); }); audit('pdpa.consent', id, v); },
+    cancel(id, reason) { const b = bookings.get(id); if (!b) return { ok: false, why: 'ไม่พบงาน' }; const st = stage(b); if (st.key === 'inspected' || st.key === 'handover' || st.key === 'done') return { ok: false, why: 'งานเริ่มแล้ว ยกเลิกไม่ได้' };
+      b.status = 'cancelled'; bookings.hist(b, 'ยกเลิก', reason); bookings.save(b);
+      const C = get(K.claims, {}); delete C[id]; set(K.claims, C);
+      let refund = null; if (b.deposit.status === 'paid') refund = pay.requestRefund(id, 'ยกเลิกงาน: ' + (reason || ''));
+      audit('booking.cancel', id, reason); notify('cancelled', id, { note: refund ? 'มัดจำจะคืนภายใน 7 วันทำการ' : '' }); return { ok: true, refund }; },
+    reschedule(id, date, time) { const b = bookings.get(id); if (!b) return { ok: false, why: 'ไม่พบงาน' }; if (b.status === 'cancelled') return { ok: false, why: 'งานถูกยกเลิกแล้ว' };
+      const st = stage(b); if (['inspected', 'handover', 'done'].includes(st.key)) return { ok: false, why: 'งานเริ่มแล้ว เลื่อนไม่ได้' };
+      const dur = duration(b.car && b.car.size, b.sunroof); const sl = schedule.slots(date, b.car && b.car.size, b.sunroof, id).find(x => x.time === time);
+      if (!sl || sl.cap <= 0) return { ok: false, why: 'ช่วงเวลานี้เต็มแล้ว' };
+      if (b.tech && !schedule.techFree(b.tech, date, toMin(time), dur, id)) { const C = get(K.claims, {}); delete C[id]; set(K.claims, C); b.tech = null; }
+      const old = b.date + ' ' + b.time; b.date = date; b.time = time; b.slot = { start: time, end: toHM(toMin(time) + dur), durationMin: dur };
+      bookings.hist(b, 'เลื่อนนัด', old + ' → ' + date + ' ' + time); bookings.save(b); audit('booking.reschedule', id, old + '→' + date + ' ' + time); notify('rescheduled', id); return { ok: true }; }
+  };
+  function depositFor(total, S) { S = S || suite().settings; if (total == null) return S.depositAsk; return Math.min(total, Math.max(S.depositMin, Math.round(total * S.depositPct / 100))); }
+
+  // ---------- installers (published by FilmPro Tech) ----------
+  function techs() { const p = get(K.techpub, { techs: [] }); return (p.techs || []).filter(t => t.status !== 'suspended'); }
+  const techName = id => (techs().find(t => t.id === id) || {}).name || id || '-';
+
+  // ---------- scheduling ----------
+  function duration(size, sunroof) { const d = suite().duration; return (d[size] || d.M) + (sunroof && sunroof !== 'ไม่มี' ? d.sunroof : 0); }
+  const schedule = {
+    availOf(tid) { return suite().avail[tid] || { days: [1, 2, 3, 4, 5, 6], start: '09:00', end: '18:00', off: [] }; },
+    setAvail(tid, a) { mut(s => { s.avail[tid] = a; }); audit('avail.set', tid, a); },
+    // intervals [from,to] in minutes for a tech on a date (includes travel buffer)
+    busy(tid, date, exceptId) { const S = suite().settings, C = get(K.claims, {}); return bookings.all().filter(b => b.status !== 'cancelled' && b.id !== exceptId && b.date === date && (C[b.id] || {}).tech === tid)
+      .map(b => { const s = toMin(b.time), d = (b.slot && b.slot.durationMin) || duration(b.car && b.car.size, b.sunroof); return [s - S.travelMin, s + d + S.travelMin, b.id]; }); },
+    works(tid, date, from, dur) { const a = schedule.availOf(tid), wd = new Date(date + 'T00:00:00').getDay(); if (!a.days.includes(wd) || (a.off || []).includes(date)) return false; return from >= toMin(a.start) && from + dur <= toMin(a.end); },
+    techFree(tid, date, from, dur, exceptId) { if (!schedule.works(tid, date, from, dur)) return false; return !schedule.busy(tid, date, exceptId).some(([a, b]) => from < b && from + dur > a); },
+    // capacity per start time = free installers − unassigned bookings overlapping that window
+    slots(date, size, sunroof, exceptId) { const s = suite(), S = s.settings, dur = duration(size, sunroof), T = techs(), C = get(K.claims, {}); const out = [];
+      if (!date) return out; const today = ymd(now()), nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+      const unas = bookings.all().filter(b => b.status !== 'cancelled' && b.id !== exceptId && b.date === date && !(C[b.id] || {}).tech);
+      for (let t = toMin(S.open); t + dur <= toMin(S.close); t += S.slotStep) {
+        if (date < today || (date === today && t <= nowMin + 120)) continue;
+        const free = T.length ? T.filter(x => schedule.techFree(x.id, date, t, dur, exceptId)).length : S.crews - bookings.all().filter(b => b.status !== 'cancelled' && b.id !== exceptId && b.date === date && overlap(b, t, dur, S)).length;
+        const pend = T.length ? unas.filter(b => overlap(b, t, dur, S)).length : 0;
+        out.push({ time: toHM(t), end: toHM(t + dur), cap: Math.max(0, free - pend), dur }); }
+      return out; },
+    freeTechs(bid) { const b = bookings.get(bid); if (!b) return []; const dur = (b.slot && b.slot.durationMin) || duration(b.car && b.car.size, b.sunroof); return techs().filter(t => schedule.techFree(t.id, b.date, toMin(b.time), dur, bid)); },
+    assign(bid, tid, reason) { const b = bookings.get(bid); if (!b) return { ok: false, why: 'ไม่พบงาน' }; if (b.status === 'cancelled') return { ok: false, why: 'งานถูกยกเลิก' };
+      if (b.deposit.status !== 'paid') return { ok: false, why: 'ยังไม่ได้รับมัดจำ' };
+      const dur = (b.slot && b.slot.durationMin) || duration(b.car && b.car.size, b.sunroof); if (!schedule.techFree(tid, b.date, toMin(b.time), dur, bid)) return { ok: false, why: 'ช่างไม่ว่างช่วงเวลานี้ (ชนกับงานอื่น/นอกเวลาทำงาน)' };
+      const C = get(K.claims, {}), AS = get(K.assign, {}); C[bid] = { tech: tid, at: now(), by: 'admin', reason: reason || '' }; const a = AS[bid] = AS[bid] || { history: [] }; a.state = 'admin'; a.tech = tid; a.history.push({ tech: tid, res: 'admin', reason: reason || '', at: now() });
+      set(K.claims, C); set(K.assign, AS); b.tech = tid; bookings.hist(b, 'มอบหมายช่าง', techName(tid)); bookings.save(b); audit('assign', bid, tid); notify('assigned', bid, { tech: techName(tid) }); return { ok: true }; }
+  };
+  function overlap(b, t, dur, S) { const s = toMin(b.time), d = (b.slot && b.slot.durationMin) || duration(b.car && b.car.size, b.sunroof); return t < s + d + S.travelMin && t + dur > s - S.travelMin; }
+
+  const offers = {
+    mine(tid) { const S = get(K.assign, {}), C = get(K.claims, {}), t = now(); return Object.entries(S).filter(([b, a]) => a.state === 'offered' && a.tech === tid && t < a.expires && !(C[b] && C[b].tech)).map(([b, a]) => ({ bid: b, expires: a.expires, score: a.score, booking: bookings.get(b) })).filter(x => x.booking && x.booking.status !== 'cancelled'); },
+    accept(bid, tid) { const S = get(K.assign, {}), A = S[bid]; if (!A || A.state !== 'offered' || A.tech !== tid || now() >= A.expires) return { ok: false, why: 'ข้อเสนอหมดเวลา/มอบให้ช่างอื่นแล้ว' };
+      const b = bookings.get(bid), dur = (b.slot && b.slot.durationMin) || duration(b.car && b.car.size, b.sunroof); if (!schedule.techFree(tid, b.date, toMin(b.time), dur, bid)) return { ok: false, why: 'คุณมีงานชนช่วงเวลานี้' };
+      A.state = 'accepted'; A.history.push({ tech: tid, res: 'accept', at: now() }); set(K.assign, S); const C = get(K.claims, {}); C[bid] = { tech: tid, at: now(), by: 'system' }; set(K.claims, C);
+      b.tech = tid; bookings.hist(b, 'มอบหมายช่าง', techName(tid) + ' (รับงานเอง)'); bookings.save(b); audit('offer.accept', bid, tid); notify('assigned', bid, { tech: techName(tid) }); return { ok: true }; },
+    decline(bid, tid, reason) { const S = get(K.assign, {}), A = S[bid]; if (!A || A.state !== 'offered' || A.tech !== tid) return { ok: false, why: 'ไม่มีข้อเสนอนี้แล้ว' };
+      A.history.push({ tech: tid, res: 'decline', reason: reason || '', at: now() }); A.expires = now(); set(K.assign, S); audit('offer.decline', bid, tid + ' ' + (reason || '')); return { ok: true }; }
+  };
+  // ---------- PromptPay (EMVCo QR payload, Thai QR Payment / BOT spec) ----------
+  function crc16(s) { let c = 0xFFFF; for (let i = 0; i < s.length; i++) { c ^= s.charCodeAt(i) << 8; for (let j = 0; j < 8; j++) c = c & 0x8000 ? ((c << 1) ^ 0x1021) & 0xFFFF : (c << 1) & 0xFFFF; } return c.toString(16).toUpperCase().padStart(4, '0'); }
+  const tlv = (id, v) => id + pad(v.length) + v;
+  function promptpayPayload(target, amount) { const t = normPhone(target); let acc;
+    if (t.length >= 15) acc = tlv('03', t); else if (t.length === 13) acc = tlv('02', t); else acc = tlv('01', ('66' + t.replace(/^0/, '')).padStart(13, '0'));
+    let p = tlv('00', '01') + tlv('01', amount ? '12' : '11') + tlv('29', tlv('00', 'A000000677010111') + acc) + tlv('58', 'TH') + tlv('53', '764') + (amount ? tlv('54', Number(amount).toFixed(2)) : '') + '6304';
+    return p + crc16(p); }
+  function qrSVG(text, cell = 5) { if (typeof qrcode !== 'function') return '<div>QR library missing</div>'; const q = qrcode(0, 'M'); q.addData(text); q.make(); return q.createSvgTag({ cellSize: cell, margin: 2 }); }
+
+  // ---------- payments ----------
+  const pay = {
+    list(bid) { return suite().payments.filter(p => !bid || p.bid === bid); },
+    paidTotal(bid) { return pay.list(bid).filter(p => p.status === 'paid').reduce((a, p) => a + p.amount, 0) - suite().refunds.filter(r => r.bid === bid && r.status === 'refunded').reduce((a, r) => a + r.amount, 0); },
+    balance(bid) { const b = bookings.get(bid); if (!b || b.total == null) return null; return Math.max(0, b.total - pay.paidTotal(bid)); },
+    create(bid, kind, amount) { const b = bookings.get(bid); if (!b) return null; amount = Math.round(Number(amount) * 100) / 100; if (!(amount > 0)) return null;
+      const ex = pay.list(bid).find(p => p.kind === kind && p.status === 'pending' && p.amount === amount); if (ex) return ex;
+      return mut(s => { s.seq.pay++; const p = { id: 'PAY' + pad(s.seq.pay, 5), bid, kind, amount, status: 'pending', createdAt: now(), payload: promptpayPayload(s.settings.promptpay, amount), to: s.settings.promptpay }; s.payments.push(p); return p; }); },
+    markPaid(pid, method, ref) { let p; mut(s => { p = s.payments.find(x => x.id === pid); if (!p || p.status === 'paid') return; s.seq.rc++; p.status = 'paid'; p.paidAt = now(); p.method = method || 'PromptPay'; p.ref = ref || ''; p.receiptNo = 'RC' + new Date().getFullYear() + '-' + pad(s.seq.rc, 5); });
+      if (!p) return { ok: false }; const b = bookings.get(p.bid); if (b) { if (p.kind === 'deposit') { b.deposit = { ...b.deposit, status: 'paid', paidAt: now(), payId: pid }; } bookings.hist(b, p.kind === 'deposit' ? 'ชำระมัดจำ' : 'ชำระส่วนที่เหลือ', money(p.amount)); bookings.save(b); }
+      audit('payment.paid', pid, { bid: p.bid, amount: p.amount, method }); notify('deposit_paid', p.bid, { amount: p.amount, link: (W.FP_TRACK_URL || 'index.html') + '#receipt/' + pid }); return { ok: true, p: suite().payments.find(x => x.id === pid) }; },
+    requestRefund(bid, reason) { const amt = pay.paidTotal(bid); if (amt <= 0) return null; return mut(s => { if (s.refunds.some(r => r.bid === bid && r.status === 'requested')) return null; const r = { id: 'RF' + now().toString(36).toUpperCase(), bid, amount: amt, reason: reason || '', status: 'requested', at: now() }; s.refunds.push(r); return r; }); },
+    decideRefund(rid, ok, amount, note) { let r; mut(s => { r = s.refunds.find(x => x.id === rid); if (!r || r.status !== 'requested') { r = null; return; } r.status = ok ? 'refunded' : 'rejected'; if (ok && amount != null) r.amount = Math.min(r.amount, +amount); r.decidedAt = now(); r.note = note || ''; });
+      if (!r) return { ok: false }; const b = bookings.get(r.bid); if (b) { if (ok && b.deposit.status === 'paid') b.deposit.status = 'refunded'; bookings.hist(b, ok ? 'คืนเงินแล้ว' : 'ไม่อนุมัติคืนเงิน', money(r.amount)); bookings.save(b); }
+      audit('refund.' + (ok ? 'approve' : 'reject'), rid, { bid: r.bid, amount: r.amount }); if (ok) notify('refund', r.bid, { amount: r.amount }); return { ok: true, r }; }
+  };
+
+  // ---------- coupons ----------
+  const coupon = {
+    check(code, total) { code = String(code || '').trim().toUpperCase(); if (!code) return { ok: false, why: '' }; const c = suite().coupons.find(x => x.code === code && x.active !== false);
+      if (!c) return { ok: false, why: 'ไม่พบโค้ดนี้' }; if (c.expires && ymd(now()) > c.expires) return { ok: false, why: 'โค้ดหมดอายุ' }; if (c.maxUses && (c.used || 0) >= c.maxUses) return { ok: false, why: 'โค้ดถูกใช้ครบแล้ว' };
+      if (total == null) return { ok: false, why: 'ใช้โค้ดได้เมื่อมีราคา' }; if (c.minTotal && total < c.minTotal) return { ok: false, why: 'ยอดขั้นต่ำ ' + money(c.minTotal) };
+      const d = c.type === 'pct' ? Math.min(c.maxDiscount || Infinity, Math.round(total * c.value / 100)) : Math.min(total, c.value); return { ok: true, code, discount: d, c }; },
+    save(c) { c.code = String(c.code).trim().toUpperCase(); mut(s => { const i = s.coupons.findIndex(x => x.code === c.code); if (i < 0) s.coupons.push({ used: 0, active: true, ...c }); else s.coupons[i] = { ...s.coupons[i], ...c }; }); audit('coupon.save', c.code, c); }
+  };
+
+  // ---------- notifications (templates; NO real sending) ----------
+  function fill(t, v) { return String(t).replace(/\{(\w+)\}/g, (_, k) => v[k] ?? ''); }
+  function notify(ev, bid, extra = {}) { try { const s = suite(), b = bid ? bookings.get(bid) : null; const base = location.href.replace(/[^/]*$/, '');
+      const v = { shop: s.settings.shop, id: bid || '', name: b ? b.customer : '', date: b ? b.date : '', time: b ? b.time : '', tech: b ? techName(b.tech) : '', amount: extra.amount != null ? Number(extra.amount).toLocaleString() : '', note: extra.note || '',
+        link: base + (extra.link || ((W.FP_TRACK_URL || 'index.html') + '#track/' + (bid || '') + '/' + (b ? normPhone(b.phone) : ''))), ...extra, link2: '' };
+      if (extra.link) v.link = base + extra.link; const text = fill(s.templates[ev] || ev, v);
+      mut(x => { x.notifications.push({ id: 'N' + now().toString(36) + Math.random().toString(36).slice(2, 5), at: now(), ev, bid: bid || '', to: b ? normPhone(b.phone) : 'admin', text, status: 'draft' }); if (x.notifications.length > 3000) x.notifications.splice(0, x.notifications.length - 3000); });
+      return text; } catch (e) { return ''; } }
+  const shareLinks = (text, phone) => ({ line: 'https://line.me/R/share?text=' + encodeURIComponent(text), sms: 'sms:' + (phone || '') + '?body=' + encodeURIComponent(text) });
+
+  // ---------- stock (film rolls) ----------
+  const stock = {
+    list() { return suite().stock; },
+    add(r) { r.roll = String(r.roll).trim().toUpperCase(); mut(s => { if (s.stock.some(x => x.roll === r.roll)) throw new Error('dup'); s.stock.push({ remainingM: +r.lengthM, addedAt: now(), ...r, lengthM: +r.lengthM }); }); audit('stock.add', r.roll, r); },
+    low() { const S = suite(); return S.stock.filter(r => r.remainingM < (r.lowM ?? S.settings.lowStockM)); },
+    deduct(bid, rolls, size) { const s = suite(); if (s.stockUsed[bid]) return { ok: false, why: 'ตัดสต็อกงานนี้แล้ว' }; const need = s.usageM[size] || s.usageM.M; const R = String(rolls || '').split(/[,\s]+/).map(x => x.trim().toUpperCase()).filter(Boolean);
+      const roll = R.map(x => s.stock.find(r => r.roll === x)).find(Boolean); if (!roll) return { ok: false, why: 'ไม่พบเลขม้วนในสต็อก: ' + R.join(',') };
+      const wasLow = roll.remainingM < (roll.lowM ?? s.settings.lowStockM); roll.remainingM = Math.round((roll.remainingM - need) * 10) / 10; s.stockUsed[bid] = { roll: roll.roll, m: need, at: now() }; saveSuite(s);
+      audit('stock.deduct', roll.roll, { bid, m: need }); if (!wasLow && roll.remainingM < (roll.lowM ?? s.settings.lowStockM)) notify('low_stock', '', { note: roll.roll + ' (' + roll.brand + ' ' + roll.series + ' เหลือ ' + roll.remainingM + ' ม.)' }); return { ok: true, roll: roll.roll, m: need }; }
+  };
+
+  // ---------- warranty claims (customer portal) ----------
+  const claims = {
+    list(bid) { return suite().wclaims.filter(c => !bid || c.bid === bid); },
+    create(o) { const b = bookings.get(o.bid); if (!b) return { ok: false, why: 'ไม่พบงาน' }; let c; mut(s => { s.seq.cl++; c = { id: 'CL' + pad(s.seq.cl, 4), status: 'ใหม่', at: now(), ...o, log: [{ at: now(), m: 'ลูกค้าแจ้งเคลม' }] }; s.wclaims.push(c); });
+      bookings.hist(b, 'แจ้งเคลม', c.id + ' ' + (o.problem || '')); bookings.save(b); audit('claim.create', c.id, { bid: o.bid, problem: o.problem }); notify('claim_received', o.bid, { note: c.id }); sync(); return { ok: true, c }; },
+    // decision: installer = installer's fault → redo ticket + deduction in Tech; material = manufacturer claim; reject = not covered (hold released)
+    decide(id, decision, note, redoCost) { let c; const L = { installer: 'อนุมัติ — ช่างเข้าแก้ไข (ความผิดช่าง)', material: 'อนุมัติ — เคลมผู้ผลิต/เปลี่ยนฟิล์ม', reject: 'ไม่อยู่ในเงื่อนไขรับประกัน' };
+      mut(s => { c = s.wclaims.find(x => x.id === id); if (!c) return; c.decision = decision; c.redoCost = +redoCost || 0; c.status = decision === 'reject' ? 'ปิด (ไม่อนุมัติ)' : 'กำลังแก้ไข'; c.redoDeadline = decision === 'reject' ? null : now() + 3 * DAY; c.log.push({ at: now(), m: L[decision] + (note ? ' — ' + note : '') }); });
+      if (!c) return { ok: false }; audit('claim.decide', id, { decision, redoCost }); notify('claim_decided', c.bid, { note: L[decision] + (note ? ' ' + note : '') }); sync(); return { ok: true, c }; },
+    close(id, note) { mut(s => { const c = s.wclaims.find(x => x.id === id); if (c) { c.status = 'ปิด (แก้ไขแล้ว)'; c.closedAt = now(); c.log.push({ at: now(), m: 'ปิดเคลม' + (note ? ' — ' + note : '') }); } }); audit('claim.close', id); sync(); }
+  };
+
+  // ---------- PDPA ----------
+  const pdpa = {
+    request(bid, phone, type, note) { const b = bookings.find(bid, phone); if (!b) return { ok: false, why: 'ไม่พบงาน/เบอร์ไม่ตรง' }; mut(s => { s.pdpa.push({ id: 'DR' + now().toString(36).toUpperCase(), bid: b.id, phone: normPhone(phone), type, note: note || '', status: 'ใหม่', at: now() }); }); audit('pdpa.request', b.id, type); return { ok: true }; },
+    // anonymise personal data across stores; financial/tax records keep id+amount only
+    erase(reqId) { const s = suite(), r = s.pdpa.find(x => x.id === reqId); if (!r) return; const id = r.bid; const L = bookings.all(); const b = L.find(x => x.id === id);
+      if (b) { Object.assign(b, { customer: '(ลบตาม PDPA)', phone: '', location: '', geo: null, carPhotos: {}, erased: now() }); b.car = { ...b.car, plate: '', province: '', photo: null }; set(K.bookings, L); }
+      const I = get(K.inspect, null); if (I && I.jobs) { const j = I.jobs.find(x => x.id === id); if (j) Object.assign(j, { customer: '(ลบตาม PDPA)', phone: '', plate: '', carPhoto: null, pre: null }); if (I.ins && I.ins[id]) { I.ins[id].photo = {}; I.ins[id].interior = null; I.ins[id].sig = null; } set(K.inspect, I); }
+      const H = get(K.handover, null); if (H && H.jobs) { const j = H.jobs.find(x => x.id === id); if (j) Object.assign(j, { customer: '(ลบตาม PDPA)', phone: '', pre: null }); if (H.ho && H.ho[id]) Object.assign(H.ho[id], { after: {}, interior: null, sigC: null }); set(K.handover, H); }
+      mut(x => { const q = x.pdpa.find(y => y.id === reqId); q.status = 'ดำเนินการแล้ว'; q.doneAt = now(); x.consents.filter(c => c.bid === id).forEach(c => { c.phone = ''; c.withdrawn = now(); }); });
+      audit('pdpa.erase', id, reqId); }
+  };
+
+  // ---------- derived status / timeline ----------
+  const STAGES = [['booked', 'จองแล้ว'], ['paid', 'ชำระมัดจำ'], ['assigned', 'ได้ช่างแล้ว'], ['inspected', 'ตรวจสภาพรถ'], ['handover', 'ติดตั้ง & ส่งมอบ'], ['rated', 'ให้คะแนน'], ['done', 'ชำระครบ / ปิดงาน']];
+  function stage(b) { if (!b) return null; const C = get(K.claims, {}), I = get(K.inspect, { ins: {} }), H = get(K.handover, { ho: {} }), R = get(K.ratings, {});
+    const ins = (I.ins || {})[b.id], ho = (H.ho || {})[b.id]; const bal = pay.balance(b.id);
+    const f = { booked: true, paid: b.deposit && (b.deposit.status === 'paid' || b.deposit.status === 'refunded'), assigned: !!(C[b.id] && C[b.id].tech), inspected: !!(ins && ins.status === 'ตรวจแล้ว'),
+      handover: !!(ho && ho.status === 'ส่งมอบแล้ว'), rated: !!R[b.id], done: false };
+    f.done = f.handover && (bal === 0 || bal === null && pay.paidTotal(b.id) > 0) && f.rated;
+    let key = 'booked'; STAGES.forEach(([k]) => { if (f[k]) key = k; }); if (b.status === 'cancelled') key = 'cancelled';
+    const label = key === 'cancelled' ? 'ยกเลิกแล้ว' : STAGES.find(s => s[0] === key)[1];
+    return { key, label, flags: f, ho, ins, rating: R[b.id] || null, balance: bal, redo: ho && ho.status === 'ต้องแก้ไข' }; }
+
+  // ---------- cross-app sync (bridges legacy app stores) ----------
+  function sync() { try {
+      const L = get(K.bookings, []), C = get(K.claims, {}); let ch = false;
+      L.forEach(b => { const t = (C[b.id] || {}).tech || null; if (b.tech !== t) { b.tech = t; ch = true; } }); if (ch) set(K.bookings, L);
+      // stock deduction on handover (roll no. from warranty card)
+      const H = get(K.handover, { ho: {} }), s = suite();
+      Object.entries(H.ho || {}).forEach(([id, h]) => { if (h.status === 'ส่งมอบแล้ว' && !s.stockUsed[id] && h.warranty && h.warranty.roll) { const b = L.find(x => x.id === id); const r = stock.deduct(id, h.warranty.roll, b && b.car && b.car.size); if (!r.ok && !s.stockUsed[id]) { const x = suite(); x.stockUsed[id] = { error: r.why, at: now() }; saveSuite(x); } } });
+      // ratings → Tech payout jobs; warranty claims → retention hold / redo deduction
+      const T = get(K.tech, null); if (!T || !T.S || !Array.isArray(T.inst)) return; const R = get(K.ratings, {}), WC = suite().wclaims; let tc = false;
+      Object.values(R).forEach(r => { const i = T.inst.find(x => x.id === r.inst); if (!i || T.jobs.some(j => j.id === r.job)) return; const b = L.find(x => x.id === r.job);
+        T.jobs.push({ id: r.job, customer: r.customer || (b && b.customer) || '', phone: (b && b.phone) || '', car: r.car || '', film: r.film || '', tierReq: i.tier || 'gen', inst: i.id, tierAtJob: i.tier || 'gen', feeAtJob: (T.S.fees || {})[i.tier || 'gen'] || 0,
+          status: 'ลูกค้ายืนยัน', createdAt: b ? new Date(b.createdAt).getTime() : r.at, installedAt: r.at, confirmedAt: r.at, redoCost: T.S.redoCostDefault || 0, photoPct: 100, src: 'suite',
+          rating: { ...Object.fromEntries(Object.entries(r).filter(([k, v]) => typeof v === 'number' && !['at', 'wavg', 'redoCount', 'newDefects'].includes(k))), recommend: r.recommend, comment: r.comment || '', at: r.at }, redo: (r.redoCount || 0) > 0, redoByInstaller: false }); tc = true; });
+      T.jobs.forEach(j => { const cl = WC.filter(c => c.bid === j.id); if (!cl.length) return; const open = cl.some(c => !String(c.status).startsWith('ปิด')); const fault = cl.find(c => c.decision === 'installer');
+        if (!!j.warrantyClaim !== open) { j.warrantyClaim = open; tc = true; }
+        if (fault && !j.redoByInstaller) { j.redo = true; j.redoByInstaller = true; j.redoCost = fault.redoCost || j.redoCost; tc = true; }
+        if (R[j.id] && R[j.id].claim !== open) { R[j.id].claim = open || !!fault; set(K.ratings, R); } });
+      if (tc) set(K.tech, T);
+    } catch (e) { console.warn('FP.sync', e); } }
+
+  // ---------- backup / restore ----------
+  function backup() { const data = {}; A.keys().forEach(k => { data[k] = get(k, null); }); audit('backup', 'all', Object.keys(data).length + ' keys'); return { app: 'filmpro-suite', version: 1, at: new Date().toISOString(), data }; }
+  function restore(obj) { if (!obj || obj.app !== 'filmpro-suite' || !obj.data) return { ok: false, why: 'ไฟล์สำรองไม่ถูกต้อง' }; A.keys().forEach(k => { if (k !== K.session) A.del(k); }); Object.entries(obj.data).forEach(([k, v]) => { if (k !== K.session) set(k, v); }); audit('restore', 'all', obj.at); return { ok: true }; }
+  function download(name, text, type) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: (type || 'application/json') + ';charset=utf-8' })); a.download = name; document.body.appendChild(a); a.click(); a.remove(); }
+
+  // ---------- image compression ----------
+  function compress(file, cb, max = 1024, q = 0.7) { const r = new FileReader(); r.onload = () => { const im = new Image(); im.onload = () => { const s = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * s); c.height = Math.round(im.height * s); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); cb(c.toDataURL('image/jpeg', q)); }; im.onerror = () => alert('ไฟล์รูปไม่ถูกต้อง'); im.src = r.result; }; r.readAsDataURL(file); }
+
+  // ---------- shared UI header ----------
+  function header(title, opts = {}) { const m = auth.me(); return `<header class="fp-head noprint"><a href="${opts.base || ''}index.html" class="fp-logo">FilmPro</a><div class="fp-title">${esc(title)}</div><div class="fp-user">${m ? `${esc(ROLES[m.role])}: ${esc(m.name)} · <a href="#" onclick="FP.auth.logout();location.reload();return false">ออก</a>` : `<a href="${opts.base || ''}login.html?next=${encodeURIComponent(location.pathname.split('/').pop() + location.search)}">เข้าสู่ระบบ</a>`}</div></header>`; }
+
+  W.FP = { K, adapter: () => A, useAdapter(a) { A = a; }, LocalAdapter, get, set, suite, saveSuite, mut, audit, auth, ROLES, bookings, depositFor, techs, techName, duration, schedule, pay, promptpayPayload, crc16, qrSVG,
+    coupon, offers, notify, shareLinks, stock, claims, pdpa, stage, STAGES, sync, backup, restore, download, compress, header, util: { ymd, toMin, toHM, money, esc, normPhone, newId, DAY, now } };
+  W.addEventListener && W.addEventListener('storage', e => { if (e.key && e.key.startsWith('filmpro') && e.key !== K.suite && e.key !== K.tech) { /* other tab changed data */ } });
+})(window);
+
+window.FP_TRACK_URL="index.html";FP.sync();
+</script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+body{font-family:'Sarabun',sans-serif;background:#f1f5f9;color:#1e293b}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:20px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.btn{background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%);border-radius:12px;color:#fff}
+.btn:disabled{opacity:.4}
+.btn2{background:#fff;border:1px solid #e2e8f0;border-radius:12px}
+input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:10px 12px;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:#3b82f6;flex:none}
+h1,h2{color:#1e40af}button:active{transform:scale(.98)}
+.tab{white-space:nowrap}.tab.on{background:#2563eb;color:#fff}
+.pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px}
+label.f{display:block;font-size:13px;font-weight:500;margin-top:8px}
+.ph{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;background:#e2e8f0}
+.phx{width:100%;aspect-ratio:4/3;border-radius:10px;border:2px dashed #cbd5e1;display:flex;align-items:center;justify-content:center;font-size:11px;color:#94a3b8;text-align:center}
+.star{font-size:28px;line-height:1;color:#d1d5db}.star.on{color:#f59e0b}
+canvas.sig{width:100%;height:140px;border:1px dashed #94a3b8;border-radius:12px;background:#fff;touch-action:none}
+@media print{.noprint{display:none!important}body{background:#fff}.card{box-shadow:none;border-color:#cbd5e1;break-inside:avoid}}
+</style></head>
+<body><div class="max-w-md mx-auto pb-20">
+<header class="noprint sticky top-0 z-10 bg-white/95 backdrop-blur border-b px-3 py-2">
+ <div class="flex items-center justify-between"><div><b class="text-blue-800">FilmPro Handover</b> <span class="text-xs text-gray-500">ส่งมอบงานติดฟิล์ม</span></div>
+ <div class="flex gap-1"><button class="btn2 text-xs px-2 py-1" onclick="demo()">ข้อมูลตัวอย่าง</button><button class="btn2 text-xs px-2 py-1" onclick="if(confirm('ล้างข้อมูลทั้งหมด?'))reset()">รีเซ็ต</button></div></div>
+ <nav id="tabs" class="flex gap-1 overflow-x-auto mt-2 pb-1"></nav></header>
+<main id="app" class="p-3"></main>
+<div class="text-[10px] text-gray-400 text-center noprint">FilmPro · ข้อมูลเก็บในเครื่องนี้ (localStorage)</div>
+</div>
+<script>
+const KEY='filmpro_handover_v1',DAY=864e5;
+const PANELS=[['front','บานหน้า'],['fl','คู่หน้า ซ้าย'],['fr','คู่หน้า ขวา'],['rl','คู่หลัง ซ้าย'],['rr','คู่หลัง ขวา'],['quarter','หูช้าง'],['fixed','บานตาย'],['rear','บานหลัง'],['sun1','ซันรูฟ 1'],['sun2','ซันรูฟ 2'],['roof','หลังคาแก้ว']];
+const DEF_EXIST=['front','fl','fr','rl','rr','rear'];
+const CARE=[['roll','ห้ามเลื่อนกระจกลง 3–7 วันหลังติดตั้ง'],['clean','ห้ามทำความสะอาดฟิล์มด้านใน 7 วัน'],['haze','ฝ้า/ไอน้ำ/ฟองน้ำเล็ก ๆ เป็นเรื่องปกติ 7–30 วัน และจะหายไปเอง'],['tool','ห้ามใช้ของมีคมหรือน้ำยาที่มีแอมโมเนีย ใช้ผ้าไมโครไฟเบอร์กับน้ำสะอาด/น้ำยาอ่อน'],['defrost','ระวังเส้นไล่ฝ้ากระจกหลัง ห้ามขูดหรือแกะขอบฟิล์ม'],['warranty','อธิบายเงื่อนไขการรับประกันและบัตรรับประกันแล้ว']];
+const PROB=[['dust','เม็ดฝุ่น'],['crooked','ตัดเบี้ยว/ไม่เต็มขอบ'],['cutter','รอยคัตเตอร์'],['bubble','ฟองอากาศ/รอยพับ'],['shade','ฟิล์มไม่ตรงสี/เฉดที่สั่ง']];
+const CARCHK=[['console','ไม่มีรอยที่คอนโซล/แผงประตู'],['elec','ไฟฟ้า/กระจกไฟฟ้าใช้งานได้'],['defrost','ไลน์ไล่ฝ้าใช้ได้'],['tidy','รถสะอาด ไม่มีเศษฟิล์ม'],['items','ของในรถครบ']];
+// Same keys as Part 2 (filmpro-tech-v1 CATS)
+const CATS=[['clean','ความสะอาดและความสุภาพ'],['install','ความเรียบร้อยของการติดฟิล์ม'],['overall','ความพึงพอใจของลูกค้า']];
+const W8={install:2};// install counts x2 in weighted average
+const QC=[['bubble','ไม่มีฟองอากาศ'],['dust','ไม่มีเม็ดฝุ่น/รอยพับ'],['edge','ขอบฟิล์มเรียบร้อย ตัดสะอาด'],['defrost','เส้นไล่ฝ้าใช้งานได้'],['pwin','กระจกไฟฟ้าใช้งานได้ทุกบาน']];
+const RT_KEY='filmpro_ratings_v1';
+// ---- FilmPro Film seal (shared in Tech, Inspect, Handover): tamper-evident seal sticker number + roll numbers per job package
+const FPF=(()=>{const K='filmpro_film_v1',WK='filmpro_warranty_v1',J=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d;}catch(e){return d;}},W=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+ const h=s=>{let x=5381;for(const c of String(s))x=((x<<5)+x+c.charCodeAt(0))>>>0;return x.toString(36).toUpperCase().padStart(7,'0').slice(-7);};
+ const U=s=>String(s||'').trim().toUpperCase();
+ function code(p){const b=[ 'FP1',p.job,(p.rolls||[]).join(','),U(p.brand),p.series||'',p.shade||'',p.seal].join('|');return b+'|'+h(b);}
+ function parse(c){const a=String(c||'').trim().split('|');if(a[0]!=='FP1'||a.length!==8)return null;if(h(a.slice(0,7).join('|'))!==a[7])return {bad:'รหัสถูกแก้ไข/ปลอม (checksum ไม่ตรง)'};return {job:a[1],rolls:a[2].split(',').filter(Boolean),brand:a[3],series:a[4],shade:a[5],seal:a[6]};}
+ const all=()=>J(K,{}),get=id=>all()[id],put=(id,o)=>{const A=all();A[id]={...(A[id]||{}),...o};W(K,A);return A[id];};
+ function alert_(id,msg){const A=all(),r=A[id]||(A[id]={});(r.alerts=r.alerts||[]).push({at:Date.now(),msg});W(K,A);}
+ // validate a scanned code for a job; filmStr e.g. "3M Crystalline"
+ function check(c,job,filmStr){const p=parse(c);if(!p)return {ok:false,why:'ไม่ใช่รหัส FilmPro'};if(p.bad)return {ok:false,why:p.bad};const r=get(job);
+  if(p.job!==job)return {ok:false,why:`รหัสเป็นของงาน ${p.job} ไม่ใช่ ${job}`,p};if(!r||!r.code)return {ok:false,why:'ไม่พบแพ็กเกจฟิล์มของงานนี้ในระบบ',p};
+  if(r.code!==String(c).trim())return {ok:false,why:'รหัสไม่ตรงกับแพ็กเกจที่บริษัทส่ง (ซีล/ม้วนไม่ตรง)',p};
+  if(filmStr&&!U(filmStr).startsWith(U(p.brand)+' '+U(p.series).split(' ')[0])&&!U(filmStr).includes(U(p.series)))return {ok:false,why:`ฟิล์มในซีล (${p.brand} ${p.series}) ไม่ตรงกับที่ลูกค้าเลือก (${filmStr})`,p};
+  return {ok:true,p,r};}
+ // seal-number check (tamper-evident sticker); returns {ok,why,r}
+ function sealCheck(job,seal){const r=get(job),v=U(seal);if(!v)return {ok:false,why:'กรอกเลขซีล'};if(!r||!r.seal)return {ok:false,why:'ไม่พบแพ็กเกจฟิล์มของงานนี้ในระบบ'};
+  if(U(r.seal)!==v){const o=Object.entries(all()).find(([k,x])=>U(x.seal)===v);return {ok:false,why:o?`เลขซีล ${seal} เป็นของงาน ${o[0]} ไม่ใช่ ${job} (สงสัยสลับฟิล์ม)`:`เลขซีล ${seal} ไม่ตรงกับแพ็กของงานนี้`,r};}
+  return {ok:true,r};}
+ function wcode(job,roll,card){return 'W-'+h(job+'|'+roll+'|'+card);}
+ const war=()=>J(WK,{}),warPut=(c,o)=>{const A=war();A[c]=o;W(WK,A);};
+ return {code,parse,all,get,put,check,sealCheck,alert:alert_,hash:h,wcode,war,warPut};})();
+
+const ST_COLOR={'รอติดตั้ง':'bg-gray-100 text-gray-700','รอตรวจรับ':'bg-blue-100 text-blue-700','ต้องแก้ไข':'bg-red-100 text-red-700','รอให้คะแนน':'bg-amber-100 text-amber-700','ส่งมอบแล้ว':'bg-emerald-100 text-emerald-700'};
+// Generic editable warranty template (not brand-official terms; admin edits per brand/series)
+const DEF_W={years:'5',coverage:'ฟิล์มลอก/หลุดล่อน, เกิดฟองอากาศ, ฟิล์มเปลี่ยนสี/ซีด',excl:'รอยขีดข่วน/ฉีกขาดจากการใช้งาน, การใช้งานผิดวิธีหรือใช้น้ำยาไม่เหมาะสม, อุบัติเหตุ, การแกะ/ซ่อมโดยผู้อื่น'};
+let D,tab='jobs',cur=null,ui={};
+const $=id=>document.getElementById(id),now=()=>Date.now(),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=t=>t?new Date(t).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'}):'-',fmtD=t=>t?new Date(t).toLocaleDateString('th-TH'):'-';
+function blank(){return {jobs:[],ho:{},inst:{},W:{},S:{redoDays:3},seq:1};}
+function load(){try{D=JSON.parse(localStorage.getItem(KEY))||blank();}catch(e){D=blank();}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(D));}catch(e){alert('พื้นที่เก็บข้อมูลเต็ม — ส่งออก JSON แล้วลบงานเก่า');}}
+function reset(){D=blank();cur=null;save();go('jobs');}
+function job(id){return D.jobs.find(j=>j.id===id);}
+function H(id){id=id||cur;if(!D.ho[id]){const e={},ix=(job(id)||{}).inspect;PANELS.forEach(([k])=>e[k]=ix&&ix.exist?ix.exist.includes(k):DEF_EXIST.includes(k));D.ho[id]={job:id,exist:e,after:{},interior:null,care:{},warranty:null,check:{},car:{},rating:{},status:'รอติดตั้ง',log:[]};}return D.ho[id];}
+function instName(id){return (D.inst[id]&&D.inst[id].name)||id||'-';}
+function wTpl(film){const b=(film||'').split(' ')[0];return D.W[film]||D.W[b]||DEF_W;}
+function existing(h){return PANELS.filter(([k])=>h.exist[k]);}
+function qcMissing(h){const j=job(cur),m=[];h.qc=h.qc||{};h.dchk=h.dchk||{};h.newDef=h.newDef||[];
+ QC.forEach(([k,n])=>{if(!h.qc[k])m.push('QC: '+n);});const ds=((j.inspect||{}).defects)||[];ds.forEach((d,i)=>{if(!h.dchk[d.id])m.push('ตำหนิเดิม #'+(i+1));});
+ if(h.noNew!==true&&!h.newDef.length)m.push('ยืนยันไม่มีตำหนิใหม่');h.newDef.forEach((d,i)=>{if(!d.photo||!d.note)m.push('ตำหนิใหม่ #'+(i+1)+' ต้องมีรูปและรายละเอียด');});return m;}
+function missingPhotos(h){const m=existing(h).filter(([k])=>!h.after[k]).map(([,n])=>n);if(!h.interior)m.push('ความสะอาดภายในรถ');return m;}
+function problems(h){return existing(h).filter(([k])=>h.check[k]&&h.check[k].ok===false);}
+function carFails(h){return CARCHK.filter(([k])=>h.car[k]===false);}
+function suggestInstall(h){const n=problems(h).reduce((a,[k])=>a+Math.max(1,(h.check[k].types||[]).length),0);return n?Math.max(1,5-n):5;}
+function logH(h,m){h.log.push({at:now(),m});}
+// ---------- image compression (client-side, max 1024px JPEG q0.7)
+function compress(file,cb){const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const M=1024,s=Math.min(1,M/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);cb(c.toDataURL('image/jpeg',.7));};im.onerror=()=>alert('ไฟล์รูปไม่ถูกต้อง');im.src=r.result;};r.readAsDataURL(file);}
+function setPhoto(slot,data){const h=H(),[a,k]=slot.split(':');if(a==='after')h.after[k]=data;else if(a==='int')h.interior=data;else if(a==='nd'){const d=(h.newDef||[]).find(x=>x.id===k);if(d)d.photo=data;}else if(a==='chk'){h.check[k]=h.check[k]||{ok:false,types:[]};h.check[k].photo=data;}save();render();}
+function pick(slot,inp){const f=inp.files[0];if(f)compress(f,d=>setPhoto(slot,d));}
+function photoBox(slot,src,label){return `<label class="block cursor-pointer">${src?`<img class="ph" src="${src}">`:`<div class="phx">+ ถ่าย/เลือกรูป<br>${esc(label||'')}</div>`}<input type="file" accept="image/*" capture="environment" class="hidden" onchange="pick('${slot}',this)"></label>`;}
+// ---------- nav
+const TABS=[['jobs','เลือกงาน'],['s1','1 ภาพหลังติดตั้ง'],['s2','2 การดูแล/ประกัน'],['s3','3 ตรวจรับ'],['s4','4 ให้คะแนน'],['s5','5 ใบส่งมอบ'],['admin','รายการ (แอดมิน)'],['set','ตั้งค่าประกัน'],['verifyw','ตรวจสอบประกัน']];
+function go(t){tab=t;render();window.scrollTo(0,0);}
+function render(){$('tabs').innerHTML=TABS.map(([k,n])=>`<button class="tab btn2 text-xs px-3 py-1.5 ${tab===k?'on':''}" onclick="go('${k}')">${n}</button>`).join('');
+ const needJob=['s1','s2','s3','s4','s5'].includes(tab)&&!cur;$('app').innerHTML=needJob?`<div class="card p-4 text-sm">กรุณาเลือกงานก่อน <button class="btn px-3 py-1 ml-2" onclick="go('jobs')">เลือกงาน</button></div>`:({jobs:vJobs,s1:vS1,s2:vS2,s3:vS3,s4:vS4,s5:vS5,admin:vAdmin,set:vSet,verifyw:vVerifyW}[tab])();if(tab==='s4')initSig();}
+function zoom(src){const o=document.createElement('div');o.className='fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-2';o.onclick=()=>o.remove();o.innerHTML=`<img src="${src}" style="max-width:100%;max-height:100%;border-radius:12px">`;document.body.appendChild(o);}
+function jobHead(){const j=job(cur),h=H();return `<div class="card p-3 mb-3 text-sm flex justify-between items-start"><div><b>${esc(j.id)}</b> · ${esc(j.customer)}<div class="text-xs text-gray-500">${esc(j.car)} · ${esc(j.film)} · ช่าง ${esc(instName(j.inst))}</div></div>${j.carPhoto?`<img src="${j.carPhoto}" class="w-16 h-12 object-cover rounded-lg cursor-zoom-in" onclick="zoom(this.src)">`:''}<span class="pill ${ST_COLOR[h.status]}">${h.status}</span></div>`;}
+// ---------- jobs
+function vJobs(){return `<h2 class="text-lg font-bold mb-2">เลือกงานที่จะส่งมอบ</h2>
+ <div class="card p-3 mb-3"><div class="text-sm font-semibold">เพิ่มงาน</div>
+ <div class="grid grid-cols-2 gap-2 mt-2"><input id="nCus" placeholder="ลูกค้า"><input id="nTel" placeholder="เบอร์โทร"><input id="nCar" placeholder="รถ (ยี่ห้อ รุ่น)"><input id="nFilm" placeholder="ฟิล์ม (ยี่ห้อ ซีรีส์)"><input id="nInst" placeholder="ชื่อช่าง" class="col-span-2"></div>
+ <button class="btn w-full py-2 mt-2 text-sm" onclick="addJob()">เพิ่มงาน</button>
+ <label class="btn2 block text-center text-xs py-2 mt-2 cursor-pointer">นำเข้างานจาก Part 2 (JSON)<input type="file" accept=".json,application/json" class="hidden" onchange="importJSON(this)"></label></div>
+ ${D.jobs.map(j=>{const h=H(j.id);return `<button class="card p-3 mb-2 w-full text-left ${cur===j.id?'ring-2 ring-blue-500':''}" onclick="cur='${j.id}';go(nextStep())"><div class="flex justify-between"><b>${esc(j.id)} · ${esc(j.customer)}</b><span class="pill ${ST_COLOR[h.status]}">${h.status}</span></div><div class="text-xs text-gray-500">${esc(j.car)} · ${esc(j.film)} · ช่าง ${esc(instName(j.inst))}</div></button>`;}).join('')||'<div class="text-sm text-gray-500">ยังไม่มีงาน — กด "ข้อมูลตัวอย่าง" หรือเพิ่มงาน</div>'}`;}
+function nextStep(){const h=H();return {'รอติดตั้ง':'s1','รอตรวจรับ':h.careDone?'s3':'s2','ต้องแก้ไข':'s3','รอให้คะแนน':'s4','ส่งมอบแล้ว':'s5'}[h.status];}
+function addJob(){const c=$('nCus').value.trim(),car=$('nCar').value.trim();if(!c||!car)return alert('กรอกลูกค้าและรถ');const id='H'+String(D.seq++).padStart(4,'0'),iid=(v=>/^T\d{4}$/.test(v)?v:'T'+String(9000+Object.keys(D.inst).length).padStart(4,'0'))($('nInst').value.trim());D.inst[iid]={name:$('nInst').value.trim()||'ช่าง'};D.jobs.push({id,customer:c,phone:$('nTel').value,car,film:$('nFilm').value,inst:iid,createdAt:now()});save();render();}
+function importJSON(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);let n=0;(o.inst||[]).forEach(i=>D.inst[i.id]={name:i.name});(o.jobs||[]).forEach(j=>{if(!job(j.id)){D.jobs.push({id:j.id,customer:j.customer,phone:j.phone,car:j.car,film:j.film,inst:j.inst,pre:j.pre||null,createdAt:j.createdAt||now()});n++;}});Object.entries(o.ho||{}).forEach(([k,v])=>{if(!D.ho[k])D.ho[k]=v;});save();render();alert('นำเข้า '+n+' งาน');}catch(e){alert('ไฟล์ JSON ไม่ถูกต้อง');}};r.readAsText(f);}
+// ---------- step 1 installer photos
+function vS1(){const h=H(),j=job(cur),miss=missingPhotos(h).concat(qcMissing(h)),pre=j.pre||{};
+ return jobHead()+`${j.carPhoto?`<div class="card p-3 mb-3"><div class="text-sm font-semibold mb-1">รูปรถ (จากการจอง)</div><img class="ph cursor-zoom-in" src="${j.carPhoto}" onclick="zoom(this.src)"></div>`:''}<h2 class="text-lg font-bold">1) ภาพหลังติดตั้ง (ช่าง)</h2><div class="text-xs text-gray-500 mb-2">เลือกกระจกที่มีในรถคันนี้ แล้วถ่ายรูปหลังติดตั้งให้ครบทุกบาน ระบบย่อขนาดรูปอัตโนมัติ</div>
+ <div class="card p-3 mb-3"><div class="text-sm font-semibold mb-1">กระจกที่มีในรถคันนี้</div><div class="grid grid-cols-2 gap-1 text-sm">${PANELS.map(([k,n])=>`<label class="flex items-center gap-2"><input type="checkbox" ${h.exist[k]?'checked':''} ${h.status!=='รอติดตั้ง'?'disabled':''} onchange="H().exist['${k}']=this.checked;save();render()">${n}</label>`).join('')}</div></div>
+ ${existing(h).map(([k,n])=>`<div class="card p-3 mb-2"><div class="text-sm font-semibold mb-1">${n} ${h.after[k]?'<span class="pill bg-emerald-100 text-emerald-700">✓</span>':'<span class="pill bg-red-100 text-red-700">ต้องมีรูป</span>'}</div>
+  <div class="grid grid-cols-2 gap-2"><div><div class="text-[11px] text-gray-500">ก่อนติดตั้ง (จากการตรวจรถ)</div>${pre[k]?`<img class="ph" src="${pre[k]}">`:'<div class="phx">ไม่มีภาพก่อนติดตั้ง</div>'}</div><div><div class="text-[11px] text-gray-500">หลังติดตั้ง</div>${photoBox('after:'+k,h.after[k],n)}</div></div></div>`).join('')}
+ <div class="card p-3 mb-2"><div class="text-sm font-semibold mb-1">ความสะอาดภายในรถ ${h.interior?'<span class="pill bg-emerald-100 text-emerald-700">✓</span>':'<span class="pill bg-red-100 text-red-700">ต้องมีรูป</span>'}</div><div class="grid grid-cols-2 gap-2"><div><div class="text-[11px] text-gray-500">ก่อนติดตั้ง</div>${pre.interior?`<img class="ph" src="${pre.interior}">`:'<div class="phx">ไม่มีภาพก่อนติดตั้ง</div>'}</div><div><div class="text-[11px] text-gray-500">หลังติดตั้ง</div>${photoBox('int:x',h.interior,'ภายในรถ')}</div></div></div>
+ ${vQC(h,j)}
+ ${miss.length?`<div class="text-xs text-red-600 my-2">ยังขาด ${miss.length} รายการ: ${miss.join(', ')}</div>`:''}
+ <button id="s1Submit" class="btn w-full py-3 mt-2" ${miss.length||h.status!=='รอติดตั้ง'?'disabled':''} onclick="submitPhotos()">${h.status==='รอติดตั้ง'?'ส่งงาน → อธิบายการดูแล':'ส่งงานแล้ว'}</button>`;}
+function vQC(h,j){const L=h.status!=='รอติดตั้ง'?'disabled':'',ds=((j.inspect||{}).defects)||[],DN={scratch:'รอยขีดข่วน',chip:'บิ่น',crack:'ร้าว',oldfilm:'ฟิล์มเดิม',sealant:'ยาง/ซิลิโคน',defrost:'เส้นไล่ฝ้า',sticker:'สติกเกอร์/กาว',body:'ตัวถัง/สี',interior:'ภายใน',other:'อื่น ๆ'},pn=k=>(PANELS.find(p=>p[0]===k)||[0,k==='body'?'ตัวถัง':'ภายในรถ'])[1];
+ return `<div class="card p-3 mb-3"><div class="text-sm font-semibold mb-1">ตรวจคุณภาพ (QC) โดยช่าง</div>${QC.map(([k,n])=>`<label class="flex items-center gap-2 text-sm py-1"><input type="checkbox" ${L} ${h.qc[k]?'checked':''} onchange="H().qc['${k}']=this.checked;save();render()">${n}</label>`).join('')}</div>
+ <div class="card p-3 mb-3"><div class="text-sm font-semibold mb-1">ตรวจตำหนิเทียบกับก่อนติดตั้ง</div>${ds.length?ds.map((d,i)=>`<label class="flex items-start gap-2 text-sm py-1 border-t"><input type="checkbox" ${L} ${h.dchk[d.id]?'checked':''} onchange="H().dchk['${d.id}']=this.checked;save();render()"><span>#${i+1} ${esc(pn(d.loc))} – ${esc(DN[d.type]||d.type)} ${esc(d.note||'')}<br><span class="text-[11px] text-gray-500">สภาพเหมือนเดิม ไม่ลุกลาม</span></span></label>`).join(''):'<div class="text-xs text-gray-500">ไม่มีตำหนิที่บันทึกไว้ก่อนติดตั้ง</div>'}
+ ${h.newDef.length?'':`<label class="flex items-center gap-2 text-sm mt-2"><input type="checkbox" ${L} ${h.noNew?'checked':''} onchange="H().noNew=this.checked;save();render()">ไม่มีตำหนิใหม่เกิดขึ้น</label>`}
+ ${h.newDef.map((d,i)=>`<div class="border-t mt-2 pt-2"><div class="flex justify-between text-sm"><b class="text-red-600">ตำหนิใหม่ #${i+1}</b><button class="text-xs text-red-600" onclick="delND('${d.id}')">ลบ</button></div><textarea rows="2" placeholder="รายละเอียด (จำเป็น)" oninput="H().newDef[${i}].note=this.value;save()">${esc(d.note)}</textarea><div class="mt-1">${photoBox('nd:'+d.id,d.photo,'รูปตำหนิใหม่ (จำเป็น)')}</div></div>`).join('')}
+ <button class="btn2 text-xs px-2 py-1 mt-2" ${L} onclick="addND()">+ แจ้งตำหนิใหม่</button></div>`;}
+function addND(){const h=H();h.newDef.push({id:'N'+Date.now(),note:'',photo:null});h.noNew=false;save();render();}
+function delND(id){const h=H();h.newDef=h.newDef.filter(d=>d.id!==id);save();render();}
+function submitPhotos(){const h=H(),m=missingPhotos(h).concat(qcMissing(h));if(m.length){alert('ส่งไม่ได้ — ยังขาดรูป: '+m.join(', '));return false;}h.status='รอตรวจรับ';h.installedAt=now();logH(h,'ช่างส่งภาพหลังติดตั้งครบ');save();go('s2');return true;}
+// ---------- step 2 care & warranty
+function vS2(){const h=H(),j=job(cur);if(!h.warranty){const t=wTpl(j.film);h.warranty={...t,cardNo:'',expiry:''};}const w=h.warranty;if(j.filmRolls&&!w.roll)w.roll=j.filmRolls.join(', ');
+ return jobHead()+`<h2 class="text-lg font-bold">2) การดูแลรักษาและการรับประกัน</h2><div class="text-xs text-gray-500 mb-2">ช่างอธิบายทีละข้อ ลูกค้าติ๊ก "ได้รับคำอธิบายแล้ว"</div>
+ <div class="card p-3 mb-3">${CARE.filter(([k])=>k!=='warranty').map(([k,n],i)=>`<div class="py-2 ${i?'border-t':''}"><div class="text-sm">${i+1}. ${n}</div><label class="flex items-center gap-2 text-xs mt-1 text-blue-700"><input type="checkbox" ${h.care[k]?'checked':''} onchange="H().care['${k}']=this.checked;save();render()">ได้รับคำอธิบายแล้ว</label></div>`).join('')}</div>
+ <div class="card p-3 mb-3"><div class="text-sm font-semibold">การรับประกัน — ${esc(j.film||'-')}</div><div class="text-[11px] text-gray-400">แม่แบบทั่วไป แก้ไขได้ (ตรวจสอบเงื่อนไขจริงกับบัตรรับประกันของแบรนด์)</div>
+ <label class="f">ระยะเวลา (ปี)</label><input value="${esc(w.years)}" oninput="H().warranty.years=this.value;save()">
+ <label class="f">ความคุ้มครอง</label><textarea rows="2" oninput="H().warranty.coverage=this.value;save()">${esc(w.coverage)}</textarea>
+ <label class="f">ข้อยกเว้น</label><textarea rows="2" oninput="H().warranty.excl=this.value;save()">${esc(w.excl)}</textarea>
+ <div class="grid grid-cols-2 gap-2"><div><label class="f">เลขบัตรรับประกัน</label><input id="wCard" value="${esc(w.cardNo)}" oninput="H().warranty.cardNo=this.value;save()"></div><div><label class="f">วันหมดประกัน</label><input type="date" id="wExp" value="${esc(w.expiry)}" oninput="H().warranty.expiry=this.value;save()"></div></div>
+ <label class="f">เลขม้วนฟิล์ม (Roll / Lot No.)</label><input id="wRoll" value="${esc(w.roll||'')}" ${j.filmRolls?'readonly title="จากซีลที่สแกน"':''} oninput="H().warranty.roll=this.value;save()">${j.filmRolls?'<div class="text-[11px] text-emerald-700">🔒 เลขม้วนจากซีล/QR ที่ตรวจแล้ว</div>':''}
+ <button class="btn2 text-xs px-2 py-1 mt-2" onclick="autoExp()">คำนวณวันหมดอายุจากจำนวนปี</button>
+ <label class="flex items-center gap-2 text-xs mt-3 text-blue-700"><input type="checkbox" ${h.care.warranty?'checked':''} onchange="H().care.warranty=this.checked;save();render()">ได้รับคำอธิบายแล้ว (การรับประกัน)</label></div>
+ <button class="btn w-full py-3" ${h.status==='รอติดตั้ง'?'disabled':''} onclick="submitCare()">ยืนยัน → ตรวจรับงาน</button>`;}
+function autoExp(){const h=H(),y=parseFloat(h.warranty.years)||0,d=new Date(h.installedAt||now());d.setFullYear(d.getFullYear()+Math.floor(y));h.warranty.expiry=d.toISOString().slice(0,10);save();render();}
+function submitCare(){const h=H(),m=CARE.filter(([k])=>!h.care[k]);if(m.length)return alert('ลูกค้ายังไม่ได้ติ๊กรับทราบ: '+m.map(x=>x[1].split(' ')[0]).join(', '));if(!h.warranty.cardNo||!h.warranty.expiry||!h.warranty.roll)return alert('กรอกเลขบัตรรับประกัน วันหมดประกัน และเลขม้วนฟิล์ม');h.careDone=now();logH(h,'อธิบายการดูแลและประกันแล้ว');save();go('s3');}
+// ---------- step 3 customer checklist
+function vS3(){const h=H();if(!h.careDone)return jobHead()+'<div class="card p-4 text-sm">ต้องผ่านขั้นตอนที่ 2 ก่อน</div>';
+ const rd=h.redo;return jobHead()+(rd&&rd.status==='เปิด'?`<div class="card p-3 mb-3 border-red-300 bg-red-50 text-sm"><b class="text-red-700">ใบแจ้งแก้ไข ${esc(rd.id)}</b> · กำหนดเสร็จ ${fmtD(rd.deadline)}<ul class="list-disc ml-5 text-xs mt-1">${rd.items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul><button class="btn w-full py-2 mt-2 text-sm" onclick="redoDone()">ช่างแก้ไขเสร็จ → ให้ลูกค้าตรวจใหม่</button></div>`:'')+
+ `<h2 class="text-lg font-bold">3) ลูกค้าตรวจรับงาน</h2><div class="text-xs text-gray-500 mb-2">ตรวจทีละบาน เลือก OK หรือ มีปัญหา</div>
+ ${existing(h).map(([k,n])=>{const c=h.check[k]||{};return `<div class="card p-3 mb-2"><div class="flex justify-between items-center"><b class="text-sm">${n}</b><div class="flex gap-1"><button class="btn2 text-xs px-3 py-1 ${c.ok===true?'!bg-emerald-500 text-white':''}" onclick="chk('${k}',true)">OK</button><button class="btn2 text-xs px-3 py-1 ${c.ok===false?'!bg-red-500 text-white':''}" onclick="chk('${k}',false)">มีปัญหา</button></div></div>
+ ${c.ok===false?`<div class="grid grid-cols-2 gap-1 text-xs mt-2">${PROB.map(([p,pn])=>`<label class="flex items-center gap-1"><input type="checkbox" ${(c.types||[]).includes(p)?'checked':''} onchange="tog('${k}','${p}',this.checked)">${pn}</label>`).join('')}</div><div class="grid grid-cols-2 gap-2 mt-2"><div>${photoBox('chk:'+k,c.photo,'รูปจุดที่มีปัญหา')}</div><textarea rows="3" placeholder="หมายเหตุ" oninput="H().check['${k}'].note=this.value;save()">${esc(c.note||'')}</textarea></div>`:''}</div>`;}).join('')}
+ <div class="card p-3 mb-3"><b class="text-sm">ตรวจสภาพรถ</b>${CARCHK.map(([k,n])=>`<div class="flex justify-between items-center py-1.5 border-t mt-1 text-sm"><span>${n}</span><div class="flex gap-1"><button class="btn2 text-xs px-2 py-1 ${h.car[k]===true?'!bg-emerald-500 text-white':''}" onclick="H().car['${k}']=true;save();render()">ผ่าน</button><button class="btn2 text-xs px-2 py-1 ${h.car[k]===false?'!bg-red-500 text-white':''}" onclick="H().car['${k}']=false;save();render()">ไม่ผ่าน</button></div></div>`).join('')}</div>
+ <button class="btn w-full py-3" ${h.status==='รอตรวจรับ'?'':'disabled'} onclick="submitCheck()">ยืนยันผลตรวจรับ</button>`;}
+function chk(k,ok){const h=H();h.check[k]={...(h.check[k]||{types:[]}),ok};save();render();}
+function tog(k,p,on){const c=H().check[k];c.types=(c.types||[]).filter(x=>x!==p);if(on)c.types.push(p);save();}
+function submitCheck(){const h=H(),miss=existing(h).filter(([k])=>!h.check[k]||h.check[k].ok==null).map(x=>x[1]).concat(CARCHK.filter(([k])=>h.car[k]==null).map(x=>x[1]));if(miss.length)return alert('ยังตรวจไม่ครบ: '+miss.join(', '));
+ const bad=problems(h);if(bad.some(([k])=>!(h.check[k].types||[]).length))return alert('เลือกประเภทปัญหาให้ทุกบานที่มีปัญหา');
+ const items=bad.map(([k,n])=>n+': '+h.check[k].types.map(p=>PROB.find(x=>x[0]===p)[1]).join(', ')+(h.check[k].note?' ('+h.check[k].note+')':'')).concat(carFails(h).map(([,n])=>'ตรวจรถไม่ผ่าน: '+n));
+ h.checkedAt=now();h.everProblem=h.everProblem||items.length>0;
+ if(items.length){h.status='ต้องแก้ไข';h.redo={id:'R-'+cur+'-'+((h.redoHist||[]).length+1),items,created:now(),deadline:now()+D.S.redoDays*DAY,status:'เปิด'};h.redoHist=(h.redoHist||[]).concat([h.redo]);logH(h,'พบปัญหา '+items.length+' รายการ → เปิดใบแจ้งแก้ไข');save();render();return 'redo';}
+ h.status='รอให้คะแนน';h.ratingSuggest=suggestInstall(h);logH(h,'ลูกค้าตรวจรับผ่าน');save();go('s4');return 'ok';}
+function redoDone(){const h=H();h.redo.status='แก้ไขแล้ว';h.redo.doneAt=now();problems(h).forEach(([k])=>delete h.check[k]);carFails(h).forEach(([k])=>delete h.car[k]);h.status='รอตรวจรับ';logH(h,'ช่างแก้ไขเสร็จ รอตรวจใหม่');save();render();}
+// ---------- step 4 rating + signatures
+function vS4(){const h=H(),r=h.rating;if(!['รอให้คะแนน','ส่งมอบแล้ว'].includes(h.status))return jobHead()+'<div class="card p-4 text-sm">ต้องตรวจรับผ่านก่อนจึงให้คะแนนได้</div>';
+ const sug=h.everProblem?Math.min(4,suggestInstall(h)):5;
+ return jobHead()+`<h2 class="text-lg font-bold">4) ให้คะแนนช่าง</h2>
+ <div class="card p-3 mb-3">${CATS.map(([k,n],i)=>`<div class="py-2 ${i?'border-t':''}"><div class="text-sm">${i+1}. ${n}${W8[k]?' <span class="pill bg-blue-100 text-blue-700">น้ำหนัก x2</span>':''}</div>${k==='install'&&h.everProblem?`<div class="text-[11px] text-amber-600">ระบบแนะนำ ${sug} ดาว เนื่องจากพบปัญหาระหว่างตรวจรับ</div>`:''}<div>${[1,2,3,4,5].map(s=>`<button class="star ${(r[k]||0)>=s?'on':''}" onclick="H().rating['${k}']=${s};save();render()">★</button>`).join('')}</div></div>`).join('')}
+ <div class="text-sm mt-2">จะแนะนำช่างคนนี้ให้คนอื่นไหม?</div><div class="grid grid-cols-2 gap-2 mt-1"><button class="btn2 py-2 text-sm ${r.recommend===true?'!bg-blue-600 text-white':''}" onclick="H().rating.recommend=true;save();render()">แนะนำ</button><button class="btn2 py-2 text-sm ${r.recommend===false?'!bg-blue-600 text-white':''}" onclick="H().rating.recommend=false;save();render()">ไม่แนะนำ</button></div>
+ <textarea class="mt-2" rows="2" placeholder="ความคิดเห็นเพิ่มเติม" oninput="H().rating.comment=this.value;save()">${esc(r.comment||'')}</textarea></div>
+ <div class="card p-3 mb-3"><div class="text-sm font-semibold">ลายเซ็นลูกค้า</div>${h.sigC?`<img src="${h.sigC}" class="border rounded-xl w-full h-[140px] object-contain">`:'<canvas class="sig" id="sigC"></canvas>'}<button class="btn2 text-xs px-2 py-1 mt-1" onclick="H().sigC=null;save();render()">ล้าง</button>
+ <div class="text-sm font-semibold mt-3">ลายเซ็นช่าง</div>${h.sigI?`<img src="${h.sigI}" class="border rounded-xl w-full h-[140px] object-contain">`:'<canvas class="sig" id="sigI"></canvas>'}<button class="btn2 text-xs px-2 py-1 mt-1" onclick="H().sigI=null;save();render()">ล้าง</button></div>
+ <button class="btn w-full py-3" ${h.status==='ส่งมอบแล้ว'?'disabled':''} onclick="submitRating()">ยืนยันส่งมอบงาน</button>`;}
+function initSig(){[['sigC','sigC'],['sigI','sigI']].forEach(([id,f])=>{const c=$(id);if(!c)return;const r=c.getBoundingClientRect();c.width=r.width*2;c.height=r.height*2;const x=c.getContext('2d');x.lineWidth=4;x.lineCap='round';x.strokeStyle='#1e293b';let dn=false,drew=false;
+ const p=e=>{const b=c.getBoundingClientRect();return [(e.clientX-b.left)*2,(e.clientY-b.top)*2];};
+ c.onpointerdown=e=>{dn=true;c.setPointerCapture(e.pointerId);x.beginPath();x.moveTo(...p(e));};c.onpointermove=e=>{if(!dn)return;x.lineTo(...p(e));x.stroke();drew=true;};
+ c.onpointerup=()=>{dn=false;if(drew){H()[f]=c.toDataURL('image/png');save();}};});}
+function shareRating(id){const h=H(id),j=job(id),r=h.rating;try{const S=JSON.parse(localStorage.getItem(RT_KEY)||'{}');
+ S[id]={job:id,inst:j.inst,customer:j.customer,car:j.car,film:j.film,...Object.fromEntries(CATS.map(([k])=>[k,+r[k]])),wavg:+avg(r).toFixed(3),recommend:r.recommend,comment:r.comment||'',at:now(),redoCount:(h.redoHist||[]).length,newDefects:(h.newDef||[]).length,roll:(h.warranty||{}).roll||''};
+ localStorage.setItem(RT_KEY,JSON.stringify(S));}catch(e){}}
+function issueW(id){const h=H(id),j=job(id),w=h.warranty||{},c=FPF.wcode(id,w.roll,w.cardNo);h.wcode=c;FPF.warPut(c,{code:c,job:id,customer:j.customer,car:j.car,film:j.film,roll:w.roll,seal:j.sealNo||'',cardNo:w.cardNo,years:w.years,expiry:w.expiry,coverage:w.coverage,issuedAt:now(),inst:j.inst});}
+function vVerifyW(){const c=(ui.wq||'').trim().toUpperCase(),r=c?FPF.war()[c]:null;return `<h2 class="text-lg font-bold mb-2">ตรวจสอบการรับประกัน (ลูกค้า)</h2><div class="card p-3 mb-3"><input id="wq" placeholder="รหัสรับประกัน เช่น W-XXXXXXX" value="${esc(ui.wq||'')}"><button class="btn w-full py-2 mt-2" onclick="ui.wq=$('wq').value;render()">ตรวจสอบ</button></div>
+ ${c?(r?`<div class="card p-4 text-sm border-emerald-300"><div class="text-emerald-700 font-bold">✔ ประกันแท้ ออกโดย FilmPro</div><div>งาน ${esc(r.job)} · ${esc(r.customer)}</div><div>รถ ${esc(r.car)}</div><div>ฟิล์ม ${esc(r.film)}</div><div>เลขม้วน <b>${esc(r.roll)}</b>${r.seal?' · ซีล '+esc(r.seal):''}</div><div>บัตร ${esc(r.cardNo)} · ${esc(r.years)} ปี · หมดอายุ ${esc(r.expiry)} ${r.expiry&&new Date(r.expiry)<new Date()?'<b class="text-red-600">(หมดอายุแล้ว)</b>':''}</div></div>`:'<div class="card p-4 text-sm text-red-700 border-red-300">✕ ไม่พบรหัสนี้ — อาจไม่ใช่ประกันของแท้</div>'):''}`;}
+function submitRating(){const h=H(),r=h.rating;if(CATS.some(([k])=>!r[k]))return alert('กรุณาให้คะแนนครบ 3 หัวข้อ');if(r.recommend==null)return alert('เลือกแนะนำ/ไม่แนะนำ');if(!h.sigC||!h.sigI)return alert('ต้องมีลายเซ็นทั้งลูกค้าและช่าง');
+ h.status='ส่งมอบแล้ว';h.acceptedAt=now();shareRating(cur);issueW(cur);h.certNo='FP-'+new Date().getFullYear()+'-'+cur;r.at=now();logH(h,'ส่งมอบงานเรียบร้อย');save();go('s5');return true;}
+// ---------- step 5 certificate
+function avg(r){const v=CATS.map(([k])=>+r[k]||0);if(!v.every(Boolean))return 0;let s=0,w=0;CATS.forEach(([k])=>{const x=W8[k]||1;s+=(+r[k])*x;w+=x;});return s/w;}
+function vS5(){const h=H(),j=job(cur),w=h.warranty||{};if(h.status!=='ส่งมอบแล้ว')return jobHead()+'<div class="card p-4 text-sm">ใบส่งมอบจะออกเมื่อลูกค้ายืนยันส่งมอบงาน (ขั้นตอนที่ 4)</div>';const pre=j.pre||{};
+ return `<div id="cert"><div class="card p-4 mb-3 text-center"><div class="text-xs text-gray-500">FilmPro</div><h1 class="text-xl font-bold">ใบส่งมอบงานติดฟิล์ม</h1><div class="text-xs">เลขที่ ${esc(h.certNo)} · ${fmt(h.acceptedAt)}</div></div>
+ <div class="card p-3 mb-3 text-sm grid grid-cols-2 gap-y-1"><span class="text-gray-500">งาน</span><b>${esc(j.id)}</b><span class="text-gray-500">ลูกค้า</span><span>${esc(j.customer)} ${esc(j.phone||'')}</span><span class="text-gray-500">รถ</span><span>${esc(j.car)}</span><span class="text-gray-500">ฟิล์ม</span><span>${esc(j.film)}</span><span class="text-gray-500">ช่าง</span><span>${esc(instName(j.inst))}</span><span class="text-gray-500">ติดตั้งเสร็จ</span><span>${fmt(h.installedAt)}</span></div>
+ <div class="card p-3 mb-3"><b class="text-sm">ภาพก่อน / หลังติดตั้ง</b>${existing(h).concat([['interior','ภายในรถ']]).map(([k,n])=>`<div class="text-xs mt-2">${n}</div><div class="grid grid-cols-2 gap-2">${pre[k]?`<img class="ph" src="${pre[k]}">`:'<div class="phx">ไม่มีภาพก่อน</div>'}<img class="ph" src="${k==='interior'?h.interior:h.after[k]}"></div>`).join('')}</div>
+ <div class="card p-3 mb-3 text-sm"><b>ผลตรวจรับ</b><div class="text-xs mt-1">${existing(h).map(([k,n])=>`${n} ✓`).join(' · ')}</div><div class="text-xs mt-1">${CARCHK.map(([,n])=>n+' ✓').join(' · ')}</div>${(h.redoHist||[]).length?`<div class="text-xs mt-1 text-amber-700">มีการแก้ไขก่อนส่งมอบ ${h.redoHist.length} ครั้ง: ${h.redoHist.map(r=>esc(r.items.join('; '))).join(' | ')}</div>`:''}</div>
+ <div class="card p-3 mb-3 text-sm"><b>การรับประกัน</b><div class="text-xs mt-1">${h.wcode?`<div class="my-2"><div class="text-xs">รหัสตรวจสอบประกัน<br><b class="text-base">${esc(h.wcode)}</b><br>ตรวจได้ที่แท็บ "ตรวจสอบประกัน"</div></div>`:''}บัตรเลขที่ <b>${esc(w.cardNo)}</b>${w.roll?' · ม้วน '+esc(w.roll):''} · ${esc(w.years)} ปี · หมดอายุ ${esc(w.expiry)}</div><div class="text-xs">คุ้มครอง: ${esc(w.coverage)}</div><div class="text-xs">ไม่คุ้มครอง: ${esc(w.excl)}</div><div class="text-xs mt-1">ลูกค้ารับทราบวิธีดูแล: ${CARE.length}/${CARE.length} ข้อ</div></div>
+ <div class="card p-3 mb-3 text-sm"><b>คะแนนจากลูกค้า</b> <span class="text-amber-500">${avg(h.rating).toFixed(1)} ★</span>${CATS.map(([k,n])=>`<div class="flex justify-between text-xs"><span>${n}</span><span class="text-amber-500">${'★'.repeat(h.rating[k])}<span class="text-gray-300">${'★'.repeat(5-h.rating[k])}</span></span></div>`).join('')}<div class="text-xs mt-1">แนะนำต่อ: ${h.rating.recommend?'แนะนำ':'ไม่แนะนำ'}${h.rating.comment?' · "'+esc(h.rating.comment)+'"':''}</div></div>
+ <div class="card p-3 mb-3 grid grid-cols-2 gap-2 text-center text-xs"><div><img src="${h.sigC}" class="h-20 w-full object-contain border-b">ลูกค้า</div><div><img src="${h.sigI}" class="h-20 w-full object-contain border-b">ช่าง</div></div></div>
+ <div class="noprint grid grid-cols-2 gap-2"><button class="btn py-2" onclick="window.print()">พิมพ์ / บันทึก PDF</button><button class="btn2 py-2" onclick="copyLine()">คัดลอกข้อความส่ง LINE</button></div>`;}
+function lineText(id){const h=H(id),j=job(id||cur),w=h.warranty||{};return `✅ ใบส่งมอบงานติดฟิล์ม FilmPro\nเลขที่ ${h.certNo}\nลูกค้า: ${j.customer}\nรถ: ${j.car}\nฟิล์ม: ${j.film}\nช่าง: ${instName(j.inst)}\nส่งมอบ: ${fmt(h.acceptedAt)}\nบัตรรับประกัน: ${w.cardNo} (${w.years} ปี หมดอายุ ${w.expiry})\n\nการดูแล:\n- ห้ามเลื่อนกระจกลง 3–7 วัน\n- ห้ามทำความสะอาด 7 วัน\n- ฝ้า/ฟองน้ำเล็ก ๆ ปกติ 7–30 วัน\n- ห้ามใช้ของมีคม/น้ำยาแอมโมเนีย\n- ระวังเส้นไล่ฝ้ากระจกหลัง\nขอบคุณที่ใช้บริการ 🙏`;}
+function copyLine(){const t=lineText();(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>alert('คัดลอกแล้ว — วางใน LINE ได้เลย')).catch(()=>{const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();alert('คัดลอกแล้ว');});}
+// ---------- admin
+function vAdmin(){const f=ui.f||'ทั้งหมด',L=D.jobs.map(j=>({j,h:H(j.id)})).filter(x=>f==='ทั้งหมด'||x.h.status===f);
+ return `<h2 class="text-lg font-bold mb-2">รายการส่งมอบงาน</h2><div class="flex gap-1 overflow-x-auto pb-1">${['ทั้งหมด',...Object.keys(ST_COLOR)].map(s=>`<button class="btn2 text-xs px-2 py-1 whitespace-nowrap ${f===s?'!bg-blue-600 text-white':''}" onclick="ui.f='${s}';render()">${s} (${s==='ทั้งหมด'?D.jobs.length:D.jobs.filter(j=>H(j.id).status===s).length})</button>`).join('')}</div>
+ <div class="grid grid-cols-2 gap-2 my-2"><button class="btn py-2 text-sm" onclick="dl('handover.csv',csv(),'text/csv')">ส่งออก CSV</button><button class="btn2 py-2 text-sm" onclick="dl('handover-part2.json',JSON.stringify(exportJSON(),null,1),'application/json')">ส่งออก JSON (Part 2)</button></div>
+ ${L.map(({j,h})=>`<div class="card p-3 mb-2 text-sm"><div class="flex justify-between"><b>${esc(j.id)} · ${esc(j.customer)}</b><span class="pill ${ST_COLOR[h.status]}">${h.status}</span></div><div class="text-xs text-gray-500">${esc(j.car)} · ${esc(j.film)} · ช่าง ${esc(instName(j.inst))}</div>
+  ${h.redo&&h.redo.status==='เปิด'?`<div class="text-xs text-red-600 mt-1">ใบแจ้งแก้ไข ${esc(h.redo.id)} · กำหนด ${fmtD(h.redo.deadline)}${now()>h.redo.deadline?' (เลยกำหนด)':''}: ${esc(h.redo.items.join('; '))}</div>`:''}
+  ${h.status==='ส่งมอบแล้ว'?`<div class="text-xs mt-1">คะแนน ${avg(h.rating).toFixed(1)} ★ · ${esc(h.certNo)}</div>`:''}<button class="btn2 text-xs px-2 py-1 mt-1" onclick="cur='${j.id}';go(nextStep())">เปิด</button></div>`).join('')||'<div class="text-sm text-gray-500">ไม่มีรายการ</div>'}`;}
+function exportJSON(){return {source:'filmpro-handover-v1',exportedAt:new Date().toISOString(),
+ ratings:D.jobs.map(j=>({j,h:H(j.id)})).filter(x=>x.h.status==='ส่งมอบแล้ว').map(({j,h})=>{const t=new Set();Object.values(h.check).forEach(c=>(c.types||[]).forEach(p=>t.add(p)));(h.redoHist||[]).forEach(()=>{});
+  const allTypes=new Set();(h.redoHist||[]).forEach(r=>r.items.forEach(s=>PROB.forEach(([p,n])=>{if(s.includes(n))allTypes.add(p);})));
+  return {job:j.id,customer:j.customer,car:j.car,film:j.film,inst:j.inst,status:h.status,confirmedAt:h.acceptedAt,photoPct:100,redo:(h.redoHist||[]).length>0,redoCount:(h.redoHist||[]).length,
+   rating:{...Object.fromEntries(CATS.map(([k])=>[k,h.rating[k]])),recommend:h.rating.recommend,comment:h.rating.comment||'',defects:{dust:allTypes.has('dust'),crooked:allTypes.has('crooked'),cutter:allTypes.has('cutter'),bubble:allTypes.has('bubble'),shade:allTypes.has('shade')},at:h.rating.at},
+   warranty:{cardNo:h.warranty.cardNo,years:h.warranty.years,expiry:h.warranty.expiry},certNo:h.certNo};}),
+ redoTickets:D.jobs.flatMap(j=>(H(j.id).redoHist||[]).map(r=>({job:j.id,inst:j.inst,...r})))};}
+function csv(){const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"',rows=[['job','customer','car','film','installer','status','installedAt','acceptedAt','redoCount','openRedo','redoDeadline',...CATS.map(c=>c[1]),'avg','recommend','warrantyCard','warrantyExpiry','certNo']];
+ D.jobs.forEach(j=>{const h=H(j.id),r=h.rating;rows.push([j.id,j.customer,j.car,j.film,instName(j.inst),h.status,fmt(h.installedAt),fmt(h.acceptedAt),(h.redoHist||[]).length,h.redo&&h.redo.status==='เปิด'?h.redo.items.join('; '):'',h.redo&&h.redo.status==='เปิด'?fmtD(h.redo.deadline):'',...CATS.map(([k])=>r[k]||''),avg(r)?avg(r).toFixed(2):'',r.recommend==null?'':r.recommend?'แนะนำ':'ไม่แนะนำ',(h.warranty||{}).cardNo||'',(h.warranty||{}).expiry||'',h.certNo||'']);});
+ return '\uFEFF'+rows.map(r=>r.map(q).join(',')).join('\r\n');}
+function dl(n,t,m){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:m+';charset=utf-8'}));a.download=n;a.click();}
+// ---------- settings: warranty templates per brand/series
+function vSet(){return `<h2 class="text-lg font-bold mb-2">แม่แบบการรับประกัน</h2><div class="text-xs text-gray-500 mb-2">ตั้งค่าตามยี่ห้อ (เช่น "3M") หรือยี่ห้อ+ซีรีส์ (ตรงกับช่องฟิล์มของงาน) ถ้าไม่ตั้งจะใช้แม่แบบทั่วไป</div>
+ <div class="card p-3 mb-3"><input id="wKey" placeholder="ยี่ห้อ หรือ ยี่ห้อ ซีรีส์"><label class="f">ปี</label><input id="wY" value="${DEF_W.years}"><label class="f">ความคุ้มครอง</label><textarea id="wC" rows="2">${DEF_W.coverage}</textarea><label class="f">ข้อยกเว้น</label><textarea id="wE" rows="2">${DEF_W.excl}</textarea><button class="btn w-full py-2 mt-2 text-sm" onclick="if($('wKey').value.trim()){D.W[$('wKey').value.trim()]={years:$('wY').value,coverage:$('wC').value,excl:$('wE').value};save();render();}">บันทึกแม่แบบ</button>
+ <label class="f">จำนวนวันกำหนดแก้ไขงาน</label><input type="number" value="${D.S.redoDays}" onchange="D.S.redoDays=+this.value||3;save()"></div>
+ ${Object.entries(D.W).map(([k,w])=>`<div class="card p-3 mb-2 text-xs"><b class="text-sm">${esc(k)}</b> · ${esc(w.years)} ปี<div>คุ้มครอง: ${esc(w.coverage)}</div><div>ยกเว้น: ${esc(w.excl)}</div><button class="btn2 px-2 py-1 mt-1" onclick="delete D.W['${esc(k)}'];save();render()">ลบ</button></div>`).join('')}`;}
+// ---------- demo
+function demoImg(label,hue){const c=document.createElement('canvas');c.width=320;c.height=240;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,320,240);g.addColorStop(0,`hsl(${hue},45%,35%)`);g.addColorStop(1,`hsl(${hue},45%,15%)`);x.fillStyle=g;x.fillRect(0,0,320,240);x.fillStyle='#fff';x.font='bold 22px Sarabun,sans-serif';x.textAlign='center';x.fillText(label,160,125);return c.toDataURL('image/jpeg',.7);}
+function demo(){D=blank();D.inst={'T0001':{name:'ช่างเอก'},'T0002':{name:'ช่างบอย'}};D.W={'3M':{years:'7',coverage:DEF_W.coverage,excl:DEF_W.excl}};
+ const pre={};['front','fl','fr','rl','rr','rear','interior'].forEach((k,i)=>pre[k]=demoImg('ก่อน: '+(k==='interior'?'ภายใน':PANELS.find(p=>p[0]===k)[1]),20+i*5));
+ D.jobs=[{id:'J0001',customer:'คุณสมชาย',phone:'0812345678',car:'Toyota Camry',film:'3M Crystalline',inst:'T0001',pre,createdAt:now()},{id:'J0002',customer:'คุณมาลี',phone:'0898765432',car:'Honda HR-V',film:'Lamina Digital Ceramatrix Boost',inst:'T0002',createdAt:now()},{id:'J0003',customer:'คุณวิชัย',phone:'0861112222',car:'BMW X5',film:'LLumar IRX',inst:'T0001',createdAt:now()}];
+ D.seq=4;const h=H('J0003');h.exist.sun1=true;cur='J0001';save();go('jobs');}
+load();render();addEventListener('storage',e=>{if(e.key===KEY){load();render();}});
+</script><script>
+// ===== Handover v2: balance collection, stock deduction by roll no., linked warranty claims
+function hoPanel(){const id=cur,b=FP.bookings.get(id),U=FP.util,E=U.esc,M=U.money;if(!b)return '<div class="fpx card p-3 mb-3 text-xs text-gray-500">งานนี้ไม่ได้มาจากหน้าจองออนไลน์ — ไม่มีข้อมูลยอดชำระ/เคลม</div>';
+ FP.sync();const bal=FP.pay.balance(id),paid=FP.pay.paidTotal(id),S=FP.suite(),use=S.stockUsed[id],h=H(),roll=(h.warranty||{}).roll||'',R=roll?S.stock.find(r=>roll.toUpperCase().split(/[,\s]+/).includes(r.roll)):null;
+ let q='';if(bal>0){const p=FP.pay.create(id,'balance',bal);q=`<div class="qr my-2">${FP.qrSVG(p.payload,4)}</div><div class="text-[11px] text-gray-500 text-center">PromptPay ${E(S.settings.promptpay)} · ${M(bal)}</div><div class="grid grid-cols-2 gap-2 mt-2"><button class="fgreen" onclick="hoCollect('${p.id}','โอน/PromptPay')">รับโอนแล้ว</button><button class="fbtn2" onclick="hoCollect('${p.id}','เงินสด')">รับเงินสด</button></div>`;}
+ const C=FP.claims.list(id);
+ return `<div class="fpx"><div class="card p-4 mb-3 text-sm"><b>ยอดชำระ ณ ส่งมอบ</b><div>ยอดรวม ${b.total==null?'สอบถามราคา':M(b.total)} · ชำระแล้ว ${M(paid)} · <b class="${bal>0?'text-red-600':'text-emerald-600'}">${bal==null?'-':bal>0?'คงเหลือ '+M(bal):'ชำระครบแล้ว ✓'}</b></div>${q}</div>
+ <div class="card p-4 mb-3 text-sm"><b>สต็อกฟิล์ม (เลขม้วน)</b><div>${roll?'ม้วน '+E(roll):'ยังไม่ได้กรอกเลขม้วน (ขั้นตอนที่ 2)'}</div>${R?`<div class="text-xs">คงเหลือในสต็อก ${R.remainingM} ม.${R.remainingM<(R.lowM??S.settings.lowStockM)?' <span class="text-red-600">· ใกล้หมด</span>':''}</div>`:roll?'<div class="text-xs text-amber-600">ไม่พบเลขม้วนนี้ในสต็อก (เพิ่มได้ใน FilmPro Tech → สต็อกฟิล์ม)</div>':''}<div class="text-xs text-gray-500">${use&&use.m?'ตัดสต็อกแล้ว '+use.m+' ม. ('+E(use.roll)+')':use&&use.error?E(use.error):'จะตัดสต็อกอัตโนมัติเมื่อส่งมอบงาน'}</div></div>
+ <div class="card p-4 mb-3 text-sm"><b>เคลมการรับประกันของงานนี้</b>${C.map(c=>`<div class="border-t mt-1 pt-1"><b>${c.id}</b> · ${E(c.panel)} · ${E(c.problem)} · <span class="pill bg-amber-100 text-amber-700">${E(c.status)}</span>${c.redoDeadline?`<div class="text-xs text-red-600">กำหนดแก้ไข ${new Date(c.redoDeadline).toLocaleDateString('th-TH')}</div>`:''}</div>`).join('')||'<div class="text-xs text-gray-500">ไม่มีเคลม · ลูกค้าแจ้งเคลมได้ที่หน้าจอง → ติดตามงาน</div>'}</div></div>`;}
+function hoCollect(pid,m){const r=FP.pay.markPaid(pid,m,'ช่างรับ ณ ส่งมอบ');if(r.ok)alert('บันทึกรับเงินแล้ว ใบเสร็จ '+r.p.receiptNo);render();}
+(function(){const a4=vS4,a5=vS5,sr=submitRating;vS4=function(){return a4()+(cur?hoPanel():'');};vS5=function(){return a5()+(cur?hoPanel():'');};submitRating=function(){const r=sr.apply(this,arguments);FP.sync();return r;};})();
+</script>
+<script>/* FilmPro Suite nav — links every page of the suite (same origin = shared localStorage) */
+(function(){var P=[['index.html','หน้าลูกค้า'],['tech.html','หลังบ้าน/ช่าง'],['inspect.html','ตรวจสภาพรถ'],['handover.html','ส่งมอบงาน'],['notify.html','แจ้งเตือนช่าง'],['admin-v2.html','Admin V2']];
+var cur=(location.pathname.split('/').pop()||'index.html');
+function go(){if(document.getElementById('fpSuiteNav'))return;var n=document.createElement('nav');n.id='fpSuiteNav';
+n.style.cssText='display:flex;gap:6px;overflow-x:auto;padding:6px 10px;background:#0E1B2A;font:13px Sarabun,sans-serif;position:relative;z-index:60;-webkit-overflow-scrolling:touch';
+n.innerHTML='<b style="color:#fff;white-space:nowrap;padding:4px 6px 4px 0">FilmPro</b>'+P.map(function(p){var on=p[0]===cur;return '<a href="'+p[0]+'" style="white-space:nowrap;text-decoration:none;padding:4px 10px;border-radius:999px;'+(on?'background:#2563EB;color:#fff':'color:#cbd5e1;border:1px solid #334155')+'">'+p[1]+'</a>';}).join('');
+document.body.insertBefore(n,document.body.firstChild);}
+if(document.body)go();else document.addEventListener('DOMContentLoaded',go);})();
+</script>
+</body></html>
