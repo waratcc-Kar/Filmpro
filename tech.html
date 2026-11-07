@@ -2823,7 +2823,7 @@ function vSet(){const S=D.S,n=(path,l,step=1)=>`<label class="flex justify-betwe
  <div class="card p-4 mb-3"><div class="font-semibold">การจ่ายเงิน</div>${n('firstPct','จ่ายงวดแรก (%)')}${n('retainPct','เงินประกันงาน (%)')}${n('retainDays','ระยะเวลาประกัน (วัน)')}${n('autoHours','ยืนยันอัตโนมัติหลัง (ชม.)')}${n('bonus','โบนัส 5 ดาวทุกหัวข้อ (บาท)')}${n('redoCostDefault','ค่าฟิล์มหักเริ่มต้น (บาท)')}</div>
  <div class="card p-4 mb-3"><div class="font-semibold">น้ำหนักคะแนนรวม (%)</div>${n('w.rating','คะแนนรีวิวลูกค้า')}${n('w.redo','ไม่ต้องแก้งานใน 30 วัน')}${n('w.photo','ความครบของรูปก่อนติด')}${n('w.cancel','ไม่ยกเลิก/ไม่ผิดนัด')}${n('w.claim','ไม่มีเคลมประกัน')}</div>
  <div class="card p-4 mb-3"><div class="font-semibold">เวลาจำลอง (ทดสอบ 48 ชม. / 30 วัน)</div><div class="flex gap-2 mt-2"><button class="btn2 flex-1 py-2 text-sm" onclick="shift(2)">+2 วัน</button><button class="btn2 flex-1 py-2 text-sm" onclick="shift(31)">+31 วัน</button><button class="btn2 flex-1 py-2 text-sm" onclick="D.S.clockOffset=0;save();render()">เวลาจริง</button></div></div>
- <div class="card p-4"><div class="flex gap-2"><button class="btn flex-1 py-2 text-sm" onclick="demo()">โหลดข้อมูลตัวอย่าง</button><button class="btn2 flex-1 py-2 text-sm text-red-600" onclick="if(confirm('ลบข้อมูลทั้งหมด?')){D=blank();save();render();}">รีเซ็ตทั้งหมด</button></div><div class="text-[11px] text-gray-400 mt-2">ข้อมูลเก็บในเครื่องนี้ (localStorage) เท่านั้น</div></div>`;}
+ <div class="card p-4"><div class="flex gap-2"><button class="btn flex-1 py-2 text-sm" onclick="if(confirm(\'โหลดช่างตัวอย่าง กทม.+ปริมณฑล (ล้างข้อมูลช่างเดิม)?\'))demoBkk()">โหลดข้อมูลตัวอย่าง</button><button class="btn2 flex-1 py-2 text-sm text-red-600" onclick="if(confirm('ลบข้อมูลทั้งหมด?')){D=blank();save();render();}">รีเซ็ตทั้งหมด</button></div><div class="text-[11px] text-gray-400 mt-2">ข้อมูลเก็บในเครื่องนี้ (localStorage) เท่านั้น</div></div>`;}
 function setS(path,v){const k=path.split('.'),o=k.slice(0,-1).reduce((o,x)=>o[x],D.S);o[k[k.length-1]]=v;save();render();}
 function shift(d){D.S.clockOffset=(D.S.clockOffset||0)+d*DAY;save();render();}
 function demo(){const pic=(t,c)=>{const cv=document.createElement('canvas');cv.width=320;cv.height=200;const g=cv.getContext('2d');g.fillStyle=c;g.fillRect(0,0,320,200);g.fillStyle='#fff';g.font='20px sans-serif';g.fillText(t,20,100);return {name:t+'.jpg',type:'image/jpeg',data:cv.toDataURL('image/jpeg',.6)};};
@@ -3226,7 +3226,21 @@ function glCSV(){const h=['brand','model'].concat(GL_P.flatMap(k=>[k+'_w',k+'_h'
 function glImport(inp){const f=inp.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{const lines=String(rd.result).replace(/^\uFEFF/,'').split(/\r?\n/).filter(Boolean);const parse=l=>{const o=[];let c='',q=false;for(let i=0;i<l.length;i++){const ch=l[i];if(q){if(ch==='"'&&l[i+1]==='"'){c+='"';i++;}else if(ch==='"')q=false;else c+=ch;}else if(ch==='"')q=true;else if(ch===','){o.push(c);c='';}else c+=ch;}o.push(c);return o;};
  const D=glLoad();let n=0;lines.slice(1).forEach(l=>{const a=parse(l);if(!a[0])return;const p={};GL_P.forEach((k,i)=>{const w=a[2+i*3],h=a[3+i*3],q=a[4+i*3];if(w||h)p[k]=[w?+w:'',h?+h:'',q===''?1:+q];});const z=2+GL_P.length*3;D.records.push({id:'G'+Date.now().toString(36)+n,source:'CSV',brand:a[0],model:a[1],panels:p,by:a[z]||'',date:a[z+1]||'',note:a[z+2]||''});n++;});glSave(D);alert('นำเข้า '+n+' รายการ');render();};rd.readAsText(f);}
 
-if(location.hash==='#demo'&&typeof demo==='function'){try{if(!D.inst.length)demo();publish();}catch(e){}}
+/* ---- Demo: ช่างตัวอย่างครอบคลุมกรุงเทพฯ และปริมณฑล (พื้นที่ให้บริการ FilmPro) ---- */
+function demoBkk(){D=blank();XD();XS();const t0=now();
+ const mk=(name,base,ext,lv,badge)=>{const id=nid('T');D.inst.push({id,example:true,name:name+' (ตัวอย่าง)',idCard:'',address:ext.area,phone:'08x-xxx-'+String(1000+D.inst.length),line:'',years:String(base.yrs||3),history:[],brands:ext.cert,photo:null,bank:{bank:'กสิกรไทย',acct:'000-0-00000-0',acctName:name},status:'อนุมัติ',adminNote:'ช่างตัวอย่าง กทม.+ปริมณฑล',tier:lv>=3?'pro':'gen',premiumTest:false,suspended:false,createdAt:t0,base:{jobs:base.jobs,avg:base.avg,redo:0,photo:95,cancel:0,claim:0},log:[[t0,'ช่างตัวอย่าง']]});
+  Object.assign(XT(id),ext);XT(id).ver={state:'active',level:lv,badge:!!badge,at:t0};return id;};
+ mk('ช่างเอก สาทร',{jobs:520,avg:4.85,yrs:10},{ws:true,sun:true,rate:1800,lat:13.7246,lng:100.5293,area:'กรุงเทพ สาทร สีลม บางรัก ปทุมวัน',cert:['3M','LLumar','STEK','XPEL','V-KOOL','Huper Optik','Lamina','Hi-Kool']},4,1);
+ mk('ช่างกอล์ฟ ลาดพร้าว',{jobs:260,avg:4.7,yrs:7},{ws:true,sun:true,rate:1400,lat:13.8062,lng:100.6070,area:'กรุงเทพ ลาดพร้าว บางกะปิ จตุจักร',cert:['3M','XPEL','STEK','LLumar','Avery Dennison']},3,1);
+ mk('ช่างบอย บางนา',{jobs:230,avg:4.6,yrs:6},{ws:true,sun:true,rate:1200,lat:13.6683,lng:100.6339,area:'บางนา สมุทรปราการ',cert:['3M','V-KOOL','Lamina','Hi-Kool','Solar Gard']},3,1);
+ mk('ช่างต้น นนทบุรี',{jobs:140,avg:4.5,yrs:5},{ws:false,sun:true,rate:900,lat:13.8621,lng:100.5144,area:'นนทบุรี',cert:['LLumar','Lamina','Hi-Kool','Avery Dennison','WINCOS']},3,0);
+ mk('ช่างนิค รังสิต',{jobs:70,avg:4.4,yrs:3},{rate:700,lat:13.9850,lng:100.6170,area:'ปทุมธานี รังสิต',cert:['Lamina','Hi-Kool','Xtra-Cole','Blaupunkt']},2,0);
+ mk('ช่างโอ๊ต มหาชัย',{jobs:60,avg:4.3,yrs:3},{rate:700,lat:13.5475,lng:100.2744,area:'สมุทรสาคร มหาชัย',cert:['Hi-Kool','Lamina','Smarttec','Midas']},2,0);
+ mk('ช่างแบงค์ นครปฐม',{jobs:55,avg:4.3,yrs:2},{rate:700,lat:13.8199,lng:100.0621,area:'นครปฐม',cert:['Lamina','Spectre','Hi-Kool','Solar Gard']},2,0);
+ [['3M-0001','3M','Crystalline'],['3M-0002','3M','Ceramic Absolute'],['LM-0001','Lamina','Digital Ceramatrix Boost'],['LM-0002','Lamina','CM ICON Boost'],['HK-0001','Hi-Kool','Ceramic Black Edition'],['LL-0001','LLumar','Prime'],['VK-0001','V-KOOL','VK40'],['XP-0001','XPEL','Prime XR Plus'],['ST-0001','STEK','Lunaray']].forEach(([roll,brand,series])=>{try{FP.stock.add({roll,brand,series,lengthM:30});}catch(e){}});
+ save();publish();go('list');}
+if(location.hash==='#demo'){try{if(!D.inst.length)demoBkk();publish();}catch(e){console.warn(e)}}
+if(location.hash==='#demo-bkk'){try{demoBkk();history.replaceState(null,'',location.pathname);}catch(e){console.warn(e)}}
 if(location.hash.startsWith('#bo_')){tab=location.hash.slice(1);}
 render();
 </script>
