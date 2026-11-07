@@ -2623,13 +2623,13 @@ function buildQuote() {
   const extraSun = sunAddon(series, size, sun);
   const chosen = upgrades(S.filmId, series).find((u) => u.to === S.upgrade);
   const upgradePrice = chosen?.price || 0;
-  const active = ids.map((id) => ({ id, shade: series.shades.find((s) => s.model === S.shades[id]) || series.shades[0] }));
+  const active = ids.map((id) => ({ id, shade: series.shades.find((s) => s.model === S.shades[id]) }));
   const weightSum = active.reduce((sum, item) => sum + WEIGHT[item.id], 0) || 1;
   const lines = active.map((item) => {
     const share = base == null ? null : Math.round((base * WEIGHT[item.id]) / weightSum / 50) * 50;
     const extra = item.id === "windshield" ? upgradePrice : item.id === "sunroof" || item.id === "sunroof2" || item.id === "glass" ? extraSun || 0 : 0;
     return {
-      window: item.id, label: groupLabel(item.id), model: item.shade?.model || "-", vlt: item.shade?.vlt || 0,
+      window: item.id, label: groupLabel(item.id), model: item.shade?.model || (series.shades.length ? "ยังไม่เลือก" : "-"), vlt: item.shade?.vlt || 0,
       irr: item.shade?.irr || series.irr, tser: item.shade?.tser || series.tser, uv: item.shade?.uv || series.uv,
       price: share == null ? null : share + extra,
     };
@@ -2732,7 +2732,7 @@ function chooseSeries(id, name) {
   const light = [...series.shades].sort((a, b) => Math.abs(a.vlt - 70) - Math.abs(b.vlt - 70))[0];
   const mid = [...series.shades].sort((a, b) => Math.abs(a.vlt - 20) - Math.abs(b.vlt - 20))[0];
   S.filmId = id; S.series = name; S.upgrade = ""; S.shades = {};
-  groupsFor(S.sunroof || "ไม่มี").forEach((g) => { S.shades[g] = (g === "windshield" ? light || mid : mid || light)?.model || ""; });
+  S.shadeErr = ""; groupsFor(S.sunroof || "ไม่มี").forEach((g) => { S.shades[g] = ""; });
   go("shades");
 }
 function quoteHtml(q) {
@@ -2758,7 +2758,7 @@ function seriesHtml() {
 function shadesHtml() {
   const series = seriesOf();
   const q = buildQuote();
-  return `<button class="back" data-act="go" data-step="series">← กลับ</button><button class="btn" style="width:100%;padding:.8rem;margin-bottom:.8rem;background:#fff;color:#2563eb;border:2px solid #3b82f6" data-act="go" data-step="camera">ทดลองดูฟิล์มด้วยกล้อง</button><h1>เลือกความเข้มฟิล์ม</h1><p class="muted">${esc(film(S.filmId).name)} ${esc(series.name)}</p><p class="amber">ราคาทั้งคันเป็นของซีรีส์นี้ เลือกเฉดเข้มหรืออ่อนไม่ทำให้ราคาเปลี่ยน</p>${ringLegend}${series.shades.map((d) => `<article class="shade"><div style="display:flex;justify-content:space-between"><b>${esc(d.model)}</b><span>${darkPct(d.vlt) === "ใส" ? "ฟิล์มใส" : "ฟิล์ม " + darkPct(d.vlt) + "%"}</span></div>${ringRow(d)}</article>`).join("") || `<p class="muted">ซีรีส์นี้ไม่มีตารางเฉดในข้อมูลตัวอย่าง</p>`}<div class="card" style="padding:1rem">${groupsFor(S.sunroof || "ไม่มี").map((id) => `<label style="display:block;margin-bottom:.7rem">${groupLabel(id)}<select class="field" data-shade="${id}">${series.shades.map((d) => `<option ${S.shades[id] === d.model ? "selected" : ""}>${esc(d.model)}</option>`).join("")}</select></label>`).join("")}${upgrades(S.filmId, series).length ? `<label>อัปเกรดกระจกบานหน้า (เฉพาะ Lunaray)<select id="upgrade" class="field"><option value="">ไม่อัปเกรด</option>${upgrades(S.filmId, series).map((u) => `<option value="${esc(u.to)}" ${S.upgrade === u.to ? "selected" : ""}>อัปเกรดเป็น ${esc(u.to)} (+${money(u.price)} บาท)</option>`).join("")}</select></label>` : ""}<button class="btn" style="width:100%;padding:.8rem;margin-top:.5rem" data-act="go" data-step="book">ดูสรุปและจองคิว</button></div>${q ? `<p style="text-align:center;font-weight:700;color:#1d4ed8">รวมตัวอย่าง ${esc(q.totalLabel)}</p>` : ""}`;
+  return `<button class="back" data-act="go" data-step="series">← กลับ</button><button class="btn" style="width:100%;padding:.8rem;margin-bottom:.8rem;background:#fff;color:#2563eb;border:2px solid #3b82f6" data-act="go" data-step="camera">ทดลองดูฟิล์มด้วยกล้อง</button><h1>เลือกความเข้มฟิล์ม</h1><p class="muted">${esc(film(S.filmId).name)} ${esc(series.name)}</p><p class="amber">ราคาทั้งคันเป็นของซีรีส์นี้ เลือกเฉดเข้มหรืออ่อนไม่ทำให้ราคาเปลี่ยน</p>${ringLegend}${series.shades.map((d) => `<article class="shade"><div style="display:flex;justify-content:space-between"><b>${esc(d.model)}</b><span>${darkPct(d.vlt) === "ใส" ? "ฟิล์มใส" : "ฟิล์ม " + darkPct(d.vlt) + "%"}</span></div>${ringRow(d)}<button class="series" style="margin:.6rem 0 0;padding:.55rem;text-align:center;font-size:.85rem" data-act="allshade" data-m="${esc(d.model)}">ใช้เบอร์นี้ทุกบาน</button></article>`).join("") || `<p class="muted">ซีรีส์นี้ไม่มีตารางเฉดในข้อมูลตัวอย่าง</p>`}<div class="card" id="pickcard" style="padding:1rem"><h2 style="margin-bottom:.3rem">เลือกเบอร์ฟิล์มแต่ละบาน</h2><p class="muted" style="margin:0 0 .8rem;font-size:.85rem">เลือกเองทีละบาน หรือกด "ใช้เบอร์นี้ทุกบาน" ที่การ์ดด้านบน</p>${groupsFor(S.sunroof || "ไม่มี").map((id) => `<label style="display:block;margin-bottom:.7rem">${groupLabel(id)}<select class="field" data-shade="${id}" style="${series.shades.length && !S.shades[id] ? "border-color:#f59e0b;color:#94a3b8" : ""}"><option value="" ${!S.shades[id] ? "selected" : ""} disabled>— เลือกเบอร์ฟิล์ม —</option>${series.shades.map((d) => `<option value="${esc(d.model)}" ${S.shades[id] === d.model ? "selected" : ""}>${esc(d.model)} · ${esc(darkLabel(d.vlt))}</option>`).join("")}</select></label>`).join("")}${upgrades(S.filmId, series).length ? `<label>อัปเกรดกระจกบานหน้า (เฉพาะ Lunaray)<select id="upgrade" class="field"><option value="">ไม่อัปเกรด</option>${upgrades(S.filmId, series).map((u) => `<option value="${esc(u.to)}" ${S.upgrade === u.to ? "selected" : ""}>อัปเกรดเป็น ${esc(u.to)} (+${money(u.price)} บาท)</option>`).join("")}</select></label>` : ""}${S.shadeErr ? `<p class="err">${esc(S.shadeErr)}</p>` : ""}<button class="btn" style="width:100%;padding:.8rem;margin-top:.5rem" data-act="tobook">ดูสรุปและจองคิว</button></div>${q ? `<p style="text-align:center;font-weight:700;color:#1d4ed8">รวมตัวอย่าง ${esc(q.totalLabel)}</p>` : ""}`;
 }
 function quizHtml() {
   if (S.quizStep < QUIZ.length) {
@@ -2861,6 +2861,8 @@ document.addEventListener("click", (event) => {
   const btn = event.target.closest("[data-act]");
   if (!btn) return;
   const act = btn.dataset.act;
+  if (act === "allshade") { groupsFor(S.sunroof || "ไม่มี").forEach((g) => { S.shades[g] = btn.dataset.m; }); S.shadeErr = ""; paint(); document.getElementById("pickcard")?.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
+  if (act === "tobook") { const ser = seriesOf(); const miss = ser && ser.shades.length ? groupsFor(S.sunroof || "ไม่มี").filter((g) => !S.shades[g]) : []; if (miss.length) { S.shadeErr = "ยังไม่ได้เลือกเบอร์ฟิล์ม: " + miss.map(groupLabel).join(", "); paint(); document.getElementById("pickcard")?.scrollIntoView({ behavior: "smooth", block: "start" }); return; } S.shadeErr = ""; go("book"); return; }
   if (act === "next") nextStep();
   if (act === "slot") { S.bookTime = btn.dataset.time; paint(); }
   if (act === "go") { if (btn.dataset.step !== "camera") stopCam(); go(btn.dataset.step); }
@@ -2905,7 +2907,7 @@ document.addEventListener("change", (event) => {
   if (el.id === "brand") { S.brand = el.value; S.model = ""; paint(); }
   if (el.id === "model") { S.model = el.value; paint(); }
   if (el.id === "sunroof") { S.sunroof = el.value; paint(); }
-  if (el.dataset.shade) { S.shades[el.dataset.shade] = el.value; paint(); }
+  if (el.dataset.shade) { S.shades[el.dataset.shade] = el.value; S.shadeErr = ""; paint(); }
   if (el.id === "upgrade") { S.upgrade = el.value; paint(); }
   if (el.dataset.bind) S[el.dataset.bind] = el.value;
   if (el.id === "consent") S.consent = el.checked;
