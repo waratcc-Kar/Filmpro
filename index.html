@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FilmPro - ติดตั้งฟิล์มกรองแสงถึงที่</title>
+<title>FilmPro - เช็คราคาฟิล์มกรองแสงทุกยี่ห้อ ติดตั้งถึงที่</title>
 <meta name="description" content="FilmPro บริการติดตั้งฟิล์มกรองแสงรถยนต์ถึงที่ เลือกยี่ห้อ รุ่น และเฉดฟิล์ม ดูภาพจำลอง ประเมินราคา และจองคิวออนไลน์">
-<meta property="og:title" content="FilmPro - ติดตั้งฟิล์มกรองแสงถึงที่">
-<meta property="og:description" content="ประเมินราคาและจองคิวติดฟิล์มกรองแสงรถยนต์ถึงที่ได้ในไม่กี่ขั้นตอน">
+<meta property="og:title" content="FilmPro - เช็คราคาฟิล์มกรองแสงทุกยี่ห้อ ติดตั้งถึงที่">
+<meta property="og:description" content="รู้ราคาทั้งคันก่อนจอง ไม่ต้องรอใบเสนอราคา เลือกฟิล์มแล้วให้ช่างไปติดถึงที่">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>:root { color-scheme: light; }
@@ -2900,7 +2900,7 @@ function quoteHtml(q) {
 
 function homeHtml() {
   const opts = (list, placeholder) => `<option value="">${placeholder}</option>` + list.map((n) => `<option ${S.brand === n || S.model === n ? "selected" : ""}>${esc(n)}</option>`).join("");
-  return `<section class="home"><div class="home-card"><h1>ติดฟิล์มกรองแสง<br>ถึงหน้าบ้านคุณ</h1><p class="home-sub">เลือกรุ่นรถ ดูราคาทั้งคันของทุกยี่ห้อ แล้วจองช่างได้ในที่เดียว</p><div class="pill" id="quote"><div class="grid2"><select id="brand" class="home-field" aria-label="ยี่ห้อ">${opts(brands(), "ยี่ห้อ")}</select><select id="model" class="home-field" aria-label="รุ่น">${opts(models(S.brand), "รุ่น")}</select></div><div class="row" style="background:transparent;color:#64748b;margin:.4rem 0"><span>ติดตั้งทั้งคัน</span><span>${S.model ? `ไซส์ ${esc(sizeLabel(sizeOf(S.brand, S.model)))}` : "ไซส์ตามรุ่น"}</span></div><select id="sunroof" class="home-field" aria-label="ซันรูฟ"><option value="">ซันรูฟ</option>${SUNS.map((s) => `<option ${S.sunroof === s ? "selected" : ""}>${esc(s)}</option>`).join("")}</select><button id="goDesk" class="home-go" data-act="next">ดูราคาฟิล์ม</button>${S.error ? `<p class="err">${esc(S.error)}</p>` : ""}</div><div class="tintscale" aria-label="ระดับความเข้มฟิล์ม"><span style="--v:.92">ใส</span><span style="--v:.7">70</span><span style="--v:.5">50</span><span style="--v:.35">35</span><span style="--v:.2">20</span><span style="--v:.08">05</span></div><p class="tintcap">ตัวเลขคือแสงที่ผ่านฟิล์ม (VLT) ยิ่งน้อยยิ่งเข้ม</p></div></section>`;
+  return `<section class="home"><div class="home-card"><h1>เช็คราคาฟิล์มกรองแสง<br>ทุกยี่ห้อ ติดตั้งถึงที่</h1><p class="home-sub">รู้ราคาทั้งคันก่อนจอง ไม่ต้องรอใบเสนอราคา</p><div class="pill" id="quote"><div class="grid2"><select id="brand" class="home-field" aria-label="ยี่ห้อ">${opts(brands(), "ยี่ห้อ")}</select><select id="model" class="home-field" aria-label="รุ่น">${opts(models(S.brand), "รุ่น")}</select></div><div class="row" style="background:transparent;color:#64748b;margin:.4rem 0"><span>ติดตั้งทั้งคัน</span><span>${S.model ? `ไซส์ ${esc(sizeLabel(sizeOf(S.brand, S.model)))}` : "ไซส์ตามรุ่น"}</span></div><select id="sunroof" class="home-field" aria-label="ซันรูฟ"><option value="">ซันรูฟ</option>${SUNS.map((s) => `<option ${S.sunroof === s ? "selected" : ""}>${esc(s)}</option>`).join("")}</select><button id="goDesk" class="home-go" data-act="next">ดูราคาฟิล์ม</button>${S.error ? `<p class="err">${esc(S.error)}</p>` : ""}</div><div class="tintscale" aria-label="ระดับความเข้มฟิล์ม"><span style="--v:.92">ใส</span><span style="--v:.7">70</span><span style="--v:.5">50</span><span style="--v:.35">35</span><span style="--v:.2">20</span><span style="--v:.08">05</span></div><p class="tintcap">ตัวเลขคือแสงที่ผ่านฟิล์ม (VLT) ยิ่งน้อยยิ่งเข้ม</p></div></section>`;
 }
 function pathHtml() {
   const size = sizeOf(S.brand, S.model);
