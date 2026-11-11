@@ -158,10 +158,10 @@ h2 { color: #1e40af; font-size: 1.1rem; margin: 0 0 .75rem; }
 .back { background: none; border: 0; color: #94a3b8; padding: 0; margin-bottom: .75rem; }
 .series { width: 100%; text-align: left; padding: 1.1rem; margin-bottom: .75rem; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; }
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: .25rem; text-align: center; font-size: .75rem; margin-top: .6rem; }
-.ring { display: flex; flex-direction: column; align-items: center; gap: .15rem; font-size: .7rem; color: #475569; line-height: 1.15; }
+.ring { display: flex; flex-direction: column; align-items: center; gap: .15rem; font-size: .75rem; color: #475569; line-height: 1.2; }
 .ring svg { width: 3.4rem; height: 3.4rem; display: block; }
-.ring .rv { font-size: .62rem; color: #94a3b8; }
-.ring-legend { display: flex; flex-wrap: wrap; gap: .3rem .8rem; font-size: .72rem; color: #64748b; margin: .2rem 0 .8rem; }
+.ring .rv { font-size: .75rem; color: #5A6B7D; }
+.ring-legend { display: flex; flex-wrap: wrap; gap: .3rem .8rem; font-size: .78rem; color: #4B5B6E; margin: .2rem 0 .8rem; }
 .ring-legend i { display: inline-block; width: .6rem; height: .6rem; border-radius: 99px; margin-right: .3rem; vertical-align: -1px; }
 .dot { width: 3.2rem; height: 3.2rem; margin: 0 auto .2rem; border-radius: 999px; background: #e0f2fe; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .65rem; }
 .shade { background: #fff; border: 1px solid #e2e8f0; border-radius: 1rem; padding: .75rem; margin-bottom: .5rem; }
@@ -213,7 +213,7 @@ h2 { color: #1e40af; font-size: 1.1rem; margin: 0 0 .75rem; }
 
 /* ===== FilmPro UI v2 — clean, bright, trustworthy ===== */
 :root {
-  --paper: #F4F7FB; --surface: #FFFFFF; --ink: #0E1B2A; --muted: #5A6B7D; --line: #DCE5EE;
+  --paper: #F4F7FB; --surface: #FFFFFF; --ink: #0E1B2A; --muted: #4B5B6E; --line: #DCE5EE;
   --blue: #2563EB; --blue-deep: #1D4ED8; --wash: #EAF2FF; --ok: #16A34A;
   --r-lg: 18px; --r-md: 12px;
   --font: "IBM Plex Sans Thai", "Noto Sans Thai", Thonburi, "Leelawadee UI", sans-serif;
@@ -260,7 +260,7 @@ button.series b { font-weight: 600; }
 .brandcard { padding: .8rem .6rem .7rem; position: relative; text-align: center; font-size: .9rem; color: var(--ink); background: var(--surface); }
 .brandcard .logo-tile { border: 0; height: 3.6rem; padding: .2rem .4rem; margin-bottom: .35rem; background: transparent; }
 .brandcard .logo-tile b { font-size: 1.05rem; letter-spacing: .02em; }
-.brandcard .pricetag { position: absolute; top: .5rem; right: .5rem; font-size: .66rem; padding: .1rem .45rem; }
+.brandcard .pricetag { position: absolute; top: .5rem; right: .5rem; font-size: .75rem; padding: .1rem .45rem; }
 .brandcard:hover { border-color: #9DB8E8; }
 
 /* home */
@@ -277,7 +277,7 @@ button.series b { font-weight: 600; }
 .tintscale { display: grid; grid-template-columns: repeat(6, 1fr); margin-top: 1.4rem; border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--line); }
 .tintscale span { height: 2.6rem; display: flex; align-items: flex-end; justify-content: flex-start; padding: .25rem .4rem; font-size: .72rem; font-weight: 600;
   background: hsl(212 22% calc(var(--v) * 78% + 14%)); color: hsl(212 30% calc(var(--v) < .4 ? 92% : 22%)); }
-.tintscale span:nth-child(-n+3) { color: #24384D; } .tintscale span:nth-child(n+4) { color: #EEF3F8; }
+.tintscale b { background: rgba(255,255,255,.9); color: #0E1B2A; padding: 0 .3rem; border-radius: 4px; font-weight: 700; }
 .tintcap { color: var(--muted); font-size: .78rem; margin: .45rem 0 0; }
 
 /* quiz */
@@ -324,7 +324,7 @@ button.series b { font-weight: 600; }
 /* quote / summary lines */
 .qline { display: flex; justify-content: space-between; gap: .75rem; padding: .6rem 0; border-top: 1px solid #EEF2F7; font-size: .92rem; }
 .qline b { font-weight: 600; }
-.qspec { color: #8494A6; font-size: .78rem; margin-top: .1rem; }
+.qspec { color: #5A6B7D; font-size: .78rem; margin-top: .1rem; }
 .qprice { white-space: nowrap; font-weight: 600; font-variant-numeric: tabular-nums; }
 .row { background: var(--wash); }
 
@@ -333,7 +333,37 @@ button.series b { font-weight: 600; }
 .bar .icon { width: 2.6rem; height: 2.6rem; }
 #ctaLabel { font-size: .9rem; }
 footer.wrap { padding-bottom: 6rem; }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+
+/* ui-ux-pro-max pass: touch targets ≥44px, text ≥12px, AA contrast */
+.back { min-height: 44px; display: inline-flex; align-items: center; gap: .25rem; padding: 0 .25rem 0 0; cursor: pointer; }
+.chip { min-height: 44px; padding: 0 1rem; cursor: pointer; }
+.cal-grid { gap: .3rem; }
+.cal-grid i { font-size: .78rem; color: #5A6B7D; }
+.cal-grid button { aspect-ratio: auto; min-height: 44px; min-width: 0; }
+.cal-nav button, .cal-head button { min-width: 44px; min-height: 44px; }
+.field, .home-field, select.field { min-height: 48px; }
+.tintscale span { font-size: .78rem; }
+.tintcap, .steplabel, .swnote { font-size: .78rem; }
+.swnote { color: #64748b; }
+.tag { font-size: .75rem; }
+article.shade .series { min-height: 44px; }
+button, [data-act], label[for], select { cursor: pointer; }
+.btn, .series, .tchip, .qopt, .chip { transition: background-color .18s ease, border-color .18s ease, box-shadow .18s ease, transform .12s ease; }
+.btn:active, .series:active, .tchip:active, .qopt:active { transform: scale(.98); }
+.ico { width: 1.05em; height: 1.05em; vertical-align: -.16em; flex: none; }
+/* home value strip */
+.vprops { display: grid; gap: .6rem; margin-top: 1.4rem; }
+.vprop { display: flex; gap: .75rem; align-items: flex-start; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: .8rem .9rem; }
+.vprop .vi { flex: none; width: 2.4rem; height: 2.4rem; border-radius: 12px; background: #EFF6FF; color: #1D4ED8; display: grid; place-items: center; }
+.vprop .vi svg { width: 1.3rem; height: 1.3rem; }
+.vprop b { display: block; font-size: .98rem; }
+.vprop span { color: var(--muted); font-size: .86rem; }
+.howto { margin-top: 1.4rem; }
+.howto h2 { font-size: 1.05rem; margin: 0 0 .6rem; }
+.howto ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; counter-reset: s; }
+.howto li { counter-increment: s; display: flex; gap: .7rem; align-items: center; font-size: .92rem; }
+.howto li::before { content: counter(s); flex: none; width: 1.8rem; height: 1.8rem; border-radius: 99px; background: var(--ink); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: .85rem; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } .btn:active, .series:active, .tchip:active, .qopt:active { transform: none; } }
 .svcnote{margin-top:.6rem;padding:.55rem .75rem;border-radius:10px;background:#EFF6FF;color:#1E40AF;font-size:.82rem}
 </style>
 </head>
@@ -3303,10 +3333,10 @@ function reasonChips(p, first) {
   return out;
 }
 const RING = {
-  UV: ["#38bdf8", "กันยูวี"],
-  IRR: ["#f97316", "กันอินฟราเรด"],
-  TSER: ["#ef4444", "ลดร้อนรวม"],
-  VLT: ["#64748b", "แสงผ่าน"],
+  UV: ["#38bdf8", "กันยูวี", "#0369A1"],
+  IRR: ["#f97316", "กันอินฟราเรด", "#C2410C"],
+  TSER: ["#ef4444", "ลดร้อนรวม", "#B91C1C"],
+  VLT: ["#64748b", "แสงผ่าน", "#475569"],
 };
 function ringNums(v) {
   const m = String(v ?? "").match(/\d+(?:\.\d+)?/g);
@@ -3315,14 +3345,14 @@ function ringNums(v) {
   return n.length ? { lo: Math.min(...n), hi: Math.max(...n) } : null;
 }
 function ring(key, value) {
-  const [color, label] = RING[key];
+  const [color, label, ink] = RING[key];
   const n = ringNums(value);
   const r = 15.9, C = 2 * Math.PI * r;
   const arc = (pct, col, op) => `<circle cx="20" cy="20" r="${r}" fill="none" stroke="${col}" stroke-opacity="${op}" stroke-width="4.2" stroke-linecap="round" stroke-dasharray="${(C * pct / 100).toFixed(2)} ${C.toFixed(2)}" transform="rotate(-90 20 20)"/>`;
   const big = n ? (n.lo === n.hi ? `${n.hi}` : `${Math.round(n.hi)}`) : "–";
   const sub = !n ? "ไม่ระบุ" : n.lo === n.hi ? `${String(value).trim()}` : `${n.lo}–${n.hi}%`;
-  const svg = `<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="${r}" fill="none" stroke="#e2e8f0" stroke-width="4.2"${n ? "" : ' stroke-dasharray="2 2.6"'}/>${n ? arc(n.hi, color, n.lo === n.hi ? 1 : .35) + (n.lo !== n.hi ? arc(n.lo, color, 1) : "") : ""}<text x="20" y="${n ? 23.6 : 24}" text-anchor="middle" font-size="${big.length > 3 ? 8.5 : 10.5}" font-weight="700" fill="${n ? "#0f172a" : "#94a3b8"}">${big}${n ? '<tspan font-size="6">%</tspan>' : ""}</text></svg>`;
-  return `<div class="ring" title="${esc(key)} ${esc(value ?? "-")}">${svg}<b style="color:${color}">${key}</b><span>${label}</span><span class="rv">${esc(sub)}</span></div>`;
+  const svg = `<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="${r}" fill="none" stroke="#e2e8f0" stroke-width="4.2"${n ? "" : ' stroke-dasharray="2 2.6"'}/>${n ? arc(n.hi, color, n.lo === n.hi ? 1 : .35) + (n.lo !== n.hi ? arc(n.lo, color, 1) : "") : ""}<text x="20" y="${n ? 23.6 : 24}" text-anchor="middle" font-size="${big.length > 3 ? 9.5 : 11.5}" font-weight="700" fill="${n ? "#0f172a" : "#64748b"}">${big}${n ? '<tspan font-size="7">%</tspan>' : ""}</text></svg>`;
+  return `<div class="ring" title="${esc(key)} ${esc(value ?? "-")}">${svg}<b style="color:${ink}">${key}</b><span>${label}</span><span class="rv">${esc(sub)}</span></div>`;
 }
 const ringRow = (o) => `<div class="stats">${ring("UV", o.uv)}${ring("IRR", o.irr)}${ring("TSER", o.tser)}${ring("VLT", typeof o.vlt === "number" ? o.vlt + "%" : o.vlt)}</div>`;
 const ringLegend = `<div class="ring-legend">${Object.entries(RING).map(([k, [c, l]]) => `<span><i style="background:${c}"></i>${k} ${l}</span>`).join("")}<span>วงเต็ม = 100% · ช่วงค่าแสดงเป็นสีอ่อน</span></div>`;
@@ -3387,9 +3417,18 @@ function quoteHtml(q) {
   return `<div class="card" style="padding:1rem;margin-bottom:1rem"><b>${esc(q.carBrand)} ${esc(q.carModel)}</b><div class="muted">ไซส์ ${esc(sizeLabel(q.size))} · ${esc(q.sunroof)} · ${esc(q.filmBrandName)} ${esc(q.series)}</div>${q.upgrade ? `<div class="muted">อัปเกรดกระจกบานหน้าเป็น ${esc(q.upgrade)}</div>` : ""}<div>${q.lines.map((l) => `<div class="qline"><div><b>${esc(l.label)}</b><div>${esc(l.model)} <span class="muted">${esc(darkLabel(l.vlt))}</span></div><div class="qspec">IRR ${esc(l.irr)} · TSER ${esc(l.tser)} · UV ${esc(l.uv)}</div></div><span class="qprice">${l.price == null ? "—" : money(l.price) + " บาท"}</span></div>`).join("")}</div><p class="muted">ราคาต่อบานเป็นการแบ่งราคาทั้งคันตัวอย่าง ไม่ใช่ราคาขายแยกบาน เฉดไม่เปลี่ยนราคารวม</p>${q.promoSave ? `<div class="sumrow"><span>ราคาปกติ</span><span>${money(q.gross + q.promoSave)} บาท</span></div><div class="sumrow save"><span>โปรโมชั่นแบรนด์ ลด ${q.promoPct}%</span><span>−${money(q.promoSave)} บาท</span></div>` : ""}${q.coupon ? `<div class="sumrow save"><span>โค้ด ${esc(q.coupon.code)} · ${esc(q.coupon.label)}</span><span>−${money(q.coupon.amount)} บาท</span></div>` : ""}<div style="display:flex;justify-content:space-between;font-weight:700;color:#1d4ed8;margin-top:.3rem"><span>รวมทั้งคัน</span><span>${esc(q.totalLabel)}</span></div><p class="amber">ราคาและสเปกเป็นข้อมูลตัวอย่าง</p></div>`;
 }
 
+const ICON = {
+  pin: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>',
+  sun: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+  moon: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>',
+  tag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.6 2.6A2 2 0 0 0 11.2 2H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.7 8.7a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4Z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>',
+  van: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>',
+  shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1Z"/><path d="m9 12 2 2 4-4"/></svg>',
+  eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/></svg>',
+};
 function homeHtml() {
   const opts = (list, placeholder) => `<option value="">${placeholder}</option>` + list.map((n) => `<option ${S.brand === n || S.model === n ? "selected" : ""}>${esc(n)}</option>`).join("");
-  return `<section class="home"><div class="home-card"><h1>เช็คราคาฟิล์มกรองแสง<br>ทุกยี่ห้อ ติดตั้งถึงที่</h1><p class="home-sub">รู้ราคาทั้งคันก่อนจอง ไม่ต้องรอใบเสนอราคา<br><span style="font-size:.85em;opacity:.85">📍 ให้บริการกรุงเทพฯ และปริมณฑล</span></p><div class="pill" id="quote"><div class="grid2"><select id="brand" class="home-field" aria-label="ยี่ห้อ">${opts(brands(), "ยี่ห้อ")}</select><select id="model" class="home-field" aria-label="รุ่น">${opts(models(S.brand), "รุ่น")}</select></div><div class="row" style="background:transparent;color:#64748b;margin:.4rem 0"><span>ติดตั้งทั้งคัน</span><span>${S.model ? `ไซส์ ${esc(sizeLabel(sizeOf(S.brand, S.model)))}` : "ไซส์ตามรุ่น"}</span></div><select id="sunroof" class="home-field" aria-label="ซันรูฟ"><option value="">ซันรูฟ</option>${SUNS.map((s) => `<option ${S.sunroof === s ? "selected" : ""}>${esc(s)}</option>`).join("")}</select><button id="goDesk" class="home-go" data-act="next">ดูราคาฟิล์ม</button>${S.error ? `<p class="err">${esc(S.error)}</p>` : ""}</div><div class="tintscale" aria-label="ระดับความเข้มฟิล์ม"><span style="--v:.92">ใส</span><span style="--v:.7">70</span><span style="--v:.5">50</span><span style="--v:.35">35</span><span style="--v:.2">20</span><span style="--v:.08">05</span></div><p class="tintcap">ตัวเลขคือแสงที่ผ่านฟิล์ม (VLT) ยิ่งน้อยยิ่งเข้ม</p></div></section>`;
+  return `<section class="home"><div class="home-card"><h1>เช็คราคาฟิล์มกรองแสง<br>ทุกยี่ห้อ ติดตั้งถึงที่</h1><p class="home-sub">รู้ราคาทั้งคันก่อนจอง ไม่ต้องรอใบเสนอราคา<br><span style="font-size:.88em;display:inline-flex;align-items:center;gap:.3rem;margin-top:.25rem">${ICON.pin} ให้บริการกรุงเทพฯ และปริมณฑล</span></p><div class="pill" id="quote"><div class="grid2"><select id="brand" class="home-field" aria-label="ยี่ห้อ">${opts(brands(), "ยี่ห้อ")}</select><select id="model" class="home-field" aria-label="รุ่น">${opts(models(S.brand), "รุ่น")}</select></div><div class="row" style="background:transparent;color:#64748b;margin:.4rem 0"><span>ติดตั้งทั้งคัน</span><span>${S.model ? `ไซส์ ${esc(sizeLabel(sizeOf(S.brand, S.model)))}` : "ไซส์ตามรุ่น"}</span></div><select id="sunroof" class="home-field" aria-label="ซันรูฟ"><option value="">ซันรูฟ</option>${SUNS.map((s) => `<option ${S.sunroof === s ? "selected" : ""}>${esc(s)}</option>`).join("")}</select><button id="goDesk" class="home-go" data-act="next">ดูราคาฟิล์ม</button>${S.error ? `<p class="err">${esc(S.error)}</p>` : ""}</div><div class="tintscale" aria-label="ระดับความเข้มฟิล์ม"><span style="--v:.92"><b>ใส</b></span><span style="--v:.7"><b>70</b></span><span style="--v:.5"><b>50</b></span><span style="--v:.35"><b>35</b></span><span style="--v:.2"><b>20</b></span><span style="--v:.08"><b>05</b></span></div><p class="tintcap">ตัวเลขคือแสงที่ผ่านฟิล์ม (VLT) ยิ่งน้อยยิ่งเข้ม</p><div class="vprops"><div class="vprop"><div class="vi">${ICON.tag}</div><div><b>ราคาทั้งคันชัดเจน</b><span>เทียบหลายยี่ห้อตามรุ่นรถของคุณ รวมบานหน้าแล้ว</span></div></div><div class="vprop"><div class="vi">${ICON.eye}</div><div><b>ดูสีฟิล์มจริงก่อนตัดสินใจ</b><span>แผ่นตัวอย่างบนกระดาษขาว และส่องกล้องดูผ่านฟิล์มได้</span></div></div><div class="vprop"><div class="vi">${ICON.van}</div><div><b>ช่างไปติดตั้งถึงที่</b><span>บ้าน คอนโด หรือที่ทำงาน ในกรุงเทพฯ และปริมณฑล</span></div></div><div class="vprop"><div class="vi">${ICON.shield}</div><div><b>ตรวจรถก่อนติด ส่งมอบพร้อมใบรับประกัน</b><span>ถ่ายรูปสภาพรถก่อนเริ่มงาน เช็กสถานะงานออนไลน์ได้ทุกขั้น</span></div></div></div><section class="howto"><h2>จองง่าย 3 ขั้น</h2><ol><li>เลือกรุ่นรถ แล้วดูราคาฟิล์มทุกยี่ห้อ</li><li>เลือกความเข้ม และวันเวลาที่สะดวก</li><li>ชำระเงิน แล้วรอช่างไปติดตั้งตามนัด</li></ol></section></div></section>`;
 }
 function pathHtml() {
   const size = sizeOf(S.brand, S.model);
@@ -3447,7 +3486,7 @@ function cameraHtml() {
   const chips = S.compare
     ? `<div class="tlabel">ซ้าย</div><div class="tchips">${shades.map((s, i) => chip(s, i, i === S.shadeIndex)).join("")}</div><div class="tlabel">ขวา</div><div class="tchips">${shades.map((s, i) => chip(s, i, s === c).replace('data-act="setshade"', 'data-act="setcompare"')).join("")}</div>`
     : `<div class="tchips">${shades.map((s, i) => chip(s, i, i === S.shadeIndex)).join("")}</div>`;
-  return `<button class="back" data-act="cam-back" style="margin-bottom:.4rem">← กลับ</button><div class="camwrap${S.compare ? " cmp" : ""}"><div class="topinfo"><b>${esc(film(S.filmId)?.name || "")} | ${esc(S.series)}</b>${!S.compare && d ? `<div>IRR ${esc(d.irr)} · TSER ${esc(d.tser)}</div>` : ""}</div>${pane(d, "a")}${S.compare ? pane(c, "b") : ""}</div>${chips}${S.note ? `<label class="btn" style="display:block;text-align:center;width:100%;padding:.8rem;margin:.5rem 0">ทดสอบสีของฟิล์มด้วยกล้อง<input id="camsnap2" type="file" accept="image/*" capture="environment" hidden></label><p class="amber">${esc(S.note)}</p>` : S.photoUrl ? `<button class="series" data-act="cam">กลับไปใช้กล้อง</button>` : ""}<div class="grid2" style="margin-top:.6rem"><button class="series" data-act="night">${S.nightMode ? "☀︎ ดูแบบกลางวัน" : "☾ ดูแบบกลางคืน"}</button><button class="series" data-act="compare">${S.compare ? "ดูทีละเฉด" : "เปรียบเทียบ 2 เฉด"}</button></div><button class="series" data-act="disc">ข้อมูลเกี่ยวกับเฉดสีบนหน้าจอ</button>`;
+  return `<button class="back" data-act="cam-back" style="margin-bottom:.4rem">← กลับ</button><div class="camwrap${S.compare ? " cmp" : ""}"><div class="topinfo"><b>${esc(film(S.filmId)?.name || "")} | ${esc(S.series)}</b>${!S.compare && d ? `<div>IRR ${esc(d.irr)} · TSER ${esc(d.tser)}</div>` : ""}</div>${pane(d, "a")}${S.compare ? pane(c, "b") : ""}</div>${chips}${S.note ? `<label class="btn" style="display:block;text-align:center;width:100%;padding:.8rem;margin:.5rem 0">ทดสอบสีของฟิล์มด้วยกล้อง<input id="camsnap2" type="file" accept="image/*" capture="environment" hidden></label><p class="amber">${esc(S.note)}</p>` : S.photoUrl ? `<button class="series" data-act="cam">กลับไปใช้กล้อง</button>` : ""}<div class="grid2" style="margin-top:.6rem"><button class="series" data-act="night">${S.nightMode ? ICON.sun + " ดูแบบกลางวัน" : ICON.moon + " ดูแบบกลางคืน"}</button><button class="series" data-act="compare">${S.compare ? "ดูทีละเฉด" : "เปรียบเทียบ 2 เฉด"}</button></div><button class="series" data-act="disc">ข้อมูลเกี่ยวกับเฉดสีบนหน้าจอ</button>`;
 }
 function bookHtml() {
   const q = buildQuote();
