@@ -177,6 +177,14 @@ h2 { color: #1e40af; font-size: 1.1rem; margin: 0 0 .75rem; }
 .camwrap.cmp .camstage { height: min(46vh, 420px); }
 .camwrap .topinfo { z-index: 2; border-radius: 1rem 1rem 0 0; pointer-events: none; }
 .camstage .cap { bottom: .6rem; font-size: .9rem; line-height: 1.25; }
+/* ช่องฟิล์มแบบแผ่นตัวอย่างในโบรชัวร์: ฟิล์มเฉพาะกลางภาพ รอบ ๆ เป็นภาพจริงไว้เทียบความเข้ม */
+.camstage .ovwin { inset: 15% 8% 21% 8%; border-radius: 14px; box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 8px 24px rgba(0,0,0,.25); }
+.camwrap.cmp .camstage .ovwin { inset: 15% 6% 24% 6%; }
+.wtag { position: absolute; z-index: 1; font-size: .68rem; font-weight: 600; color: #fff; background: rgba(15,23,42,.55); padding: .1rem .45rem; border-radius: 999px; mix-blend-mode: normal; }
+.wtag.win { top: calc(15% + .45rem); left: calc(8% + .5rem); }
+.wtag.wout { top: calc(79% + .4rem); right: 8%; }
+.camwrap.cmp .wtag.win { top: calc(15% + .4rem); left: calc(6% + .4rem); }
+.camwrap.cmp .wtag.wout { display: none; }
 .camstage .cap small { font-weight: 500; opacity: .9; }
 .tlabel { font-size: .75rem; color: #64748b; margin: .45rem 0 0; }
 .tchips { display: flex; gap: .4rem; overflow-x: auto; padding: .5rem 0 .2rem; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
@@ -186,6 +194,10 @@ h2 { color: #1e40af; font-size: 1.1rem; margin: 0 0 .75rem; }
 .tchip small { color: #64748b; font-size: .72rem; }
 .tchip.on { border-color: #2563EB; background: #EFF6FF; font-weight: 600; }
 .ov { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: multiply; }
+.swpaper { position: relative; height: 92px; margin: .55rem 0 .4rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; }
+.swprint { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 1rem; font: 800 1.35rem/1 system-ui, sans-serif; letter-spacing: -.02em; color: #6b7280; white-space: nowrap; overflow: hidden; }
+.swfilm { position: absolute; inset: 12px 12px 12px 34%; border-radius: 8px; mix-blend-mode: multiply; box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); }
+.swnote { position: absolute; left: .55rem; bottom: .4rem; font-size: .66rem; color: #94a3b8; }
 .cap { position: absolute; left: 0; right: 0; bottom: 1rem; text-align: center; color: #fff; font-weight: 600; text-shadow: 0 1px 2px #000; }
 .topinfo { position: absolute; left: 0; right: 0; top: 0; padding: .75rem; color: #fff; font-size: .75rem; background: linear-gradient(#000a, transparent); }
 .modal { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 1rem; }
@@ -3325,6 +3337,21 @@ function overlay(vlt, model, tint, cam) {
   const c = (n) => Math.max(0, Math.min(255, Math.round(n * k)));
   return `rgb(${c(r)},${c(g)},${c(b)})`;
 }
+/* สีฟิล์มบนกระดาษขาว แบบแผ่นตัวอย่างในโบรชัวร์: แสงผ่านฟิล์ม 2 ครั้ง (ลงไปที่กระดาษแล้วสะท้อนกลับ)
+   จึงใช้ VLT ยกกำลัง 2 ในค่าแสงเชิงเส้น — ตรวจกับรูปแผ่นตัวอย่าง LLumar แล้วใกล้เคียง */
+function paperTint(vlt, model, tint) {
+  const t = Math.pow(Math.max(0.01, vlt / 100), 2 / 2.2);
+  let [r, g, b] = Array.isArray(tint) ? tint : [128, 128, 128];
+  if (!Array.isArray(tint) && /BLUE|\bBL\b|\dBL(?!K)/i.test(model)) [r, g, b] = [150, 176, 205];
+  else if (!Array.isArray(tint) && /GREEN|\bGN\b/i.test(model)) [r, g, b] = [140, 175, 155];
+  const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b || 1;
+  const k = (255 * t) / lum, c = (n) => Math.max(0, Math.min(255, Math.round(n * k)));
+  return `rgb(${c(r)},${c(g)},${c(b)})`;
+}
+function swatchHtml(d, brandName) {
+  const mark = esc(brandName || "FilmPro");
+  return `<div class="swpaper" aria-label="ตัวอย่างสีฟิล์ม ${esc(d.model)} บนกระดาษขาว"><div class="swprint">${(mark + " ").repeat(6)}</div><div class="swfilm" style="background:${paperTint(d.vlt, d.model, d.tint)}"></div><span class="swnote">กระดาษขาว</span></div>`;
+}
 function carSvg(dark, label) {
   const ink = dark > 0.4 ? "#e0f2fe" : "#0f3a66";
   return `<svg viewBox="0 0 640 280" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="day" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7ec8f8"/><stop offset="55%" stop-color="#e7f4ff"/><stop offset="100%" stop-color="#d7e4ee"/></linearGradient></defs><rect width="640" height="280" fill="url(#day)"/><circle cx="520" cy="58" r="28" fill="#ffe08a"/><rect x="40" y="120" width="70" height="90" rx="6" fill="#f3e2c4"/><rect x="130" y="90" width="90" height="120" rx="6" fill="#d5e4f2"/><rect x="250" y="108" width="80" height="102" rx="6" fill="#c9d7c8"/><path d="M70 214c40-46 90-70 150-70h210c48 0 86 18 112 48l28 22H86z" fill="#1e3a5f"/><path d="M168 156h92l18 46H150z" fill="#9fd0ea" opacity="${1 - dark}"/><path d="M168 156h92l18 46H150z" fill="#16324f" opacity="${dark}"/><path d="M286 160h78l10 42H274z" fill="#9fd0ea" opacity="${1 - dark}"/><path d="M286 160h78l10 42H274z" fill="#16324f" opacity="${dark}"/><circle cx="210" cy="230" r="22" fill="#0f172a"/><circle cx="430" cy="230" r="22" fill="#0f172a"/><text x="120" y="42" fill="${ink}" font-size="22" font-family="Sarabun,sans-serif">${esc(label)}</text></svg>`;
@@ -3376,7 +3403,7 @@ function seriesHtml() {
 function shadesHtml() {
   const series = seriesOf();
   const q = buildQuote();
-  return `<button class="back" data-act="go" data-step="series">← กลับ</button><button class="btn" style="width:100%;padding:.8rem;margin-bottom:.8rem;background:#fff;color:#2563eb;border:2px solid #3b82f6" data-act="cam">ทดลองดูฟิล์มด้วยกล้อง</button><h1>เลือกความเข้มฟิล์ม</h1><p class="muted">${esc(film(S.filmId).name)} ${esc(series.name)}</p>${S.rec && S.rec.id === S.filmId && S.rec.name === series.name && S.rec.side ? `<div class="recbar"><div><b>แนะนำจากคำตอบของคุณ</b><div>รอบคัน ${esc(S.rec.side)}${S.rec.front ? ` · บานหน้า ${esc(S.rec.front)}` : ""}</div></div><button class="btn" data-act="userec">ใช้ตามที่แนะนำ</button></div>` : ""}<p class="amber">ราคาทั้งคันเป็นของซีรีส์นี้ เลือกเฉดเข้มหรืออ่อนไม่ทำให้ราคาเปลี่ยน</p>${ringLegend}${series.shades.map((d) => `<article class="shade"><div style="display:flex;justify-content:space-between"><b>${esc(d.model)}</b><span>${darkPct(d.vlt) === "ใส" ? "ฟิล์มใส" : "ฟิล์ม " + darkPct(d.vlt) + "%"}</span></div>${ringRow(d)}<button class="series" style="margin:.6rem 0 0;padding:.55rem;text-align:center;font-size:.85rem" data-act="allshade" data-m="${esc(d.model)}">ใช้เบอร์นี้ทุกบาน</button></article>`).join("") || `<p class="muted">ซีรีส์นี้ไม่มีตารางเฉดในข้อมูลตัวอย่าง</p>`}<div class="card" id="pickcard" style="padding:1rem"><h2 style="margin-bottom:.3rem">เลือกเบอร์ฟิล์มแต่ละบาน</h2><p class="muted" style="margin:0 0 .8rem;font-size:.85rem">เลือกเองทีละบาน หรือกด "ใช้เบอร์นี้ทุกบาน" ที่การ์ดด้านบน</p>${groupsFor(S.sunroof || "ไม่มี").map((id) => `<label style="display:block;margin-bottom:.7rem">${groupLabel(id)}<select class="field" data-shade="${id}" style="${series.shades.length && !S.shades[id] ? "border-color:#f59e0b;color:#94a3b8" : ""}"><option value="" ${!S.shades[id] ? "selected" : ""} disabled>— เลือกเบอร์ฟิล์ม —</option>${series.shades.map((d) => `<option value="${esc(d.model)}" ${S.shades[id] === d.model ? "selected" : ""}>${esc(d.model)} · ${esc(darkLabel(d.vlt))}</option>`).join("")}</select></label>`).join("")}${upgrades(S.filmId, series).length ? `<label>อัปเกรดกระจกบานหน้า (เฉพาะ Lunaray)<select id="upgrade" class="field"><option value="">ไม่อัปเกรด</option>${upgrades(S.filmId, series).map((u) => `<option value="${esc(u.to)}" ${S.upgrade === u.to ? "selected" : ""}>อัปเกรดเป็น ${esc(u.to)} (+${money(u.price)} บาท)</option>`).join("")}</select></label>` : ""}${S.shadeErr ? `<p class="err">${esc(S.shadeErr)}</p>` : ""}<button class="btn" style="width:100%;padding:.8rem;margin-top:.5rem" data-act="tobook">ดูสรุปและจองคิว</button></div>${q ? `<p style="text-align:center;font-weight:700;color:#1d4ed8">รวมตัวอย่าง ${esc(q.totalLabel)}</p>` : ""}`;
+  return `<button class="back" data-act="go" data-step="series">← กลับ</button><button class="btn" style="width:100%;padding:.8rem;margin-bottom:.8rem;background:#fff;color:#2563eb;border:2px solid #3b82f6" data-act="cam">ทดลองดูฟิล์มด้วยกล้อง</button><h1>เลือกความเข้มฟิล์ม</h1><p class="muted">${esc(film(S.filmId).name)} ${esc(series.name)}</p>${S.rec && S.rec.id === S.filmId && S.rec.name === series.name && S.rec.side ? `<div class="recbar"><div><b>แนะนำจากคำตอบของคุณ</b><div>รอบคัน ${esc(S.rec.side)}${S.rec.front ? ` · บานหน้า ${esc(S.rec.front)}` : ""}</div></div><button class="btn" data-act="userec">ใช้ตามที่แนะนำ</button></div>` : ""}<p class="amber">ราคาทั้งคันเป็นของซีรีส์นี้ เลือกเฉดเข้มหรืออ่อนไม่ทำให้ราคาเปลี่ยน</p>${ringLegend}${series.shades.map((d) => `<article class="shade"><div style="display:flex;justify-content:space-between"><b>${esc(d.model)}</b><span>${darkPct(d.vlt) === "ใส" ? "ฟิล์มใส" : "ฟิล์ม " + darkPct(d.vlt) + "%"}</span></div>${d.color ? `<div class="muted" style="font-size:.8rem;margin-top:-.1rem">โทน ${esc(d.color)}</div>` : ""}${swatchHtml(d, film(S.filmId).name)}${ringRow(d)}<button class="series" style="margin:.6rem 0 0;padding:.55rem;text-align:center;font-size:.85rem" data-act="allshade" data-m="${esc(d.model)}">ใช้เบอร์นี้ทุกบาน</button></article>`).join("") || `<p class="muted">ซีรีส์นี้ไม่มีตารางเฉดในข้อมูลตัวอย่าง</p>`}<div class="card" id="pickcard" style="padding:1rem"><h2 style="margin-bottom:.3rem">เลือกเบอร์ฟิล์มแต่ละบาน</h2><p class="muted" style="margin:0 0 .8rem;font-size:.85rem">เลือกเองทีละบาน หรือกด "ใช้เบอร์นี้ทุกบาน" ที่การ์ดด้านบน</p>${groupsFor(S.sunroof || "ไม่มี").map((id) => `<label style="display:block;margin-bottom:.7rem">${groupLabel(id)}<select class="field" data-shade="${id}" style="${series.shades.length && !S.shades[id] ? "border-color:#f59e0b;color:#94a3b8" : ""}"><option value="" ${!S.shades[id] ? "selected" : ""} disabled>— เลือกเบอร์ฟิล์ม —</option>${series.shades.map((d) => `<option value="${esc(d.model)}" ${S.shades[id] === d.model ? "selected" : ""}>${esc(d.model)} · ${esc(darkLabel(d.vlt))}</option>`).join("")}</select></label>`).join("")}${upgrades(S.filmId, series).length ? `<label>อัปเกรดกระจกบานหน้า (เฉพาะ Lunaray)<select id="upgrade" class="field"><option value="">ไม่อัปเกรด</option>${upgrades(S.filmId, series).map((u) => `<option value="${esc(u.to)}" ${S.upgrade === u.to ? "selected" : ""}>อัปเกรดเป็น ${esc(u.to)} (+${money(u.price)} บาท)</option>`).join("")}</select></label>` : ""}${S.shadeErr ? `<p class="err">${esc(S.shadeErr)}</p>` : ""}<button class="btn" style="width:100%;padding:.8rem;margin-top:.5rem" data-act="tobook">ดูสรุปและจองคิว</button></div>${q ? `<p style="text-align:center;font-weight:700;color:#1d4ed8">รวมตัวอย่าง ${esc(q.totalLabel)}</p>` : ""}`;
 }
 function quizHtml() {
   const total = QUIZ.length;
@@ -3409,7 +3436,7 @@ function cameraHtml() {
   const c = shades[S.compareIndex] ?? shades[Math.min(shades.length - 1, (S.shadeIndex || 0) + 1)] ?? d;
   const live = S.cameraOn && !S.photoUrl && !S.note;
   const visual = () => S.photoUrl ? `<img alt="" src="${S.photoUrl}">` : live ? `<video class="camv" autoplay playsinline muted></video>` : carSvg(0.15, "ภาพจำลอง");
-  const pane = (shade, side) => `<div class="stage camstage">${visual()}<div class="ov" data-ov="${side}" style="background:${shade ? overlay(shade.vlt, shade.model, shade.tint, !!(S.photoUrl || live)) : "transparent"}"></div>${S.nightMode ? `<div class="ov" style="background:rgba(15,23,42,.45);mix-blend-mode:normal"></div>` : ""}<div class="cap" data-cap="${side}">${shade ? `${esc(shade.model)}<br><small>${esc(darkLabel(shade.vlt))}</small>` : ""}</div></div>`;
+  const pane = (shade, side) => `<div class="stage camstage">${visual()}<div class="ov ovwin" data-ov="${side}" style="background:${shade ? overlay(shade.vlt, shade.model, shade.tint) : "transparent"}"></div><span class="wtag win">ผ่านฟิล์ม</span><span class="wtag wout">ไม่มีฟิล์ม</span>${S.nightMode ? `<div class="ov" style="background:rgba(15,23,42,.45);mix-blend-mode:normal"></div>` : ""}<div class="cap" data-cap="${side}">${shade ? `${esc(shade.model)}<br><small>${esc(darkLabel(shade.vlt))}</small>` : ""}</div></div>`;
   if (!S.cameraOn && !S.photoUrl) {
     return `<button class="back" data-act="go" data-step="shades">← กลับ</button><h1>สัมผัสทัศนวิสัยจริง</h1><p class="muted lede">ระบบจะจำลองเฉดสีและความเข้มของฟิล์มบนหน้าจอ</p><p class="amber">ควรนั่งในรถหรือส่องออกไปที่แสงธรรมชาติ สีบนจอเป็นภาพจำลอง</p><button class="btn" style="width:100%;padding:.8rem;font-size:1rem" data-act="cam">ทดสอบสีของฟิล์มด้วยกล้อง</button><button class="back" data-act="demo">ใช้ภาพจำลอง</button>`;
   }
