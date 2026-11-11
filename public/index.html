@@ -178,12 +178,9 @@ h2 { color: #1e40af; font-size: 1.1rem; margin: 0 0 .75rem; }
 .camwrap .topinfo { z-index: 2; border-radius: 1rem 1rem 0 0; pointer-events: none; }
 .camstage .cap { bottom: .6rem; font-size: .9rem; line-height: 1.25; }
 /* ช่องฟิล์มแบบแผ่นตัวอย่างในโบรชัวร์: ฟิล์มเฉพาะกลางภาพ รอบ ๆ เป็นภาพจริงไว้เทียบความเข้ม */
-.camstage .ovwin { inset: 15% 8% 21% 8%; border-radius: 14px; box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 8px 24px rgba(0,0,0,.25); }
-.camwrap.cmp .camstage .ovwin { inset: 15% 6% 24% 6%; }
 .wtag { position: absolute; z-index: 1; font-size: .68rem; font-weight: 600; color: #fff; background: rgba(15,23,42,.55); padding: .1rem .45rem; border-radius: 999px; mix-blend-mode: normal; }
-.wtag.win { top: calc(15% + .45rem); left: calc(8% + .5rem); }
-.wtag.wout { top: calc(79% + .4rem); right: 8%; }
-.camwrap.cmp .wtag.win { top: calc(15% + .4rem); left: calc(6% + .4rem); }
+.camstage .wtag { top: auto; bottom: 3.6rem; left: 50%; transform: translateX(-50%); white-space: nowrap; }
+.natbtn.on { background: #0E1B2A; color: #fff; border-color: #0E1B2A; }
 .camwrap.cmp .wtag.wout { display: none; }
 .camstage .cap small { font-weight: 500; opacity: .9; }
 .tlabel { font-size: .75rem; color: #64748b; margin: .45rem 0 0; }
@@ -3408,7 +3405,7 @@ document.addEventListener("visibilitychange", () => {
   if (document.hidden && S.stream) { stopCam(); S.camResume = true; }
   else if (!document.hidden && S.camResume && S.step === "camera") { S.camResume = false; openCam(); }
 });
-function go(step) { S.error = ""; if (S.step === "camera" && step !== "camera") { stopCam(); S.cameraOn = false; S.photoUrl = ""; S.compare = false; } S.step = step; if (step !== "admin" && location.hash === "#admin") history.replaceState(null, "", location.pathname + location.search); paint(); window.scrollTo(0, 0); }
+function go(step) { S.error = ""; if (S.step === "camera" && step !== "camera") { stopCam(); S.cameraOn = false; S.photoUrl = ""; S.compare = false; S.natural = false; } S.step = step; if (step !== "admin" && location.hash === "#admin") history.replaceState(null, "", location.pathname + location.search); paint(); window.scrollTo(0, 0); }
 function chooseSeries(id, name) {
   const series = film(id).series.find((s) => s.name === name);
   const light = [...series.shades].sort((a, b) => Math.abs(a.vlt - 70) - Math.abs(b.vlt - 70))[0];
@@ -3482,7 +3479,7 @@ function cameraHtml() {
   const c = shades[S.compareIndex] ?? shades[Math.min(shades.length - 1, (S.shadeIndex || 0) + 1)] ?? d;
   const live = S.cameraOn && !S.photoUrl && !S.note;
   const visual = () => S.photoUrl ? `<img alt="" src="${S.photoUrl}">` : live ? `<video class="camv" autoplay playsinline muted></video>` : carSvg(0.15, "ภาพจำลอง");
-  const pane = (shade, side) => `<div class="stage camstage">${visual()}<div class="ov ovwin" data-ov="${side}" style="background:${shade ? overlay(shade.vlt, shade.model, shade.tint) : "transparent"}"></div><span class="wtag win">ผ่านฟิล์ม</span><span class="wtag wout">ไม่มีฟิล์ม</span>${S.nightMode ? `<div class="ov" style="background:rgba(15,23,42,.45);mix-blend-mode:normal"></div>` : ""}<div class="cap" data-cap="${side}">${shade ? `${esc(shade.model)}<br><small>${esc(darkLabel(shade.vlt))}</small>` : ""}</div></div>`;
+  const pane = (shade, side) => `<div class="stage camstage">${visual()}<div class="ov" data-ov="${side}" style="background:${shade && !S.natural ? overlay(shade.vlt, shade.model, shade.tint) : "transparent"}"></div><span class="wtag">${S.natural ? "สีธรรมชาติ (ไม่มีฟิล์ม)" : "ผ่านฟิล์ม"}</span>${S.nightMode ? `<div class="ov" style="background:rgba(15,23,42,.45);mix-blend-mode:normal"></div>` : ""}<div class="cap" data-cap="${side}">${shade ? `${esc(shade.model)}<br><small>${esc(darkLabel(shade.vlt))}</small>` : ""}</div></div>`;
   if (!S.cameraOn && !S.photoUrl) {
     return `<button class="back" data-act="go" data-step="shades">← กลับ</button><h1>สัมผัสทัศนวิสัยจริง</h1><p class="muted lede">ระบบจะจำลองเฉดสีและความเข้มของฟิล์มบนหน้าจอ</p><p class="amber">ควรนั่งในรถหรือส่องออกไปที่แสงธรรมชาติ สีบนจอเป็นภาพจำลอง</p><button class="btn" style="width:100%;padding:.8rem;font-size:1rem" data-act="cam">ทดสอบสีของฟิล์มด้วยกล้อง</button><button class="back" data-act="demo">ใช้ภาพจำลอง</button>`;
   }
@@ -3490,7 +3487,7 @@ function cameraHtml() {
   const chips = S.compare
     ? `<div class="tlabel">ซ้าย</div><div class="tchips">${shades.map((s, i) => chip(s, i, i === S.shadeIndex)).join("")}</div><div class="tlabel">ขวา</div><div class="tchips">${shades.map((s, i) => chip(s, i, s === c).replace('data-act="setshade"', 'data-act="setcompare"')).join("")}</div>`
     : `<div class="tchips">${shades.map((s, i) => chip(s, i, i === S.shadeIndex)).join("")}</div>`;
-  return `<button class="back" data-act="cam-back" style="margin-bottom:.4rem">← กลับ</button><div class="camwrap${S.compare ? " cmp" : ""}"><div class="topinfo"><b>${esc(film(S.filmId)?.name || "")} | ${esc(S.series)}</b>${!S.compare && d ? `<div>IRR ${esc(d.irr)} · TSER ${esc(d.tser)}</div>` : ""}</div>${pane(d, "a")}${S.compare ? pane(c, "b") : ""}</div>${chips}${S.note ? `<label class="btn" style="display:block;text-align:center;width:100%;padding:.8rem;margin:.5rem 0">ทดสอบสีของฟิล์มด้วยกล้อง<input id="camsnap2" type="file" accept="image/*" capture="environment" hidden></label><p class="amber">${esc(S.note)}</p>` : S.photoUrl ? `<button class="series" data-act="cam">กลับไปใช้กล้อง</button>` : ""}<div class="grid2" style="margin-top:.6rem"><button class="series" data-act="night">${S.nightMode ? ICON.sun + " ดูแบบกลางวัน" : ICON.moon + " ดูแบบกลางคืน"}</button><button class="series" data-act="compare">${S.compare ? "ดูทีละเฉด" : "เปรียบเทียบ 2 เฉด"}</button></div><button class="series" data-act="disc">ข้อมูลเกี่ยวกับเฉดสีบนหน้าจอ</button>`;
+  return `<button class="back" data-act="cam-back" style="margin-bottom:.4rem">← กลับ</button><div class="camwrap${S.compare ? " cmp" : ""}"><div class="topinfo"><b>${esc(film(S.filmId)?.name || "")} | ${esc(S.series)}</b>${!S.compare && d ? `<div>IRR ${esc(d.irr)} · TSER ${esc(d.tser)}</div>` : ""}</div>${pane(d, "a")}${S.compare ? pane(c, "b") : ""}</div>${chips}${S.note ? `<label class="btn" style="display:block;text-align:center;width:100%;padding:.8rem;margin:.5rem 0">ทดสอบสีของฟิล์มด้วยกล้อง<input id="camsnap2" type="file" accept="image/*" capture="environment" hidden></label><p class="amber">${esc(S.note)}</p>` : S.photoUrl ? `<button class="series" data-act="cam">กลับไปใช้กล้อง</button>` : ""}<button class="series natbtn${S.natural ? " on" : ""}" data-act="natural" aria-pressed="${!!S.natural}" style="margin-top:.6rem;text-align:center;font-weight:600">${S.natural ? "กลับไปดูผ่านฟิล์ม" : "ดูสีกล้องธรรมชาติ (ไม่มีฟิล์ม)"}</button><div class="grid2" style="margin-top:.6rem"><button class="series" data-act="night">${S.nightMode ? ICON.sun + " ดูแบบกลางวัน" : ICON.moon + " ดูแบบกลางคืน"}</button><button class="series" data-act="compare">${S.compare ? "ดูทีละเฉด" : "เปรียบเทียบ 2 เฉด"}</button></div><button class="series" data-act="disc">ข้อมูลเกี่ยวกับเฉดสีบนหน้าจอ</button>`;
 }
 function bookHtml() {
   const q = buildQuote();
@@ -3633,8 +3630,9 @@ document.addEventListener("click", (event) => {
   if (act === "demo") { stopCam(); S.cameraOn = true; S.photoUrl = ""; S.note = "กำลังใช้ภาพจำลอง"; go("camera"); }
   if (act === "cam-back") { stopCam(); S.cameraOn = false; S.photoUrl = ""; go("shades"); }
   if (act === "night") { S.nightMode = !S.nightMode; paint(); }
+  if (act === "natural") { S.natural = !S.natural; paint(); }
   if (act === "compare") { S.compare = !S.compare; if (S.compare && S.compareIndex == null) { const n = (seriesOf()?.shades || []).length; S.compareIndex = Math.min(n - 1, (S.shadeIndex || 0) + 1); } paint(); }
-  if (act === "setshade") { S.shadeIndex = Number(btn.dataset.i); paint(); }
+  if (act === "setshade") { S.shadeIndex = Number(btn.dataset.i); S.natural = false; paint(); }
   if (act === "setcompare") { S.compareIndex = Number(btn.dataset.i); paint(); }
   if (act === "disc") { S.disclaimer = true; paint(); }
   if (act === "close-disc") { S.disclaimer = false; paint(); }
