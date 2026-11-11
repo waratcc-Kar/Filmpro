@@ -364,21 +364,159 @@ button, [data-act], label[for], select { cursor: pointer; }
 h1, h2, .home-card h1 { letter-spacing: 0; }
 .home-card h1 { font-weight: 600; line-height: 1.35; }
 h1 { line-height: 1.35; }
+
+/* ===== FilmPro UI v3 — "แผ่นฟิล์ม": one dark glass hero, quiet surfaces, swatch as the signature ===== */
+:root {
+  --paper: #F3F6F9; --surface: #FFFFFF; --ink: #121A24; --muted: #5B6B7B; --line: #DCE3EA;
+  --blue: #1D5BE3; --blue-deep: #1546B8; --wash: #EAF1FD; --film: #121A24; --film2: #243242;
+  --r-lg: 16px; --r-md: 12px; --r-sm: 8px;
+}
+body, body.is-home { font-size: 16px; line-height: 1.55; }
+h1 { font-size: 1.5rem; font-weight: 600; line-height: 1.35; letter-spacing: 0; margin: .5rem 0 .25rem; }
+h2 { font-size: 1.1rem; font-weight: 600; }
+.lede { margin: 0 0 1.1rem; }
+.wrap { max-width: 40rem; padding: 0 1rem 3rem; }
+body.has-bar .wrap { padding-bottom: 7.5rem; }
+.wrap > h1:first-child { margin-top: 1.1rem; }
+.card { border-radius: var(--r-lg); }
+.btn { border-radius: var(--r-md); font-weight: 600; min-height: 48px; }
+.field, .home-field { border-radius: var(--r-md); font-size: 1rem; }
+
+/* header: wordmark with a tint strip, step name, contact icons */
+header.top { height: 3.4rem; gap: .6rem; padding: 0 1rem; }
+header.top .brandmark { display: inline-flex; align-items: center; gap: .45rem; text-decoration: none; color: var(--ink); font-weight: 700; font-size: 1.05rem; }
+.bm-strip { width: 1.6rem; height: 1rem; border-radius: 3px; background: linear-gradient(90deg, #121A24 0%, #4B5B6B 45%, #C9D3DD 100%); }
+.progress { max-width: 9rem; height: 6px; margin-left: auto; }
+.progress i { border-radius: 3px; }
+.progress i.on { background: hsl(214 22% calc(80% - var(--k) * 10%)); }
+.steplabel, header.top span.steplabel { font-size: .82rem; color: var(--ink); font-weight: 500; }
+.hd-contact { display: flex; gap: .35rem; flex: none; }
+.hicon { display: inline-flex; align-items: center; justify-content: center; min-width: 2.4rem; height: 2.4rem; padding: 0 .55rem; border-radius: 999px; font-size: .72rem; font-weight: 700; text-decoration: none; color: #fff; background: var(--film); }
+.hicon:first-child { background: #06C755; }
+@media (max-width: 420px) { .progress { display: none; } }
+
+/* bottom bar: contact by default, sticky total on the shade step */
+.bar { padding: .55rem 1rem calc(.55rem + env(safe-area-inset-bottom)); }
+.bar.has-sum #ctaLabel, .bar.has-sum .icon { display: none; }
+.bar[hidden], .barsum[hidden] { display: none; }
+.barsum { display: flex; align-items: center; justify-content: space-between; gap: .75rem; width: 100%; }
+.bs-text { display: flex; flex-direction: column; line-height: 1.2; }
+.bs-text .muted { font-size: .75rem; }
+.bs-text b { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.barsum .btn { flex: none; padding: 0 1.1rem; height: 2.9rem; }
+
+/* home: looking through tinted glass */
+.home { position: relative; padding: 0 0 2rem; overflow: hidden; }
+.home::before { display: none; }
+.hero-glass { position: absolute; left: 0; right: 0; top: 0; height: 16.5rem; background: linear-gradient(180deg, #0F1620 0%, #1A2432 60%, #2B3A4B 100%); }
+.hero-glass::after { content: ""; position: absolute; left: -20%; top: -40%; width: 70%; height: 120%; background: radial-gradient(closest-side, rgba(255,255,255,.14), rgba(255,255,255,0)); transform: rotate(18deg); }
+.home-card { position: relative; padding: 3.4rem 1.25rem 0; max-width: 40rem; margin: 0 auto; }
+.home-card h1 { color: #fff; font-size: 2.1rem; font-weight: 600; line-height: 1.3; margin: 0; }
+.home-sub { color: #C9D3DD; font-size: 1.05rem; margin: .35rem 0 0; }
+.pill { margin-top: 1.6rem; border-radius: 20px; border: 1px solid var(--line); background: var(--surface); box-shadow: 0 20px 50px -24px rgba(18,26,36,.45); padding: 1rem; }
+.home-go { background: var(--blue); min-height: 52px; font-size: 1.05rem; }
+@media (min-width: 960px) { .hero-glass { height: 19.5rem; } .home-card { padding-top: 5rem; } .home-card h1 { font-size: 2.6rem; } }
+
+/* path: two ways */
+.ways { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin: .4rem 0 1.4rem; }
+.way { text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: .95rem .9rem; color: var(--ink); min-height: 9.5rem; display: flex; flex-direction: column; gap: .25rem; }
+.way b { font-size: 1.02rem; font-weight: 600; margin-top: auto; }
+.way span:last-child { color: var(--muted); font-size: .82rem; line-height: 1.4; }
+.way-ic { width: 2.3rem; height: 2.3rem; border-radius: 10px; background: var(--film); color: #fff; display: grid; place-items: center; }
+.way-ic svg { width: 1.25rem; height: 1.25rem; }
+.way[data-act="quiz"] .way-ic { background: var(--blue); }
+h2.sect { margin: 0 0 .7rem; }
+.brandcard { padding: .55rem .5rem .75rem; border-radius: var(--r-md); }
+.brandcard .logo-tile { height: 4rem; margin: .3rem 0 .25rem; }
+.brandcard .pricetag { top: .4rem; right: .4rem; }
+
+/* series: brand head + one list surface */
+.bhead { display: flex; align-items: center; gap: .9rem; margin: .4rem 0 .6rem; }
+.bh-logo { width: 5.5rem; height: 3.4rem; flex: none; border: 1px solid var(--line); padding: .25rem; }
+.bhead h1 { margin: 0; }
+.bhead .muted { margin: .1rem 0 0; font-size: .875rem; }
+.ring-legend { margin: .2rem 0 .7rem; }
+.segs { display: flex; gap: .4rem; margin: 0 0 .8rem; }
+.chip { border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 500; font-size: .9rem; }
+.chip.on { background: var(--film); border-color: var(--film); color: #fff; }
+.slist { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; }
+.slist .series { margin: 0; border: 0; border-top: 1px solid var(--line); border-radius: 0; padding: 1rem; }
+.slist .series:first-child { border-top: 0; }
+.slist .series:hover { background: #FAFBFD; }
+.sname { font-size: 1.05rem; font-weight: 600; }
+.stech { display: block; color: var(--muted); font-size: .78rem; margin-top: .05rem; }
+.price-on { font-size: 1.1rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
+.price-off { color: var(--muted); font-weight: 500; }
+.front { color: var(--muted); font-size: .85rem; margin: .35rem 0 0; }
+.stats { margin-top: .55rem; max-width: 26rem; }
+.ring svg { width: 2.9rem; height: 2.9rem; }
+
+/* shades: swatch first */
+.camcta { display: inline-flex; align-items: center; gap: .45rem; width: 100%; justify-content: center; min-height: 48px; border-radius: var(--r-md); border: 1.5px solid var(--film); background: var(--surface); color: var(--film); font-weight: 600; font-size: 1rem; margin: 0 0 1rem; }
+.camcta .ico { width: 1.2em; height: 1.2em; }
+.shade { padding: .75rem .9rem .9rem; }
+.swpaper { height: 108px; margin: 0 0 .6rem; }
+.sh-head { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; }
+.sh-head b { font-size: 1.05rem; font-weight: 600; }
+.sh-dark { color: var(--muted); font-size: .875rem; white-space: nowrap; }
+.sh-use { margin: .7rem 0 0; padding: .6rem; text-align: center; font-size: .92rem; font-weight: 600; border-radius: var(--r-md); min-height: 44px; }
+.sh-use.on { background: var(--film); color: #fff; border-color: var(--film); }
+.recbar { background: var(--wash); border-color: #BFD3F7; }
+
+/* quote summary */
+.quote .q-top { display: flex; justify-content: space-between; gap: .75rem; align-items: flex-start; }
+.quote .q-top > div:first-child b { font-size: 1.02rem; }
+.quote .muted { font-size: .875rem; }
+.q-total { text-align: right; flex: none; display: flex; flex-direction: column; line-height: 1.2; }
+.q-total .muted { font-size: .75rem; }
+.q-total b { font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+.q-toggle { background: none; border: 0; color: var(--blue); font-weight: 600; font-size: .9rem; padding: .5rem 0 0; min-height: 44px; cursor: pointer; }
+.q-lines { margin-top: .4rem; }
+
+/* booking form */
+.form .fh { font-size: .95rem; font-weight: 600; color: var(--ink); margin: 1.1rem 0 .5rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+.form .fh:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+.fl { display: block; font-size: .85rem; color: var(--muted); margin-bottom: .6rem; }
+.fl .field { display: block; margin-top: .25rem; color: var(--ink); }
+.geo-row { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin: .1rem 0 .3rem; font-size: .85rem; }
+.linkbtn { display: inline-flex; align-items: center; gap: .3rem; background: none; border: 0; color: var(--blue); font-weight: 600; font-size: .9rem; padding: .4rem 0; min-height: 44px; cursor: pointer; }
+.picked { margin: 0 0 .5rem; font-weight: 600; color: var(--blue); }
+.cal-head button { border-color: var(--line); color: var(--ink); }
+.cal-grid button { background: #F1F5F9; border-radius: var(--r-sm); font-size: .95rem; }
+.cal-grid button.on { background: var(--film); color: #fff; }
+.cal-grid button.today { box-shadow: inset 0 0 0 1.5px var(--blue); }
+.slots button { border-color: var(--line); color: var(--ink); min-height: 44px; padding: 0 .9rem; }
+.slots button.on { background: var(--film); border-color: var(--film); color: #fff; }
+.consent { display: flex; gap: .6rem; align-items: flex-start; font-size: .85rem; color: var(--muted); margin: .8rem 0; }
+.consent input { width: 1.2rem; height: 1.2rem; margin-top: .15rem; accent-color: var(--blue); }
+.consent .back { min-height: 0; margin: 0; color: var(--blue); text-decoration: underline; }
+#bookBtn { min-height: 52px; font-size: 1.05rem; }
+
+/* pay */
+.paycard .amount { font-size: 2.2rem; font-weight: 700; color: var(--ink); margin: .1rem 0 .4rem; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.paycard .amount small { font-size: 1rem; font-weight: 500; color: var(--muted); }
+.kv { display: flex; justify-content: space-between; gap: 1rem; padding: .35rem 0; font-size: .92rem; }
+.kv span { color: var(--muted); flex: none; }
+.kv b { font-weight: 500; text-align: right; }
+.amber { font-size: .875rem; padding: .55rem .75rem; }
+footer.wrap { color: var(--muted); }
+footer.wrap a { color: var(--muted); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } .btn:active, .series:active, .tchip:active, .qopt:active { transform: none; } }
 .svcnote{margin-top:.6rem;padding:.55rem .75rem;border-radius:10px;background:#EFF6FF;color:#1E40AF;font-size:.82rem}
 </style>
 </head>
 <body>
-<header class="top"><b class="brandmark">FilmPro</b><div class="progress" id="progress" aria-hidden="true"></div><span id="stepLabel" class="steplabel">ขั้นตอนที่ 1</span></header>
+<header class="top"><a class="brandmark" href="#" data-act="go" data-step="home" aria-label="FilmPro หน้าแรก"><span class="bm-strip" aria-hidden="true"></span>FilmPro</a><div class="progress" id="progress" aria-hidden="true"></div><span id="stepLabel" class="steplabel">ขั้นตอนที่ 1</span><span class="hd-contact"><a class="hicon" href="https://line.me/R/ti/p/%40filmpro" target="_blank" rel="noreferrer" aria-label="แชต LINE">LINE</a><a class="hicon" href="tel:020000000" aria-label="โทรหาร้าน">โทร</a></span></header>
 <main id="app" class="wrap"></main>
 <div id="bar" class="bar">
   <button id="cta" class="btn" type="button">เริ่มประเมินราคา</button>
   <span id="ctaLabel" class="muted" hidden>ติดต่อร้าน</span>
   <a class="icon" style="background:#06C755" href="https://line.me/R/ti/p/%40filmpro" target="_blank" rel="noreferrer">LINE</a>
-  <a class="icon" style="background:#2563eb" href="tel:020000000">โทร</a>
+  <a class="icon" style="background:#1D5BE3" href="tel:020000000">โทร</a>
+  <div id="barSum" class="barsum" hidden><div class="bs-text"><span class="muted">ราคาทั้งคัน</span><b id="barTotal"></b></div><button id="barGo" class="btn" type="button" data-act="tobook">ดูสรุปและจองคิว</button></div>
 </div>
 <footer class="wrap" style="text-align:center;color:#94a3b8;font-size:.75rem">
-  <p>ราคา VLT IRR TSER และ UV เป็นข้อมูลตัวอย่าง ไม่ใช่ใบเสนอราคาจริง</p>
+  <p>ราคาที่แสดงคือราคาติดทั้งคันรวมบานหน้า ยืนยันราคาสุดท้ายกับร้านก่อนวันติดตั้ง</p>
   <p><a href="#track">เช็กสถานะการจอง</a> · <a href="tech.html">หลังบ้าน FilmPro</a> · <a href="notify.html">สำหรับช่าง</a> · <a id="adminLink" href="#admin">คิวในเครื่อง</a></p>
 </footer>
 <script>/* FilmPro Suite shared data layer (same copy as tech/handover/notify) */
@@ -3414,8 +3552,10 @@ function chooseSeries(id, name) {
   S.shadeErr = ""; groupsFor(S.sunroof || "ไม่มี").forEach((g) => { S.shades[g] = ""; });
   go("shades");
 }
-function quoteHtml(q) {
-  return `<div class="card" style="padding:1rem;margin-bottom:1rem"><b>${esc(q.carBrand)} ${esc(q.carModel)}</b><div class="muted">ไซส์ ${esc(sizeLabel(q.size))} · ${esc(q.sunroof)} · ${esc(q.filmBrandName)} ${esc(q.series)}</div>${q.upgrade ? `<div class="muted">อัปเกรดกระจกบานหน้าเป็น ${esc(q.upgrade)}</div>` : ""}<div>${q.lines.map((l) => `<div class="qline"><div><b>${esc(l.label)}</b><div>${esc(l.model)} <span class="muted">${esc(darkLabel(l.vlt))}</span></div><div class="qspec">IRR ${esc(l.irr)} · TSER ${esc(l.tser)} · UV ${esc(l.uv)}</div></div><span class="qprice">${l.price == null ? "—" : money(l.price) + " บาท"}</span></div>`).join("")}</div><p class="muted">ราคาต่อบานเป็นการแบ่งราคาทั้งคันตัวอย่าง ไม่ใช่ราคาขายแยกบาน เฉดไม่เปลี่ยนราคารวม</p>${q.promoSave ? `<div class="sumrow"><span>ราคาปกติ</span><span>${money(q.gross + q.promoSave)} บาท</span></div><div class="sumrow save"><span>โปรโมชั่นแบรนด์ ลด ${q.promoPct}%</span><span>−${money(q.promoSave)} บาท</span></div>` : ""}${q.coupon ? `<div class="sumrow save"><span>โค้ด ${esc(q.coupon.code)} · ${esc(q.coupon.label)}</span><span>−${money(q.coupon.amount)} บาท</span></div>` : ""}<div style="display:flex;justify-content:space-between;font-weight:700;color:#1d4ed8;margin-top:.3rem"><span>รวมทั้งคัน</span><span>${esc(q.totalLabel)}</span></div><p class="amber">ราคาและสเปกเป็นข้อมูลตัวอย่าง</p></div>`;
+function quoteHtml(q, compact) {
+  const models = [...new Set(q.lines.map((l) => l.model))];
+  const open = compact ? !!S.quoteOpen : true;
+  return `<div class="card quote" style="padding:1rem;margin-bottom:1rem"><div class="q-top"><div><b>${esc(q.carBrand)} ${esc(q.carModel)}</b><div class="muted">${esc(q.filmBrandName)} ${esc(q.series)} · ${esc(models.join(", "))}</div><div class="muted">ไซส์ ${esc(sizeLabel(q.size))}${q.sunroof && q.sunroof !== "ไม่มี" ? ` · ${esc(q.sunroof)}` : ""}${q.upgrade ? ` · บานหน้า ${esc(q.upgrade)}` : ""}</div></div><div class="q-total"><span class="muted">ทั้งคัน</span><b>${esc(q.totalLabel)}</b></div></div>${compact ? `<button type="button" class="q-toggle" data-act="qtoggle" aria-expanded="${open}">${open ? "ซ่อนรายละเอียด" : "ดูราคาแยกบาน"}</button>` : ""}${open ? `<div class="q-lines">${q.lines.map((l) => `<div class="qline"><div><b>${esc(l.label)}</b><div>${esc(l.model)} <span class="muted">${esc(darkLabel(l.vlt))}</span></div><div class="qspec">IRR ${esc(l.irr)} · TSER ${esc(l.tser)} · UV ${esc(l.uv)}</div></div><span class="qprice">${l.price == null ? "—" : money(l.price) + " บาท"}</span></div>`).join("")}</div><p class="muted" style="font-size:.8rem">ราคาต่อบานเป็นการแบ่งจากราคาทั้งคันเพื่อให้เห็นสัดส่วน ไม่ใช่ราคาขายแยกบาน</p>${q.promoSave ? `<div class="sumrow"><span>ราคาปกติ</span><span>${money(q.gross + q.promoSave)} บาท</span></div><div class="sumrow save"><span>โปรโมชั่นแบรนด์ ลด ${q.promoPct}%</span><span>−${money(q.promoSave)} บาท</span></div>` : ""}${q.coupon ? `<div class="sumrow save"><span>โค้ด ${esc(q.coupon.code)} · ${esc(q.coupon.label)}</span><span>−${money(q.coupon.amount)} บาท</span></div>` : ""}` : ""}</div>`;
 }
 
 const ICON = {
@@ -3425,15 +3565,18 @@ const ICON = {
   tag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.6 2.6A2 2 0 0 0 11.2 2H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.7 8.7a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4Z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>',
   van: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>',
   shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1Z"/><path d="m9 12 2 2 4-4"/></svg>',
+  compass: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m16.2 7.8-2.3 6.1-6.1 2.3 2.3-6.1z"/></svg>',
+  grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+  cam: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/></svg>',
   eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/></svg>',
 };
 function homeHtml() {
   const opts = (list, placeholder) => `<option value="">${placeholder}</option>` + list.map((n) => `<option ${S.brand === n || S.model === n ? "selected" : ""}>${esc(n)}</option>`).join("");
-  return `<section class="home"><div class="home-card"><h1>เช็คราคาฟิล์ม<br>ทุกรุ่น ทุกยี่ห้อ</h1><p class="home-sub">และติดตั้งถึงที่</p><div class="pill" id="quote"><div class="grid2"><select id="brand" class="home-field" aria-label="ยี่ห้อ">${opts(brands(), "ยี่ห้อ")}</select><select id="model" class="home-field" aria-label="รุ่น">${opts(models(S.brand), "รุ่น")}</select></div><div style="height:.6rem"></div><select id="sunroof" class="home-field" aria-label="ซันรูฟ"><option value="">ซันรูฟ</option>${SUNS.map((s) => `<option ${S.sunroof === s ? "selected" : ""}>${esc(s)}</option>`).join("")}</select><button id="goDesk" class="home-go" data-act="next">ดูราคาฟิล์ม</button>${S.error ? `<p class="err">${esc(S.error)}</p>` : ""}</div></div></section>`;
+  return `<section class="home"><div class="hero-glass" aria-hidden="true"></div><div class="home-card"><h1>เช็คราคาฟิล์ม<br>ทุกรุ่น ทุกยี่ห้อ</h1><p class="home-sub">และติดตั้งถึงที่</p><div class="pill" id="quote"><div class="grid2"><select id="brand" class="home-field" aria-label="ยี่ห้อ">${opts(brands(), "ยี่ห้อ")}</select><select id="model" class="home-field" aria-label="รุ่น">${opts(models(S.brand), "รุ่น")}</select></div><div style="height:.6rem"></div><select id="sunroof" class="home-field" aria-label="ซันรูฟ"><option value="">ซันรูฟ</option>${SUNS.map((s) => `<option ${S.sunroof === s ? "selected" : ""}>${esc(s)}</option>`).join("")}</select><button id="goDesk" class="home-go" data-act="next">ดูราคาฟิล์ม</button>${S.error ? `<p class="err">${esc(S.error)}</p>` : ""}</div></div></section>`;
 }
 function pathHtml() {
   const size = sizeOf(S.brand, S.model);
-  return `<h1>เลือกวิธีค้นหาฟิล์ม</h1><p class="muted lede">เลือกแบบที่เหมาะกับคุณ</p><button class="series" data-act="quiz"><b>ช่วยแนะนำฟิล์มให้ฉัน</b><div class="muted">ตอบคำถามสั้น ๆ แล้วระบบจะแนะนำฟิล์มที่เหมาะ</div></button><button class="series" data-act="brands"><b>เลือกเอง</b><div class="muted">เลือกยี่ห้อและรุ่นที่ต้องการเอง</div></button><h2 id="brands">เลือกยี่ห้อฟิล์ม</h2>${DISCOUNTS_ON && Object.keys(CATALOG.promos || {}).length ? `<p class="promo-strip"><b>ราคาหลังโปรเท่ากับหรือถูกกว่าร้านทั่วไป</b><br>ราคาที่แสดงหักโปรแล้ว ลูกค้าใหม่ใช้โค้ด NEW500 ลดเพิ่ม 500 บาท หรือใช้โค้ดจากเพื่อนลดเพิ่ม 1,000 บาท</p>` : ""}<div class="chips" style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">${CATALOG.filmBrands.map((b) => `<button class="card brandcard" data-act="brand" data-id="${esc(b.id)}">${brandMaxPromo(b, size) ? `<span class="tag pricetag promo">ลดสูงสุด ${brandMaxPromo(b, size)}%</span>` : b.series.some((s) => showsPrice(b.id, s, size)) ? `<span class="tag pricetag">มีราคา</span>` : ""}${b.logo ? `<span class="logo-tile"><img alt="" src="${b.logo}"></span>` : `<span class="logo-tile"><b>${esc(b.name)}</b></span>`}<div>${esc(b.name)}</div></button>`).join("")}</div>`;
+  return `<h1>เลือกวิธีค้นหาฟิล์ม</h1><p class="muted lede">เลือกแบบที่เหมาะกับคุณ</p><div class="ways"><button class="way" data-act="quiz"><span class="way-ic">${ICON.compass}</span><b>ช่วยเลือกให้</b><span>ตอบ 5 ข้อ ได้ 3 ตัวเลือกพร้อมเหตุผล</span></button><button class="way" data-act="brands"><span class="way-ic">${ICON.grid}</span><b>เลือกเอง</b><span>ดูราคาทุกยี่ห้อสำหรับ ${esc(S.brand)} ${esc(S.model)}</span></button></div><h2 id="brands" class="sect">ยี่ห้อฟิล์มทั้งหมด</h2>${DISCOUNTS_ON && Object.keys(CATALOG.promos || {}).length ? `<p class="promo-strip"><b>ราคาหลังโปรเท่ากับหรือถูกกว่าร้านทั่วไป</b><br>ราคาที่แสดงหักโปรแล้ว ลูกค้าใหม่ใช้โค้ด NEW500 ลดเพิ่ม 500 บาท หรือใช้โค้ดจากเพื่อนลดเพิ่ม 1,000 บาท</p>` : ""}<div class="chips" style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">${CATALOG.filmBrands.map((b) => `<button class="card brandcard" data-act="brand" data-id="${esc(b.id)}">${brandMaxPromo(b, size) ? `<span class="tag pricetag promo">ลดสูงสุด ${brandMaxPromo(b, size)}%</span>` : b.series.some((s) => showsPrice(b.id, s, size)) ? "" : `<span class="ex pricetag">รอราคา</span>`}${b.logo ? `<span class="logo-tile"><img alt="" src="${b.logo}"></span>` : `<span class="logo-tile"><b>${esc(b.name)}</b></span>`}<div>${esc(b.name)}</div></button>`).join("")}</div>`;
 }
 function seriesHtml() {
   const brand = film(S.filmId);
@@ -3441,12 +3584,12 @@ function seriesHtml() {
   const sun = S.sunroof || "ไม่มี";
   const rows = brand.series.filter((s) => !S.pricedOnly || showsPrice(S.filmId, s, size)).slice().sort((a, b) => Number(showsPrice(S.filmId, b, size)) - Number(showsPrice(S.filmId, a, size)));
   const empty = S.pricedOnly && !rows.length ? `<p class="muted lede">ไซส์ ${esc(sizeLabel(size))} ยังไม่มีราคาที่เผยแพร่ของแบรนด์นี้</p>` : "";
-  return `<button class="back" data-act="go" data-step="path">← กลับ</button><div style="text-align:center;margin-bottom:1rem">${brand.logo ? `<span class="logo-tile" style="width:10rem;margin:0 auto .5rem"><img alt="" src="${brand.logo}"></span>` : ""}<h1>ซีรีส์ ${esc(brand.name)}</h1>${ringLegend}<p class="muted">${esc(S.brand)} ${esc(S.model)} · ไซส์ ${esc(sizeLabel(size))}${tierSize(brand.id, size) !== size ? ` (${esc(brand.name)} จัดเป็นไซส์ ${esc(sizeLabel(tierSize(brand.id, size)))})` : ""} · ราคาทั้งคันไม่เปลี่ยนตามเฉด</p><div style="display:flex;justify-content:center;gap:.5rem;margin-top:.6rem"><button type="button" class="chip ${S.pricedOnly ? "off" : "on"}" data-act="priced" data-on="0">ทั้งหมด</button><button type="button" class="chip ${S.pricedOnly ? "on" : "off"}" data-act="priced" data-on="1">มีราคา</button></div></div>${rows.map((s) => { const on = showsPrice(S.filmId, s, size); const front = frontCaption(s, size); return `<button class="series" data-act="series" data-name="${esc(s.name)}"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem"><span style="display:flex;align-items:center;gap:.5rem;min-width:0">${brand.logo ? `<span class="logo-tile" style="width:5.2rem;height:3.2rem;flex:none;padding:.15rem"><img alt="" src="${brand.logo}"></span>` : ""}<span><b>${esc(s.name)}</b><br><span class="${on ? "tag" : "ex"}">${on ? "มีราคา" : "รอราคา"}</span></span></span><span class="pricebox">${on && promoOf(S.filmId, s, size) && listBasePrice(S.filmId, s, size) != null ? `<span class="promo-badge">ลด ${promoOf(S.filmId, s, size).pct}%</span><s>${money(listBasePrice(S.filmId, s, size) + (sunAddon(s, size, sun) || 0))}</s>` : ""}<b class="${on ? "price-on" : "price-off"}">${esc(caption(S.filmId, s, size, sun))}</b></span></div>${front ? `<p class="muted" style="color:#075985">${esc(front)}</p>` : ""}${ringRow(s)}</button>`; }).join("")}${empty}`;
+  return `<button class="back" data-act="go" data-step="path">← กลับ</button><div class="bhead">${brand.logo ? `<span class="logo-tile bh-logo"><img alt="" src="${brand.logo}"></span>` : ""}<div><h1>${esc(brand.name)}</h1><p class="muted">ราคาติดทั้งคันสำหรับ ${esc(S.brand)} ${esc(S.model)} ไซส์ ${esc(sizeLabel(size))}${tierSize(brand.id, size) !== size ? ` (${esc(brand.name)} จัดเป็นไซส์ ${esc(sizeLabel(tierSize(brand.id, size)))})` : ""}</p></div></div>${ringLegend}<div class="segs"><button type="button" class="chip ${S.pricedOnly ? "off" : "on"}" data-act="priced" data-on="0">ทุกรุ่น</button><button type="button" class="chip ${S.pricedOnly ? "on" : "off"}" data-act="priced" data-on="1">เฉพาะที่มีราคา</button></div><div class="slist">${rows.map((s) => { const on = showsPrice(S.filmId, s, size); const front = frontCaption(s, size); return `<button class="series" data-act="series" data-name="${esc(s.name)}"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem"><span style="display:flex;align-items:center;gap:.5rem;min-width:0"><span><b class="sname">${esc(s.name)}</b>${s.tech ? `<span class="stech">${esc(s.tech)}</span>` : ""}${on ? "" : `<br><span class="ex">รอราคา</span>`}</span></span><span class="pricebox">${on && promoOf(S.filmId, s, size) && listBasePrice(S.filmId, s, size) != null ? `<span class="promo-badge">ลด ${promoOf(S.filmId, s, size).pct}%</span><s>${money(listBasePrice(S.filmId, s, size) + (sunAddon(s, size, sun) || 0))}</s>` : ""}<b class="${on ? "price-on" : "price-off"}">${esc(caption(S.filmId, s, size, sun))}</b></span></div>${front ? `<p class="front">${esc(front)}</p>` : ""}${ringRow(s)}</button>`; }).join("")}</div>${empty}`;
 }
 function shadesHtml() {
   const series = seriesOf();
   const q = buildQuote();
-  return `<button class="back" data-act="go" data-step="series">← กลับ</button><button class="btn" style="width:100%;padding:.8rem;margin-bottom:.8rem;background:#fff;color:#2563eb;border:2px solid #3b82f6" data-act="cam">ทดลองดูฟิล์มด้วยกล้อง</button><h1>เลือกความเข้มฟิล์ม</h1><p class="muted">${esc(film(S.filmId).name)} ${esc(series.name)}</p>${S.rec && S.rec.id === S.filmId && S.rec.name === series.name && S.rec.side ? `<div class="recbar"><div><b>แนะนำจากคำตอบของคุณ</b><div>รอบคัน ${esc(S.rec.side)}${S.rec.front ? ` · บานหน้า ${esc(S.rec.front)}` : ""}</div></div><button class="btn" data-act="userec">ใช้ตามที่แนะนำ</button></div>` : ""}<p class="amber">ราคาทั้งคันเป็นของซีรีส์นี้ เลือกเฉดเข้มหรืออ่อนไม่ทำให้ราคาเปลี่ยน</p>${ringLegend}${series.shades.map((d) => `<article class="shade"><div style="display:flex;justify-content:space-between"><b>${esc(d.model)}</b><span>${darkPct(d.vlt) === "ใส" ? "ฟิล์มใส" : "ฟิล์ม " + darkPct(d.vlt) + "%"}</span></div>${d.color ? `<div class="muted" style="font-size:.8rem;margin-top:-.1rem">โทน ${esc(d.color)}</div>` : ""}${swatchHtml(d, film(S.filmId).name)}${ringRow(d)}<button class="series" style="margin:.6rem 0 0;padding:.55rem;text-align:center;font-size:.85rem" data-act="allshade" data-m="${esc(d.model)}">ใช้เบอร์นี้ทุกบาน</button></article>`).join("") || `<p class="muted">ซีรีส์นี้ไม่มีตารางเฉดในข้อมูลตัวอย่าง</p>`}<div class="card" id="pickcard" style="padding:1rem"><h2 style="margin-bottom:.3rem">เลือกเบอร์ฟิล์มแต่ละบาน</h2><p class="muted" style="margin:0 0 .8rem;font-size:.85rem">เลือกเองทีละบาน หรือกด "ใช้เบอร์นี้ทุกบาน" ที่การ์ดด้านบน</p>${groupsFor(S.sunroof || "ไม่มี").map((id) => `<label style="display:block;margin-bottom:.7rem">${groupLabel(id)}<select class="field" data-shade="${id}" style="${series.shades.length && !S.shades[id] ? "border-color:#f59e0b;color:#94a3b8" : ""}"><option value="" ${!S.shades[id] ? "selected" : ""} disabled>— เลือกเบอร์ฟิล์ม —</option>${series.shades.map((d) => `<option value="${esc(d.model)}" ${S.shades[id] === d.model ? "selected" : ""}>${esc(d.model)} · ${esc(darkLabel(d.vlt))}</option>`).join("")}</select></label>`).join("")}${upgrades(S.filmId, series).length ? `<label>อัปเกรดกระจกบานหน้า (เฉพาะ Lunaray)<select id="upgrade" class="field"><option value="">ไม่อัปเกรด</option>${upgrades(S.filmId, series).map((u) => `<option value="${esc(u.to)}" ${S.upgrade === u.to ? "selected" : ""}>อัปเกรดเป็น ${esc(u.to)} (+${money(u.price)} บาท)</option>`).join("")}</select></label>` : ""}${S.shadeErr ? `<p class="err">${esc(S.shadeErr)}</p>` : ""}<button class="btn" style="width:100%;padding:.8rem;margin-top:.5rem" data-act="tobook">ดูสรุปและจองคิว</button></div>${q ? `<p style="text-align:center;font-weight:700;color:#1d4ed8">รวมตัวอย่าง ${esc(q.totalLabel)}</p>` : ""}`;
+  return `<button class="back" data-act="go" data-step="series">← กลับ</button><h1>เลือกความเข้มฟิล์ม</h1><p class="muted lede">${esc(film(S.filmId).name)} ${esc(series.name)} ราคาเท่ากันทุกเฉด</p><button class="camcta" data-act="cam">${ICON.cam} ส่องกล้องดูผ่านฟิล์มจริง</button>${S.rec && S.rec.id === S.filmId && S.rec.name === series.name && S.rec.side ? `<div class="recbar"><div><b>แนะนำจากคำตอบของคุณ</b><div>รอบคัน ${esc(S.rec.side)}${S.rec.front ? ` · บานหน้า ${esc(S.rec.front)}` : ""}</div></div><button class="btn" data-act="userec">ใช้ตามที่แนะนำ</button></div>` : ""}${ringLegend}${series.shades.map((d) => `<article class="shade">${swatchHtml(d, film(S.filmId).name)}<div class="sh-head"><div><b>${esc(d.model)}</b>${d.color ? `<span class="muted"> · โทน ${esc(d.color)}</span>` : ""}</div><span class="sh-dark">${darkPct(d.vlt) === "ใส" ? "ฟิล์มใส" : "เข้ม " + darkPct(d.vlt) + "%"}</span></div>${ringRow(d)}<button class="series sh-use${Object.values(S.shades || {}).length && Object.values(S.shades).every((m) => m === d.model) ? " on" : ""}" data-act="allshade" data-m="${esc(d.model)}">ใช้เบอร์นี้ทุกบาน</button></article>`).join("") || `<p class="muted">ซีรีส์นี้ไม่มีตารางเฉดในข้อมูลตัวอย่าง</p>`}<div class="card" id="pickcard" style="padding:1rem"><h2 style="margin-bottom:.3rem">เบอร์ฟิล์มแต่ละบาน</h2><p class="muted" style="margin:0 0 .8rem;font-size:.875rem">ปรับแยกบานได้ เช่น บานหน้าอ่อนกว่ารอบคัน</p>${groupsFor(S.sunroof || "ไม่มี").map((id) => `<label style="display:block;margin-bottom:.7rem">${groupLabel(id)}<select class="field" data-shade="${id}" style="${series.shades.length && !S.shades[id] ? "border-color:#f59e0b;color:#94a3b8" : ""}"><option value="" ${!S.shades[id] ? "selected" : ""} disabled>— เลือกเบอร์ฟิล์ม —</option>${series.shades.map((d) => `<option value="${esc(d.model)}" ${S.shades[id] === d.model ? "selected" : ""}>${esc(d.model)} · ${esc(darkLabel(d.vlt))}</option>`).join("")}</select></label>`).join("")}${upgrades(S.filmId, series).length ? `<label>อัปเกรดกระจกบานหน้า (เฉพาะ Lunaray)<select id="upgrade" class="field"><option value="">ไม่อัปเกรด</option>${upgrades(S.filmId, series).map((u) => `<option value="${esc(u.to)}" ${S.upgrade === u.to ? "selected" : ""}>อัปเกรดเป็น ${esc(u.to)} (+${money(u.price)} บาท)</option>`).join("")}</select></label>` : ""}${S.shadeErr ? `<p class="err">${esc(S.shadeErr)}</p>` : ""}<button class="btn" style="width:100%;padding:.8rem;margin-top:.5rem" data-act="tobook">ดูสรุปและจองคิว</button></div>${q ? `<p style="text-align:center;font-weight:700;color:#1d4ed8">รวมทั้งคัน ${esc(q.totalLabel)}</p>` : ""}`;
 }
 function quizHtml() {
   const total = QUIZ.length;
@@ -3491,11 +3634,11 @@ function cameraHtml() {
 }
 function bookHtml() {
   const q = buildQuote();
-  return `<button class="back" data-act="go" data-step="shades">← กลับ</button><h1>สรุปรายการ</h1>${q ? quoteHtml(q) : ""}
-  <div class="card" style="padding:1rem;margin-bottom:1rem"><h2>ข้อมูลการจอง</h2><div class="grid2"><input class="field" data-bind="firstName" placeholder="ชื่อ" value="${esc(S.firstName)}"><input class="field" data-bind="lastName" placeholder="สกุล" value="${esc(S.lastName)}"></div><input class="field" data-bind="phone" placeholder="เบอร์ติดต่อ" value="${esc(S.phone)}" style="margin-top:.6rem"><input class="field" data-bind="carColor" placeholder="สีรถ" value="${esc(S.carColor)}" style="margin-top:.6rem"><div class="grid2" style="margin-top:.6rem"><label class="muted">ทะเบียนรถ *<input id="plateNo" class="field" data-bind="plateNo" value="${esc(S.plateNo)}" placeholder="เช่น 1กข 1234"></label><label class="muted">จังหวัด *<select id="plateProv" class="field" data-bind="plateProv"><option value="">เลือกจังหวัด</option>${PROVINCES.map((p) => `<option ${S.plateProv === p ? "selected" : ""}>${esc(p)}</option>`).join("")}</select></label></div><div class="svcnote">ช่างไปติดตั้งถึงที่ เฉพาะกรุงเทพฯ และปริมณฑล (นนทบุรี ปทุมธานี สมุทรปราการ สมุทรสาคร นครปฐม)</div><label class="muted" style="display:block;margin-top:.5rem">จังหวัดที่ติดตั้ง *<select id="areaProv" class="field" data-bind="areaProv"><option value="">เลือกจังหวัดที่ให้ช่างไป</option>${SERVICE_AREA.map((p) => `<option ${S.areaProv === p ? "selected" : ""}>${esc(p)}</option>`).join("")}</select></label><input class="field" data-bind="location" placeholder="สถานที่ติดตั้ง เช่น คอนโด/บ้านเลขที่ ถนน เขต" value="${esc(S.location)}" style="margin-top:.6rem"><div style="margin:.6rem 0"><button type="button" class="series" data-act="geo">ใช้ตำแหน่งปัจจุบัน (ไม่บังคับ)</button> <span class="muted">${esc(S.geoText)}</span></div><div class="muted">วันที่ติดตั้ง${S.bookDate ? ` · <b style="color:#1d4ed8">${esc(thDate(S.bookDate))}</b>` : ""}</div>${calendarHtml()}<div style="margin-top:.7rem"><span class="muted">เลือกเวลา</span><div class="slots" id="timeSlots">${S.bookDate ? TIME_SLOTS.map((slot) => { const past = slotPassed(S.bookDate, slot); return `<button type="button" data-act="slot" data-time="${slot}" class="${S.bookTime === slot && !past ? "on" : ""}" ${past ? "disabled" : ""}>${slot}</button>`; }).join("") : `<span class="muted" style="font-size:.85rem">เลือกวันที่ก่อน</span>`}</div></div></div>
+  return `<button class="back" data-act="go" data-step="shades">← กลับ</button><h1>จองคิวติดตั้ง</h1>${q ? quoteHtml(q, true) : ""}
+  <div class="card form" style="padding:1rem;margin-bottom:1rem"><h2 class="fh">ผู้ติดต่อ</h2><div class="grid2"><label class="fl">ชื่อ<input class="field" data-bind="firstName" value="${esc(S.firstName)}" autocomplete="given-name"></label><label class="fl">นามสกุล<input class="field" data-bind="lastName" value="${esc(S.lastName)}" autocomplete="family-name"></label></div><label class="fl">เบอร์มือถือ<input class="field" data-bind="phone" inputmode="tel" autocomplete="tel" value="${esc(S.phone)}"></label><h2 class="fh">รถของคุณ</h2><div class="grid2"><label class="fl">ทะเบียนรถ<input id="plateNo" class="field" data-bind="plateNo" value="${esc(S.plateNo)}" placeholder="1กข 1234"></label><label class="fl">จังหวัดทะเบียน<select id="plateProv" class="field" data-bind="plateProv"><option value="">เลือก</option>${PROVINCES.map((p) => `<option ${S.plateProv === p ? "selected" : ""}>${esc(p)}</option>`).join("")}</select></label></div><label class="fl">สีรถ<input class="field" data-bind="carColor" value="${esc(S.carColor)}" placeholder="เช่น ขาว ดำ เทา"></label><h2 class="fh">สถานที่ติดตั้ง</h2><p class="muted" style="margin:0 0 .5rem;font-size:.875rem">ช่างไปติดตั้งให้ถึงที่ในกรุงเทพฯ นนทบุรี ปทุมธานี สมุทรปราการ สมุทรสาคร และนครปฐม</p><label class="fl">จังหวัด<select id="areaProv" class="field" data-bind="areaProv"><option value="">เลือกจังหวัด</option>${SERVICE_AREA.map((p) => `<option ${S.areaProv === p ? "selected" : ""}>${esc(p)}</option>`).join("")}</select></label><label class="fl">ที่อยู่หรือจุดนัด<input class="field" data-bind="location" placeholder="คอนโด บ้านเลขที่ ถนน เขต" value="${esc(S.location)}"></label><div class="geo-row"><button type="button" class="linkbtn" data-act="geo">${ICON.pin} ปักตำแหน่งปัจจุบัน</button><span class="muted">${esc(S.geoText)}</span></div><h2 class="fh">วันและเวลา</h2>${S.bookDate ? `<p class="picked">${esc(thDate(S.bookDate))}${S.bookTime ? ` เวลา ${esc(S.bookTime)} น.` : ""}</p>` : `<p class="muted" style="margin:0 0 .4rem;font-size:.875rem">เลือกวันในปฏิทิน แล้วเลือกเวลาที่สะดวก</p>`}${calendarHtml()}<div style="margin-top:.7rem"><div class="slots" id="timeSlots">${S.bookDate ? TIME_SLOTS.map((slot) => { const past = slotPassed(S.bookDate, slot); return `<button type="button" data-act="slot" data-time="${slot}" class="${S.bookTime === slot && !past ? "on" : ""}" ${past ? "disabled" : ""}>${slot}</button>`; }).join("") : `<span class="muted" style="font-size:.85rem">เลือกวันที่ก่อน</span>`}</div></div></div>
   ${DISCOUNTS_ON ? `<div class="card coupon" style="padding:1rem;margin-bottom:1rem"><h2 style="margin-bottom:.5rem">โค้ดส่วนลด</h2>${S.coupon ? `<div class="coupon-on"><div><b>${esc(S.coupon.code)}</b><div class="muted">${esc(S.coupon.label)}</div></div><button type="button" class="back" style="margin:0" data-act="uncoupon">เอาออก</button></div>` : `<div class="coupon-row"><input id="couponInput" class="field" placeholder="เช่น NEW500 หรือโค้ดจากเพื่อน" value="${esc(S.couponDraft || "")}" autocapitalize="characters"><button type="button" class="btn" data-act="coupon">ใช้โค้ด</button></div>`}${S.couponErr ? `<p class="err" style="margin:.5rem 0 0">${esc(S.couponErr)}</p>` : ""}</div>` : ""}
-  <p class="muted">ขั้นถัดไปคือชำระเต็มจำนวนผ่าน PromptPay แล้วนำสลิปมาให้ร้านตรวจ</p>
-  <label style="display:flex;gap:.5rem;font-size:.8rem" class="muted"><input id="consent" type="checkbox" ${S.consent ? "checked" : ""}> <span>ยอมรับ <button type="button" class="back" data-act="legal" data-which="privacy">นโยบายความเป็นส่วนตัว</button> และ <button type="button" class="back" data-act="legal" data-which="terms">เงื่อนไขการใช้บริการ</button></span></label>${S.error ? `<p class="err">${esc(S.error)}</p>` : ""}<button id="bookBtn" class="btn" style="width:100%;padding:.85rem" data-act="save" ${S.busy ? "disabled" : ""}>${S.busy ? "กำลังบันทึก…" : "จองคิวและไปชำระเงิน"}</button>`;
+  <p class="muted" style="font-size:.875rem">ขั้นต่อไปชำระผ่าน PromptPay แล้วแนบสลิป ร้านจะยืนยันคิวให้ภายในวันเดียวกัน</p>
+  <label class="consent"><input id="consent" type="checkbox" ${S.consent ? "checked" : ""}> <span>ยอมรับ <button type="button" class="back" data-act="legal" data-which="privacy">นโยบายความเป็นส่วนตัว</button> และ <button type="button" class="back" data-act="legal" data-which="terms">เงื่อนไขการใช้บริการ</button></span></label>${S.error ? `<p class="err">${esc(S.error)}</p>` : ""}<button id="bookBtn" class="btn" style="width:100%;padding:.85rem" data-act="save" ${S.busy ? "disabled" : ""}>${S.busy ? "กำลังบันทึก…" : "จองคิวและไปชำระเงิน"}</button>`;
 }
 function lineMsgUrl(text) {
   const id = String(CATALOG.shop.lineId || "").trim();
@@ -3537,12 +3680,11 @@ function payHtml() {
   }
   const pay = row.payment || paymentFor(row.quote.total);
   const mobile = formatMobile(pay.promptpayMobile);
-  return `<h1>ชำระเต็มจำนวน</h1><p class="muted">รหัสการจอง <b>${esc(row.id)}</b> · ${esc(STATUS_LABEL[row.status] || row.status)}</p>
-  <div class="card" style="padding:1rem;margin:.6rem 0"><b>${esc(row.customer)}</b><div>${esc(row.phone)}</div><div>ทะเบียน ${esc(row.plate)} ${esc(row.plateProv)}</div><div>สถานที่ ${esc(row.location)}</div><div>นัดติดตั้ง ${esc(thDate(row.date, row.time))}</div></div>
-  ${quoteHtml(row.quote)}
-  <div class="card" style="padding:1rem;text-align:center">${pay.amount == null ? `<p class="amber">ซีรีส์นี้ยังไม่มีราคาประกาศ ร้านจะเสนอราคาให้ก่อน แล้วค่อยชำระเงิน</p>${quoteRequestHtml(row)}` : `<h2>ยอดที่ต้องชำระทั้งจำนวน</h2><p id="payAmount" style="font-size:1.6rem;font-weight:700;color:#1d4ed8">${money(pay.amount)} บาท</p><p class="amber">ยอดนี้เป็นข้อมูลตัวอย่าง</p>${pay.placeholder ? `<p class="amber">ร้านยังไม่ได้ตั้งเบอร์ PromptPay จึงยังไม่แสดง QR กรุณาติดต่อร้านทาง LINE</p>` : `<p class="muted">PromptPay ${esc(mobile)}</p>`}<div id="promptpayQr" class="qr">${qrMarkup(pay.payload)}</div><p class="muted">สแกนด้วยแอปธนาคาร ยอดใน QR คือยอดเต็มจำนวน</p>`}</div>
-  ${row.status !== "paid" && pay.amount != null ? `<div class="card" style="padding:1rem"><h2>อัปโหลดสลิป</h2>${pay.slipDataUrl ? `<img alt="สลิปที่อัปโหลด" src="${pay.slipDataUrl}" style="width:100%;max-height:12rem;object-fit:contain">` : ""}<label class="btn" style="display:block;text-align:center;padding:.8rem;margin-top:.6rem">เลือกสลิป<input id="slipFile" type="file" accept="image/*" hidden></label></div>` : ""}
-  <div class="card" style="padding:1rem"><h2>บัตรเครดิตหรือเดบิต</h2><p class="muted">บัตรยังไม่เปิดในไฟล์นี้ ไม่มีคีย์ Omise หรือ Stripe และจะไม่ตัดเงินจริง</p><button class="btn" style="width:100%;padding:.7rem;opacity:.5" disabled>บัตรยังไม่เปิด</button></div>
+  const details = `<div class="card" style="padding:1rem;margin:.6rem 0"><h2 class="fh" style="margin-top:0">นัดติดตั้ง</h2><div class="kv"><span>วันเวลา</span><b>${esc(thDate(row.date, row.time))}</b></div><div class="kv"><span>สถานที่</span><b>${esc(row.location)}</b></div><div class="kv"><span>ผู้ติดต่อ</span><b>${esc(row.customer)} ${esc(row.phone)}</b></div><div class="kv"><span>ทะเบียน</span><b>${esc(row.plate)} ${esc(row.plateProv)}</b></div></div>${quoteHtml(row.quote, true)}`;
+  return `<h1>${row.status === "paid" ? "ชำระเงินแล้ว" : row.status === "awaiting_verification" ? "ได้รับสลิปแล้ว" : "ชำระเงินเพื่อยืนยันคิว"}</h1><p class="muted">รหัสการจอง <b>${esc(row.id)}</b></p>
+  <div class="card paycard" style="padding:1rem;text-align:center">${pay.amount == null ? `<p class="amber">ซีรีส์นี้ยังไม่มีราคาประกาศ ร้านจะเสนอราคาให้ก่อน แล้วค่อยชำระเงิน</p>${quoteRequestHtml(row)}` : `<span class="muted">ยอดชำระทั้งหมด</span><p id="payAmount" class="amount">${money(pay.amount)} <small>บาท</small></p>${pay.placeholder ? `<p class="amber">ร้านยังไม่ได้ตั้งเบอร์ PromptPay จึงยังไม่แสดง QR กรุณาติดต่อร้านทาง LINE</p>` : `<p class="muted">PromptPay ${esc(mobile)}</p>`}<div id="promptpayQr" class="qr">${qrMarkup(pay.payload)}</div><p class="muted" style="font-size:.875rem">สแกนด้วยแอปธนาคาร ยอดใน QR คือยอดเต็มจำนวน</p>`}</div>
+  ${row.status !== "paid" && pay.amount != null ? `<div class="card" style="padding:1rem"><h2>อัปโหลดสลิป</h2>${pay.slipDataUrl ? `<img alt="สลิปที่อัปโหลด" src="${pay.slipDataUrl}" style="width:100%;max-height:12rem;object-fit:contain">` : ""}<label class="btn" style="display:block;text-align:center;padding:.8rem;margin-top:.6rem">${pay.slipDataUrl ? "เปลี่ยนสลิป" : "แนบสลิปโอนเงิน"}<input id="slipFile" type="file" accept="image/*" hidden></label><p class="muted" style="font-size:.8rem;margin:.5rem 0 0">รับชำระผ่าน PromptPay เท่านั้น ยังไม่รองรับบัตรเครดิต</p></div>` : ""}
+  ${details}
   ${row.status === "awaiting_verification" ? afterSlipHtml(row) : ""}${row.status === "paid" ? `<p style="color:#1d4ed8;font-weight:700">ชำระเต็มจำนวนแล้ว</p>` : ""}${!["pending_payment"].includes(row.status) ? stageHtml(row.id) : ""}
   <button class="btn" style="width:100%;padding:.8rem;background:#fff;color:#1e293b;border:1px solid #e2e8f0" data-act="go" data-step="home">กลับหน้าแรก</button>`;
 }
@@ -3565,7 +3707,7 @@ function legalHtml() {
 }
 function paint() {
   const app = document.getElementById("app");
-  const steps = { home: ["ขั้น 1 จาก 6", homeHtml, 1], path: ["ขั้น 2 จาก 6", pathHtml, 2], quiz: ["ขั้น 2 จาก 6", quizHtml, 2], series: ["ขั้น 3 จาก 6", seriesHtml, 3], shades: ["ขั้น 4 จาก 6", shadesHtml, 4], camera: ["ขั้น 4 จาก 6", cameraHtml, 4], book: ["ขั้น 5 จาก 6", bookHtml, 5], pay: ["ขั้น 6 จาก 6", payHtml, 6], admin: ["สำหรับทีมร้าน", adminHtml, 0], track: ["ติดตามงาน", trackHtml, 0], receipt: ["ใบเสร็จ", receiptHtml, 0] };
+  const steps = { home: ["", homeHtml, 1], path: ["เลือกฟิล์ม", pathHtml, 2], quiz: ["แนะนำฟิล์ม", quizHtml, 2], series: ["เลือกรุ่นฟิล์ม", seriesHtml, 3], shades: ["เลือกความเข้ม", shadesHtml, 4], camera: ["ลองดูฟิล์ม", cameraHtml, 4], book: ["จองคิว", bookHtml, 5], pay: ["ชำระเงิน", payHtml, 6], admin: ["สำหรับทีมร้าน", adminHtml, 0], track: ["ติดตามงาน", trackHtml, 0], receipt: ["ใบเสร็จ", receiptHtml, 0] };
   const [label, view, n] = steps[S.step] || steps.home;
   document.getElementById("stepLabel").textContent = label;
   const prog = document.getElementById("progress");
@@ -3576,6 +3718,14 @@ function paint() {
   bar.hidden = S.focus || !!S.legal || S.disclaimer;
   document.getElementById("cta").hidden = S.step !== "home";
   document.getElementById("ctaLabel").hidden = S.step === "home";
+  const sq = S.step === "shades" ? buildQuote() : null;
+  const barSum = document.getElementById("barSum");
+  const showSum = !!(sq && sq.total != null);
+  barSum.hidden = !showSum;
+  bar.classList.toggle("has-sum", showSum);
+  if (showSum) document.getElementById("barTotal").textContent = sq.totalLabel;
+  if (S.step !== "home" && !showSum) bar.hidden = true;
+  document.body.classList.toggle("has-bar", !bar.hidden && S.step !== "home");
   if (S.cameraOn && !S.photoUrl && !S.note && S.stream) attachCam();
   if (S.step === "camera") document.querySelectorAll(".tchips").forEach((row) => { const on = row.querySelector(".on"); if (on) row.scrollLeft = on.offsetLeft - row.clientWidth / 2 + on.offsetWidth / 2; });
 }
@@ -3630,6 +3780,7 @@ document.addEventListener("click", (event) => {
   if (act === "demo") { stopCam(); S.cameraOn = true; S.photoUrl = ""; S.note = "กำลังใช้ภาพจำลอง"; go("camera"); }
   if (act === "cam-back") { stopCam(); S.cameraOn = false; S.photoUrl = ""; go("shades"); }
   if (act === "night") { S.nightMode = !S.nightMode; paint(); }
+  if (act === "qtoggle") { S.quoteOpen = !S.quoteOpen; paint(); }
   if (act === "natural") { S.natural = !S.natural; paint(); }
   if (act === "compare") { S.compare = !S.compare; if (S.compare && S.compareIndex == null) { const n = (seriesOf()?.shades || []).length; S.compareIndex = Math.min(n - 1, (S.shadeIndex || 0) + 1); } paint(); }
   if (act === "setshade") { S.shadeIndex = Number(btn.dataset.i); S.natural = false; paint(); }
