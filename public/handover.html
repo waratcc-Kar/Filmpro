@@ -2699,7 +2699,7 @@ let D,tab='jobs',cur=null,ui={};
 const $=id=>document.getElementById(id),now=()=>Date.now(),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=t=>t?new Date(t).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'}):'-',fmtD=t=>t?new Date(t).toLocaleDateString('th-TH'):'-';
 function blank(){return {jobs:[],ho:{},inst:{},W:{},S:{redoDays:3},seq:1};}
-function load(){try{D=JSON.parse(localStorage.getItem(KEY))||blank();}catch(e){D=blank();}}
+function load(){try{D=Object.assign(blank(),JSON.parse(localStorage.getItem(KEY))||{});}catch(e){D=blank();}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(D));}catch(e){alert('พื้นที่เก็บข้อมูลเต็ม — ส่งออก JSON แล้วลบงานเก่า');}}
 function reset(){D=blank();cur=null;save();go('jobs');}
 function job(id){return D.jobs.find(j=>j.id===id);}

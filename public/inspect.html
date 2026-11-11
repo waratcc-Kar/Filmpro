@@ -47,7 +47,7 @@ const $=id=>document.getElementById(id),now=()=>new Date().toISOString(),esc=s=>
 let D,cur=null,tab='board',ui={};
 function blank(){return {jobs:[],ins:{},inst:{},seq:1};}
 const nid=p=>p+(D.seq++).toString().padStart(4,'0');
-function load(){try{D=JSON.parse(localStorage.getItem(KEY))||blank();}catch(e){D=blank();}}
+function load(){try{D=Object.assign(blank(),JSON.parse(localStorage.getItem(KEY))||{});}catch(e){D=blank();}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(D));}catch(e){alert('พื้นที่เก็บข้อมูลเต็ม — ส่งออก JSON แล้วลบงานเก่า');}}
 function reset(){D=blank();cur=null;tab='list';save();render();}
 const job=id=>D.jobs.find(j=>j.id===id);
@@ -255,7 +255,7 @@ function toJob(id){const j=job(id),h=D.ins[id];const pre={};h.exist.forEach(k=>{
  return {id:j.id,customer:j.customer,phone:j.phone,car:carStr(h.car),film:filmStr(h)||j.film,inst:j.inst,pre,carPhoto:j.carPhoto||null,filmRolls:(h.seal&&h.seal.ok&&h.seal.rolls)||null,sealNo:(h.seal&&h.seal.ok&&h.seal.no)||null,createdAt:j.createdAt,inspect:{car:h.car,exist:h.exist,defects:h.defects.map(({photo,...d})=>d),filmZones:h.film,signer:h.signer,doneAt:h.doneAt}};}
 function finish(){const h=I();h.status='ตรวจแล้ว';h.doneAt=now();if(h.seal&&h.seal.ok)FPF.put(cur,{status:'used',used:{rolls:h.seal.rolls,sealOk:true,sealPhoto:!!h.seal.photo,at:Date.now(),by:job(cur).inst}});const j=job(cur),o=toJob(cur);j.car=o.car;j.film=o.film;j.pre=o.pre;save();
  // push into Handover (Part 3) store on same origin
- try{const H=JSON.parse(localStorage.getItem(HO_KEY))||{jobs:[],ho:{},inst:{},W:{},S:{redoDays:3},seq:1};H.inst=H.inst||{};if(j.inst)H.inst[j.inst]=H.inst[j.inst]||D.inst[j.inst]||{name:j.inst};const e=H.jobs.findIndex(x=>x.id===o.id);if(e>=0)H.jobs[e]={...H.jobs[e],...o};else H.jobs.push(o);localStorage.setItem(HO_KEY,JSON.stringify(H));alert('บันทึกแล้ว ✓ ส่งข้อมูลงาน '+o.id+' ไป FilmPro Handover เรียบร้อย');}
+ try{const H=Object.assign({jobs:[],ho:{},inst:{},W:{},S:{redoDays:3},seq:1},JSON.parse(localStorage.getItem(HO_KEY))||{});H.inst=H.inst||{};if(j.inst)H.inst[j.inst]=H.inst[j.inst]||D.inst[j.inst]||{name:j.inst};const e=H.jobs.findIndex(x=>x.id===o.id);if(e>=0)H.jobs[e]={...H.jobs[e],...o};else H.jobs.push(o);localStorage.setItem(HO_KEY,JSON.stringify(H));alert('บันทึกแล้ว ✓ ส่งข้อมูลงาน '+o.id+' ไป FilmPro Handover เรียบร้อย');}
  catch(e){alert('บันทึกแล้ว แต่ส่งเข้า Handover ไม่ได้ (พื้นที่เต็ม) — ใช้ปุ่มส่งออก JSON');}tab='list';render();}
 function exportJSON(){return {source:'filmpro-inspect-v1',exportedAt:now(),inst:Object.entries(D.inst).map(([id,v])=>({id,name:v.name})),jobs:D.jobs.filter(j=>D.ins[j.id]?.status==='ตรวจแล้ว').map(j=>toJob(j.id))};}
 function dl(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(exportJSON())],{type:'application/json'}));a.download='filmpro-inspect-'+now().slice(0,10)+'.json';a.click();}

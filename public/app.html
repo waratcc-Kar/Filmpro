@@ -52,6 +52,7 @@ button.job:active { background: #FAFBFD; }
 .btns { display: flex; gap: .6rem; margin-top: .8rem; }
 .btns .btn { flex: 1; }
 .timer { font-variant-numeric: tabular-nums; }
+.why { margin: .6rem 0 0; font-size: .85rem; color: var(--warn); }
 /* bottom tabs */
 .tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--surface); border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(3, 1fr); padding-bottom: env(safe-area-inset-bottom); }
 .tabs button { border: 0; background: none; min-height: 62px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .15rem; font-size: .8rem; color: var(--muted); position: relative; }
@@ -127,13 +128,42 @@ const I = {
 };
 const WINDOW_TH = { front: "บานหน้า", frontSide: "คู่หน้า", rearSide: "คู่หลัง", rear: "บานหลัง", sunroof: "ซันรูฟ", sunroof2: "ซันรูฟ ช่องที่ 2", glassRoof: "หลังคาแก้ว" };
 const DECLINE = ["ติดงานอื่นช่วงเวลานั้น", "ไกลเกินไป", "ไม่ถนัดฟิล์มยี่ห้อนี้", "เหตุผลส่วนตัว"];
+const stars = (r) => { const v = r && (r.wavg ?? r.stars ?? r.score); return v == null ? "" : (+v).toFixed(1); };
 const CLOSED = ["cancelled", "done", "completed", "closed", "refunded"];
+
+// Same hard rules as the auto-offer (FPM.elig in inspect/tech): a tech may only take jobs they qualify for.
+const ELIG_DEF = { premium: ["3M", "STEK", "XPEL", "LLUMAR", "HUPER OPTIK", "V-KOOL"], premiumLevel: 3, wsSunLevel: 3, radius: { 1: 15, 2: 25, 3: 40, 4: 60 }, hiPrice: 20000 };
+function eligNo(t, b, rules) {
+  const R = { ...ELIG_DEF, ...(rules || {}) }, UP = (s) => String(s || "").trim().toUpperCase(), no = [];
+  if (!t) return ["ยังไม่มีข้อมูลช่างในระบบ"];
+  const fb = UP((b.film || {}).brand), prem = (R.premium || []).map(UP).includes(fb), sr = !!b.sunroof && b.sunroof !== "ไม่มี", ws = !!b.windshieldUpgrade;
+  let lv = 1; const why = [];
+  if (prem) { lv = Math.max(lv, R.premiumLevel); why.push("ฟิล์มพรีเมียม"); }
+  if (sr || ws) { lv = Math.max(lv, R.wsSunLevel); why.push(sr ? b.sunroof : "อัปเกรดบานหน้า"); }
+  if (t.status && t.status !== "active") no.push("ยังไม่ผ่านการตรวจสอบจากบริษัท");
+  const hi = prem || (+b.price || 0) > (+R.hiPrice || Infinity);
+  if (hi && !t.verified) no.push("งานราคาสูง/ฟิล์มพรีเมียม ต้องเป็นช่าง Verified");
+  if (b.date && (t.off || []).includes(b.date)) no.push("คุณแจ้งไม่ว่างวันนั้น");
+  if ((t.level || 1) < lv) no.push(`ต้องระดับ L${lv} ขึ้นไป (${why.join(", ")})`);
+  if (prem && !(t.brands || []).map(UP).includes(fb)) no.push(`ต้องมีใบรับรองแบรนด์ ${fb}`);
+  if (sr && !t.sun) no.push("ยังไม่ผ่านทักษะซันรูฟ");
+  if (ws && !t.ws) no.push("ยังไม่ผ่านทักษะกระจกบานหน้า");
+  const g = b.geo || {}, rad = R.radius[t.level] || R.radius[1];
+  if (g.lat != null && t.lat != null && t.lat !== "") {
+    const r = (x) => x * Math.PI / 180, dl = r(g.lat - t.lat), dg = r(g.lng - t.lng), h = Math.sin(dl / 2) ** 2 + Math.cos(r(t.lat)) * Math.cos(r(g.lat)) * Math.sin(dg / 2) ** 2, km = 12742 * Math.asin(Math.sqrt(h));
+    if (km > rad) no.push(`ไกลเกินรัศมีของคุณ ${rad} กม.`);
+  } else if (t.area) {
+    const L = String(b.location || "") + " " + String(b.province || ""), A = String(t.area || "").split(/[,\s]+/).filter(Boolean);
+    if (!A.some((a) => L.includes(a))) no.push("อยู่นอกพื้นที่ให้บริการของคุณ");
+  }
+  return no;
+}
 
 // ---------- data
 const data = () => {
   const bookings = J(K.bk, []), claims = J(K.claims, {}), assign = J(K.assign, {}), pub = J(K.pub, {}), ins = (J(K.ins, {}).ins) || {}, ho = (J(K.ho, {}).ho) || {}, rate = J(K.rate, {});
-  const me = (pub.techs || []).find((t) => t.id === ME) || { id: ME, name: "" };
-  return { bookings: Array.isArray(bookings) ? bookings : [], claims, assign, me, ins, ho, rate };
+  const me = (pub.techs || []).find((t) => t.id === ME) || null;
+  return { bookings: Array.isArray(bookings) ? bookings : [], claims, assign, me: me || { id: ME, name: "" }, meRec: me, rules: pub.rules || {}, ins, ho, rate };
 };
 const holder = (D, b) => (D.claims[b.id] && D.claims[b.id].tech) || b.tech || null;
 const depositOk = (b) => !b.deposit || b.deposit.amount == null || ["paid", "refunded"].includes(b.deposit.status);
@@ -224,7 +254,7 @@ function events(D) {
     if (mineNow && p.mine && p.loc !== cur.loc) out.push({ id: "loc:" + b.id + ":" + cur.loc, at, icon: I.pin, t: "เปลี่ยนสถานที่ติดตั้ง", s: `${b.customer || b.id} · ${b.location || ""}`, go: "#job/" + b.id });
     if (p.mine && p.st !== "cancelled" && b.status === "cancelled") out.push({ id: "cancel:" + b.id, at, icon: I.x, t: "ลูกค้ายกเลิกคิว", s: `${b.customer || b.id} · ${dayLabel(b.date)}`, go: "#mine" });
     if (mineNow && p.stage !== "redo" && cur.stage === "redo") out.push({ id: "redo:" + b.id, at, icon: I.x, t: "ลูกค้าขอให้แก้ไขงาน", s: `${b.customer || b.id}`, go: "#job/" + b.id });
-    if (mineNow && !p.rated && cur.rated) out.push({ id: "rate:" + b.id, at, icon: I.star, t: `ลูกค้าให้คะแนน ${(D.rate[b.id] || {}).stars || ""}`.trim(), s: `${b.customer || b.id}`, go: "#job/" + b.id });
+    if (mineNow && !p.rated && cur.rated) out.push({ id: "rate:" + b.id, at, icon: I.star, t: `ลูกค้าให้คะแนน ${stars(D.rate[b.id])} ดาว`, s: `${b.customer || b.id}`, go: "#job/" + b.id });
   });
   const log = (seen.log || []).filter((e) => !out.some((o) => o.id === e.id));
   const fresh = out.filter((e) => !e.id.startsWith("offer:"));
@@ -261,7 +291,8 @@ function card(D, b, kind) {
   if (kind === "mine") return `<button class="job" data-go="#job/${esc(b.id)}">${kind === "mine" && b.customer ? `<div style="font-weight:600;margin-bottom:.35rem">${esc(b.customer)}</div>` : ""}${body}</button>`;
   const price = b.total != null ? `<span class="price">${money(b.total)} <small>บาท</small></span>` : "<span></span>";
   if (kind === "offer") return `<div class="job offer">${body}<div class="row-end">${price}<span class="pill">${esc(b.id)}</span></div><div class="btns"><button class="btn ghost" data-act="decline" data-id="${esc(b.id)}">ปฏิเสธ</button><button class="btn" data-act="accept" data-id="${esc(b.id)}">รับงาน</button></div></div>`;
-  return `<div class="job">${body}<div class="row-end">${price}<button class="btn" data-act="claim" data-id="${esc(b.id)}" ${depositOk(b) ? "" : 'aria-disabled="true" disabled'}>รับงานนี้</button></div></div>`;
+  const no = eligNo(D.meRec, b, D.rules), can = depositOk(b) && !no.length;
+  return `<div class="job">${body}<div class="row-end">${price}<button class="btn" data-act="claim" data-id="${esc(b.id)}" ${can ? "" : 'aria-disabled="true" disabled'}>รับงานนี้</button></div>${no.length ? `<p class="why">รับไม่ได้: ${esc(no.join(" · "))}</p>` : ""}</div>`;
 }
 const fmtLeft = (ms) => { const m = Math.floor(ms / 60000), s = Math.floor(ms / 1000) % 60; return `เหลือ ${m}:${String(s).padStart(2, "0")}`; };
 function viewOpen(D) {
@@ -319,7 +350,7 @@ function viewJob(D) {
   <section class="card"><h3>ขั้นตอนงาน</h3><ol class="steps">
     ${step(s1, 1, "ตรวจสภาพรถก่อนติด", i && i.status === "ตรวจแล้ว" ? "ตรวจแล้ว ลูกค้าเซ็นรับทราบ" : i ? "ทำค้างไว้ กดเพื่อทำต่อ" : "ถ่ายรูปกระจก บันทึกตำหนิ ให้ลูกค้าเซ็น", s1 === "done" ? "" : `<a class="btn" href="/inspect?job=${encodeURIComponent(b.id)}">${i ? "ทำต่อ" : "เริ่ม"}</a>`)}
     ${step(s2 || (redo ? "now" : ""), 2, redo ? "แก้ไขงานตามที่ลูกค้าแจ้ง" : "ติดฟิล์มและส่งมอบ", st.k === "done" ? "ส่งมอบแล้ว" : redo ? "ดูรายการที่ต้องแก้ แล้วส่งมอบใหม่" : "ถ่ายรูปหลังติด ตรวจรับกับลูกค้า ออกใบส่งมอบ", s2 === "now" || redo ? `<a class="btn" href="/handover?job=${encodeURIComponent(b.id)}">${h ? "ทำต่อ" : "เริ่ม"}</a>` : "")}
-    ${step(D.rate[b.id] ? "done" : "", 3, "ลูกค้าให้คะแนน", D.rate[b.id] ? `ได้ ${esc(D.rate[b.id].stars || D.rate[b.id].score || "")} ดาว` : "ลูกค้าให้คะแนนหลังรับรถ", "")}
+    ${step(D.rate[b.id] ? "done" : "", 3, "ลูกค้าให้คะแนน", D.rate[b.id] ? `ได้ ${esc(stars(D.rate[b.id]))} จาก 5 ดาว${D.rate[b.id].comment ? " · " + esc(D.rate[b.id].comment) : ""}` : "ลูกค้าให้คะแนนหลังรับรถ", "")}
   </ol></section>
   <section class="card"><h3>รถ</h3><dl class="kv">
     <dt>รุ่น</dt><dd>${esc([b.car && b.car.brand, b.car && b.car.model].filter(Boolean).join(" ") || "-")}</dd>

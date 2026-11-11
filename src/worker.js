@@ -1,3 +1,4 @@
+import { eligNo } from "./elig.js";
 // FilmPro Worker: static site + shared data (D1) + staff login with phone & PIN.
 // Customer site stays public. Staff pages need a session: techs open job pages, admins open everything.
 
@@ -380,7 +381,7 @@ function techMayWrite(k, rid, data, ex, V) {
   const job = child != null ? child : top;
   switch (k) {
     case BK: return V.mine.has(rid);
-    case K.claims: return (!ex || ex.tech === V.me) && (data === null || (data && data.tech === V.me)) && (V.mine.has(rid) || V.open.has(rid));
+    case K.claims: return (!ex || ex.tech === V.me) && (data === null || (data && data.tech === V.me)) && (V.mine.has(rid) || (V.open.has(rid) && (!data || V.eligOk(rid))));
     case K.assign: return V.mine.has(rid) || (ex && ex.tech === V.me);
     case K.inspect: case K.handover: case RATE: case K.warranty: case K.notify:
       if (V.all.has(job)) return V.mine.has(job);
@@ -398,6 +399,12 @@ async function syncPush(env, u, b) {
   if (u.role !== "admin") {
     const V = await techView(env, u);
     const exOf = async (rid) => (b.k === K.claims || b.k === K.assign) ? await getRec(env, b.k, rid) : null;
+    if (b.k === K.claims) {
+      const t = await getRec(env, K.pub, "techs" + SEP_A + V.me), rules = await getRec(env, K.pub, "rules");
+      const cache = {};
+      for (const [rid] of ups) { const bk = await getRec(env, BK, rid); cache[rid] = bk ? eligNo(t, bk, rules).length === 0 : false; }
+      V.eligOk = (rid) => !!cache[rid];
+    }
     const okU = [], okD = [];
     for (const [rid, data] of ups) { if (techMayWrite(b.k, rid, data, await exOf(rid), V)) okU.push([rid, data]); else rejected.push(rid); }
     for (const rid of dels) { if (techMayWrite(b.k, rid, null, await exOf(rid), V)) okD.push(rid); else rejected.push(rid); }

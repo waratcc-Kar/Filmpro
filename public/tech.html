@@ -2666,7 +2666,7 @@ const STATUS=['มอบหมาย','ตรวจรถแล้ว','ติ�
 const DEF_S={fees:{gen:500,pro:1000,exp:1500},promo:{pro:{jobs:50,avg:4.5,redo:3},exp:{jobs:150,avg:4.7,redo:2}},demoteAvg30:4.0,firstPct:90,retainPct:10,retainDays:30,autoHours:48,bonus:100,redoCostDefault:3000,
  w:{rating:70,redo:10,photo:10,cancel:5,claim:5},clockOffset:0};
 function blank(){return {S:JSON.parse(JSON.stringify(DEF_S)),inst:[],jobs:[],ledger:[],seq:1};}
-function load(){try{const d=JSON.parse(localStorage.getItem(LS));if(d&&d.S)return d;}catch(e){}return blank();}
+function load(){try{const d=JSON.parse(localStorage.getItem(LS));if(d&&d.S)return d;if(d&&Array.isArray(d.inst)){const b=blank();b.inst=d.inst.concat((b.inst||[]).filter(x=>!d.inst.some(y=>y.id===x.id)));return b;}}catch(e){}return blank();}
 let D=load();const save=()=>{try{localStorage.setItem(LS,JSON.stringify(D));}catch(e){alert('พื้นที่จัดเก็บเต็ม (ลดขนาดไฟล์หลักฐาน)');}};
 const now=()=>Date.now()+(D.S.clockOffset||0),fmtD=t=>t?new Date(t).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'}):'-',baht=n=>(Math.round(n)||0).toLocaleString()+' บาท';
 const nid=p=>p+(D.seq++).toString().padStart(4,'0');

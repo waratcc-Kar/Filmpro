@@ -277,7 +277,7 @@
       var done = it && (page === "inspect" ? it.status === "ตรวจแล้ว" : it.status === "ส่งมอบแล้ว");
       if (!done || !startDone) return;
       leaving = true;
-      flushAll();
+      window.FPSync.flush();
       var t0 = Date.now();
       (function wait() { if ((window.FPSync.idle(doneKey) && window.FPSync.idle("filmpro_handover_v1")) || Date.now() - t0 > 6000) location.href = "/app#job/" + encodeURIComponent(job); else setTimeout(wait, 200); })();
     }
