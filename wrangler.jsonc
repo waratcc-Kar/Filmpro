@@ -1,9 +1,16 @@
 {
-  // FilmPro — static site on Cloudflare Workers (Static Assets). No Worker script needed.
+  // FilmPro: static site + Worker API (staff PIN login, shared data in D1)
   "name": "filmpro",
+  "main": "src/worker.js",
   "compatibility_date": "2026-11-10",
   "assets": {
     "directory": "./public",
-    "not_found_handling": "404-page"
-  }
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/api/*", "/tech*", "/admin-v2*", "/staff-users*", "/inspect*", "/handover*", "/notify*"]
+  },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "filmpro-db", "database_id": "e38b19ef-83e1-4d6b-af13-9791f6e7c8c8" }
+  ],
+  "observability": { "enabled": true }
 }

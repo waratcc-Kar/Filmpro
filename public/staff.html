@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>FilmPro ทีมงาน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root { --paper: #F3F6F9; --ink: #121A24; --blue: #1D5BE3; --line: #DCE3EA; --muted: #5B6B7B; --bad: #C2410C; }
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; min-height: 100dvh; background: var(--paper); color: var(--ink); font: 400 16px/1.5 Prompt, system-ui, sans-serif; display: flex; flex-direction: column; }
+.top { display: flex; align-items: center; gap: .55rem; padding: 1rem 1.25rem; font-weight: 700; font-size: 1.15rem; }
+.strip { width: 30px; height: 14px; border-radius: 3px; background: linear-gradient(90deg, #121A24, #5B6B7B 60%, #DCE3EA); }
+main { flex: 1; display: flex; align-items: flex-start; justify-content: center; padding: 6vh 1rem 2rem; }
+.card { width: 100%; max-width: 380px; background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 1.5rem 1.25rem; }
+h1 { font-size: 1.45rem; margin: 0 0 .2rem; line-height: 1.3; }
+.sub { color: var(--muted); margin: 0 0 1.25rem; font-size: .95rem; }
+label { display: block; font-weight: 500; font-size: .95rem; margin: 0 0 .35rem; }
+input { width: 100%; font: inherit; font-size: 1.15rem; padding: .75rem .9rem; border: 1px solid var(--line); border-radius: 12px; background: #fff; color: var(--ink); min-height: 52px; }
+input:focus { outline: 3px solid rgba(29,91,227,.25); border-color: var(--blue); }
+.pin { letter-spacing: .5em; text-align: center; font-size: 1.5rem; font-weight: 600; }
+.f { margin-bottom: 1rem; }
+button { width: 100%; min-height: 52px; border: 0; border-radius: 12px; background: var(--blue); color: #fff; font: 600 1.05rem Prompt, system-ui, sans-serif; cursor: pointer; }
+button:disabled { opacity: .55; cursor: wait; }
+button:focus-visible, input:focus-visible { outline: 3px solid rgba(29,91,227,.4); outline-offset: 2px; }
+.err { color: var(--bad); font-size: .92rem; min-height: 1.4em; margin: -.25rem 0 .75rem; }
+.hint { color: var(--muted); font-size: .85rem; margin: 1rem 0 0; text-align: center; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="top"><span class="strip"></span>FilmPro <span style="font-weight:500;color:var(--muted)">ทีมงาน</span></div>
+<main>
+  <form class="card" id="login" novalidate hidden>
+    <h1>เข้าสู่ระบบ</h1>
+    <p class="sub">สำหรับช่างและแอดมิน</p>
+    <div class="f"><label for="phone">เบอร์โทร</label><input id="phone" type="tel" inputmode="tel" autocomplete="username" placeholder="08x-xxx-xxxx" required></div>
+    <div class="f"><label for="pin">PIN 6 หลัก</label><input id="pin" class="pin" type="password" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="current-password" required></div>
+    <p class="err" id="err" role="alert"></p>
+    <button id="go" type="submit">เข้าสู่ระบบ</button>
+    <p class="hint">ลืม PIN ให้แอดมินตั้งใหม่ให้</p>
+  </form>
+  <form class="card" id="setup" novalidate hidden>
+    <h1>ตั้งค่าครั้งแรก</h1>
+    <p class="sub">สร้างบัญชีเจ้าของร้าน (แอดมิน) ใช้รหัสตั้งค่าที่ได้รับ</p>
+    <div class="f"><label for="scode">รหัสตั้งค่า</label><input id="scode" autocomplete="off" autocapitalize="characters" placeholder="XXXX-XXXX"></div>
+    <div class="f"><label for="sname">ชื่อ</label><input id="sname" autocomplete="name"></div>
+    <div class="f"><label for="sphone">เบอร์โทร</label><input id="sphone" type="tel" inputmode="tel" autocomplete="username"></div>
+    <div class="f"><label for="spin">ตั้ง PIN 6 หลัก</label><input id="spin" class="pin" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password"></div>
+    <p class="err" id="serr" role="alert"></p>
+    <button id="sgo" type="submit">สร้างบัญชีและเข้าสู่ระบบ</button>
+  </form>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const next = new URLSearchParams(location.search).get("next");
+const home = (u) => next && next.startsWith("/") && !next.startsWith("//") ? next : u.role === "admin" ? "/admin-v2" : "/inspect";
+const MSG = { bad_login: "เบอร์หรือ PIN ไม่ถูกต้อง", locked: "ใส่ผิดหลายครั้ง ระบบล็อกไว้ 15 นาที", bad_code: "รหัสตั้งค่าไม่ถูกต้อง", invalid: "กรอกชื่อ เบอร์ และ PIN 6 หลักให้ครบ", already_setup: "ตั้งค่าไปแล้ว เข้าสู่ระบบได้เลย" };
+async function post(url, data) { const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }); return { st: r.status, j: await r.json().catch(() => ({})) }; }
+document.querySelectorAll(".pin").forEach((i) => i.addEventListener("input", () => { i.value = i.value.replace(/\D/g, "").slice(0, 6); }));
+$("login").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const phone = $("phone").value, pin = $("pin").value;
+  if (!phone.replace(/\D/g, "") || pin.length !== 6) { $("err").textContent = "ใส่เบอร์โทรและ PIN 6 หลัก"; return; }
+  $("go").disabled = true; $("err").textContent = "";
+  try {
+    const { st, j } = await post("/api/login", { phone, pin });
+    if (st === 200 && j.user) { location.replace(home(j.user)); return; }
+    $("err").textContent = (MSG[j.error] || "เข้าสู่ระบบไม่สำเร็จ") + (j.left ? ` (เหลืออีก ${j.left} ครั้ง)` : "");
+    $("pin").value = ""; $("pin").focus();
+  } catch { $("err").textContent = "เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง"; }
+  $("go").disabled = false;
+});
+$("setup").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  $("sgo").disabled = true; $("serr").textContent = "";
+  try {
+    const { st, j } = await post("/api/setup", { code: $("scode").value, name: $("sname").value, phone: $("sphone").value, pin: $("spin").value });
+    if (st === 200 && j.user) { location.replace("/staff-users"); return; }
+    $("serr").textContent = MSG[j.error] || "ตั้งค่าไม่สำเร็จ";
+    if (j.error === "already_setup") { $("setup").hidden = true; $("login").hidden = false; }
+  } catch { $("serr").textContent = "เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง"; }
+  $("sgo").disabled = false;
+});
+(async () => {
+  try {
+    const me = await fetch("/api/me"); if (me.ok) { const j = await me.json(); location.replace(home(j.user)); return; }
+    const s = await (await fetch("/api/setup")).json();
+    if (s.needed) { $("setup").hidden = false; $("scode").focus(); return; }
+  } catch {}
+  $("login").hidden = false; $("phone").focus();
+})();
+</script>
+</body>
+</html>
