@@ -43,6 +43,9 @@ input:focus, textarea:focus { outline: 3px solid rgba(29,91,227,.22); border-col
 .brands { display: grid; grid-template-columns: 1fr 1fr; gap: .1rem .75rem; }
 .brands label { display: flex; align-items: center; gap: .55rem; min-height: 40px; font-size: .95rem; }
 .brands input { width: 20px; height: 20px; min-height: 0; accent-color: var(--blue); }
+.other { display: flex; align-items: center; gap: .55rem; min-height: 40px; font-size: .95rem; margin-top: .1rem; }
+.other input { width: 20px; height: 20px; min-height: 0; accent-color: var(--blue); }
+#otherTxt { margin-top: .4rem; }
 .go { width: 100%; min-height: 54px; border: 0; border-radius: 13px; background: var(--blue); color: #fff; font: 600 1.08rem Prompt, system-ui, sans-serif; cursor: pointer; }
 .go:disabled { opacity: .55; cursor: wait; }
 .err { color: var(--bad); margin: 0 0 .9rem; font-size: .95rem; }
@@ -82,6 +85,8 @@ input:focus, textarea:focus { outline: 3px solid rgba(29,91,227,.22); border-col
     <section class="card">
       <h2>แบรนด์ฟิล์มที่เคยติด</h2>
       <div class="brands" id="brands"></div>
+      <label class="other"><input type="checkbox" id="otherOn">อื่นๆ ระบุ</label>
+      <input id="otherTxt" placeholder="เช่น Global, Rayno (หลายแบรนด์ใส่จุลภาคคั่น)" aria-label="แบรนด์อื่นๆ" hidden>
     </section>
 
     <section class="card">
@@ -134,12 +139,13 @@ $("jobs").addEventListener("change", async (e) => { const k = e.target.dataset.e
 $("addJob").onclick = () => { st.history.push({ shop: "", pos: "", from: "", to: "", evidence: null }); jobs(); };
 $("brands").innerHTML = BRANDS.map((b) => `<label><input type="checkbox" value="${esc(b)}">${esc(b)}</label>`).join("");
 $("brands").addEventListener("change", () => { st.brands = [...$("brands").querySelectorAll("input:checked")].map((i) => i.value); });
+$("otherOn").addEventListener("change", (e) => { $("otherTxt").hidden = !e.target.checked; if (e.target.checked) $("otherTxt").focus(); });
 $("photo").addEventListener("change", async (e) => { try { st.photo = await readFile(e.target.files[0]); $("avatar").innerHTML = st.photo ? `<img alt="" src="${st.photo.data}">` : "รูปโปรไฟล์"; } catch (m) { showErr(m); } });
 function showErr(m) { $("err").textContent = m; $("err").hidden = false; $("err").scrollIntoView({ block: "center", behavior: "smooth" }); }
 $("form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const v = (id) => $(id).value.trim();
-  const app = { name: v("name"), idCard: v("idCard").replace(/\D/g, ""), address: v("address"), phone: v("phone"), line: v("line"), years: v("years"), history: st.history, brands: st.brands, photo: st.photo, bank: { bank: v("bank"), acct: v("acct"), acctName: v("acctName") } };
+  const app = { name: v("name"), idCard: v("idCard").replace(/\D/g, ""), address: v("address"), phone: v("phone"), line: v("line"), years: v("years"), history: st.history, brands: st.brands.concat($("otherOn").checked ? v("otherTxt").split(/[,，、\n]+/).map((x) => x.trim()).filter(Boolean).map((x) => "อื่นๆ: " + x) : []), photo: st.photo, bank: { bank: v("bank"), acct: v("acct"), acctName: v("acctName") } };
   const miss = [];
   if (!app.name) miss.push("ชื่อ-นามสกุล");
   if (app.idCard.length !== 13) miss.push("เลขบัตรประชาชน 13 หลัก");
@@ -148,6 +154,7 @@ $("form").addEventListener("submit", async (e) => {
   if (app.years === "") miss.push("ประสบการณ์");
   app.history.forEach((h, k) => { if (!h.shop || !h.from || !h.to) miss.push(`ที่ทำงานที่ ${k + 1} ยังกรอกไม่ครบ`); if (!h.evidence) miss.push(`หลักฐานของที่ทำงานที่ ${k + 1}`); });
   if (!app.bank.acct) miss.push("เลขบัญชี");
+  if ($("otherOn").checked && !v("otherTxt")) miss.push("ชื่อแบรนด์อื่นๆ");
   if (miss.length) return showErr("ยังขาด: " + miss.join(", "));
   if (JSON.stringify(app).length > 1700000) return showErr("ไฟล์แนบรวมกันใหญ่เกินไป ลองแนบเป็นรูปแทน PDF หรือลดจำนวนไฟล์");
   $("err").hidden = true; $("go").disabled = true; $("go").textContent = "กำลังส่ง…";
