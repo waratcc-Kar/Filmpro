@@ -96,10 +96,20 @@
 
   // ================= staff: two-way sync of all shared keys
   function staffMode() {
-    var cache = {}, maxV = 0, dirty = {}, timers = {}, inflight = {};
+    var cache = {}, maxV = 0, dirty = {}, timers = {}, inflight = {}, role = null, ignore = {};
     KEYS.forEach(function (k) { cache[k] = { recs: {}, ver: {}, json: null }; });
-    function apply(recs) {
+    function have() {
+      var h = {};
+      KEYS.forEach(function (k) { var o = h[k] = {}; Object.keys(cache[k].recs).forEach(function (rid) { var d = cache[k].recs[rid]; o[rid] = d && d._masked ? 2 : 1; }); });
+      return h;
+    }
+    function apply(recs, vis) {
       var touched = {};
+      if (vis) Object.keys(vis).forEach(function (k) {
+        var c = cache[k]; if (!c) return;
+        var keep = {}; vis[k].forEach(function (r) { keep[r] = 1; });
+        Object.keys(c.recs).forEach(function (rid) { if (!keep[rid]) { delete c.recs[rid]; delete c.ver[rid]; touched[k] = 1; } });
+      });
       recs.forEach(function (r) {
         var c = cache[r.k]; if (!c) return;
         if (r.deleted) { delete c.recs[r.rid]; delete c.ver[r.rid]; }
@@ -111,7 +121,10 @@
     }
     function writeLocal(k, fire) {
       var c = cache[k];
-      if (!Object.keys(c.recs).length) return;
+      if (!Object.keys(c.recs).length) {
+        if (role === "tech" && LS.getItem(k) != null) { var o0 = LS.getItem(k); origRemove.call(LS, k); c.json = null; if (fire) notify(k, o0, null); }
+        return;
+      }
       var s = JSON.stringify(dec(c.recs, c.ver));
       var old = LS.getItem(k);
       c.json = s;
@@ -122,17 +135,18 @@
     // 1) first pull, synchronous so the page starts with shared data
     var ok = false;
     for (var guard = 0; guard < 20; guard++) {
-      var r = xhr("GET", "/api/sync?since=" + maxV);
+      var r = xhr("POST", "/api/sync/pull", { since: maxV, have: have() });
       if (r.status === 401) { location.href = "/staff?next=" + encodeURIComponent(location.pathname + location.search + location.hash); return; }
       if (r.status !== 200 || !r.body) break;
-      apply(r.body.recs || []);
+      role = r.body.role;
+      apply(r.body.recs || [], r.body.vis);
       if (r.body.v > maxV) maxV = r.body.v;
       ok = true;
       if (!r.body.more) break;
     }
     if (ok) KEYS.forEach(function (k) {
-      if (Object.keys(cache[k].recs).length) writeLocal(k, false);
-      else if (LS.getItem(k) != null) { dirty[k] = 1; schedule(k, 50); } // first device with data seeds the server
+      if (Object.keys(cache[k].recs).length || role === "tech") writeLocal(k, false);
+      else if (LS.getItem(k) != null) { dirty[k] = 1; schedule(k, 50); } // first admin device with data seeds the server
     });
     window.FPSync = { online: ok, flush: flushAll, pull: pull };
 
@@ -148,16 +162,19 @@
       var val = raw == null ? undefined : parse(raw);
       if (raw != null && val === null && raw !== "null") { delete dirty[k]; return; }
       var next = raw == null ? {} : enc(val), ups = {}, dels = [], n = 0;
-      Object.keys(next).forEach(function (rid) { if (!(rid in c.recs) || !same(c.recs[rid], next[rid])) { ups[rid] = next[rid]; n++; } });
-      Object.keys(c.recs).forEach(function (rid) { if (!(rid in next)) { dels.push(rid); n++; } });
+      var ig = ignore[k] || {};
+      Object.keys(next).forEach(function (rid) { if (!(rid in c.recs) || !same(c.recs[rid], next[rid])) { if (ig[rid] === JSON.stringify(next[rid])) return; ups[rid] = next[rid]; n++; } });
+      Object.keys(c.recs).forEach(function (rid) { if (!(rid in next) && !ig["-" + rid]) { dels.push(rid); n++; } });
       delete dirty[k];
       if (!n) { c.json = raw; return; }
       inflight[k] = 1;
       xhr("POST", "/api/sync", { k: k, upserts: ups, deletes: dels }, function (st, res) {
         inflight[k] = 0;
         if (st === 200 && res && res.ok) {
-          Object.keys(ups).forEach(function (rid) { c.recs[rid] = parse(JSON.stringify(ups[rid])); c.ver[rid] = res.v; });
-          dels.forEach(function (rid) { delete c.recs[rid]; delete c.ver[rid]; });
+          var rej = {}; (res.rejected || []).forEach(function (rid) { rej[rid] = 1; });
+          var ig2 = ignore[k] = ignore[k] || {};
+          Object.keys(ups).forEach(function (rid) { if (rej[rid]) { ig2[rid] = JSON.stringify(ups[rid]); return; } c.recs[rid] = parse(JSON.stringify(ups[rid])); c.ver[rid] = res.v; });
+          dels.forEach(function (rid) { if (rej[rid]) { ig2["-" + rid] = 1; return; } delete c.recs[rid]; delete c.ver[rid]; });
           c.json = raw;
           badge(st);
         } else {
@@ -173,10 +190,10 @@
     function pull() {
       if (pulling || document.hidden) return;
       pulling = true;
-      xhr("GET", "/api/sync?since=" + maxV, null, function (st, res) {
+      xhr("POST", "/api/sync/pull", { since: maxV, have: role === "tech" ? have() : null }, function (st, res) {
         pulling = false; badge(st);
         if (st !== 200 || !res) return;
-        var ks = apply(res.recs || []);
+        var ks = apply(res.recs || [], res.vis);
         if (res.v > maxV) maxV = res.v;
         ks.forEach(function (k) { if (dirty[k] || inflight[k]) { flush(k); return; } writeLocal(k, true); });
         if (res.more) setTimeout(pull, 50);

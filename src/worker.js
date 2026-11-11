@@ -109,6 +109,7 @@ async function api(req, env, url) {
 
   // --- public (customer) endpoints: no login, checked by booking phone
   if (p === "/api/public/push" && m === "POST") return publicPush(env, await body(req));
+  if (p === "/api/public/apply" && m === "POST") return publicApply(req, env, await body(req));
   if (p === "/api/public/track" && m === "GET") return publicTrack(env, url.searchParams.get("id"), url.searchParams.get("phone"));
 
   // --- staff endpoints
@@ -126,28 +127,8 @@ async function api(req, env, url) {
     return json({ ok: true });
   }
 
-  if (p === "/api/sync" && m === "GET") {
-    const since = Number(url.searchParams.get("since") || 0);
-    const rows = await env.DB.prepare("SELECT k, rid, data, deleted, v FROM records WHERE v > ? ORDER BY v LIMIT 5000").bind(since).all();
-    const cur = await env.DB.prepare("SELECT v FROM settings WHERE k = 'seq'").first();
-    return json({ v: cur ? Number(cur.v) : 0, recs: rows.results, more: rows.results.length === 5000 });
-  }
-  if (p === "/api/sync" && m === "POST") {
-    const b = await body(req);
-    if (!SYNC_KEYS.includes(b.k)) return json({ error: "bad_key" }, 400);
-    const ups = Object.entries(b.upserts || {}), dels = Array.isArray(b.deletes) ? b.deletes : [];
-    if (ups.length + dels.length > 2000) return json({ error: "too_many" }, 413);
-    const stmts = [];
-    let v = await nextV(env);
-    for (const [rid, data] of ups) {
-      const s = JSON.stringify(data);
-      if (rid.length > 200 || s.length > MAX_REC) return json({ error: "too_large", rid }, 413);
-      stmts.push(env.DB.prepare("INSERT INTO records (k, rid, data, deleted, v, by_user) VALUES (?, ?, ?, 0, ?, ?) ON CONFLICT(k, rid) DO UPDATE SET data = excluded.data, deleted = 0, v = excluded.v, by_user = excluded.by_user").bind(b.k, rid, s, v, u.id));
-    }
-    for (const rid of dels) stmts.push(env.DB.prepare("UPDATE records SET deleted = 1, data = NULL, v = ?, by_user = ? WHERE k = ? AND rid = ?").bind(v, u.id, b.k, String(rid)));
-    if (stmts.length) await env.DB.batch(stmts);
-    return json({ ok: true, v });
-  }
+  if (p === "/api/sync/pull" && m === "POST") return syncPull(env, u, await body(req));
+  if (p === "/api/sync" && m === "POST") return syncPush(env, u, await body(req));
 
   // --- user management (admin)
   if (p.startsWith("/api/users")) {
@@ -293,4 +274,178 @@ async function publicTrack(env, id, phone) {
   }
   const seen = new Set();
   return json({ recs: recs.filter((r) => { const key = r.k + "|" + r.rid; if (seen.has(key)) return false; seen.add(key); return true; }) });
+}
+
+// ---------- staff sync
+// Admins see and write everything. A tech sees open jobs (customer contact hidden) and the jobs they
+// hold, their own profile, and shop settings they need; never other techs' data, payments or rosters.
+const K = {
+  claims: "filmpro_claims_v1", assign: "filmpro_assign_v1", inspect: "filmpro_inspect_v1", handover: "filmpro_handover_v1",
+  pub: "filmpro_techpub_v1", tech: "filmpro_tech_v1", film: "filmpro_film_v1", glass: "filmpro_glass_v1", notify: "filmpro_technotify_v1", warranty: "filmpro_warranty_v1",
+};
+const CLOSED = ["cancelled", "done", "completed", "closed", "refunded"];
+const splitRid = (rid) => { const ia = rid.indexOf(SEP_A), io = rid.indexOf(SEP_O); const i = ia > 0 ? ia : io > 0 ? io : -1; return i < 0 ? [rid, null] : [rid.slice(0, i), rid.slice(i + 1)]; };
+async function techView(env, u) {
+  const me = u.tech_id || "U" + u.id;
+  const claims = {};
+  (await env.DB.prepare("SELECT rid, data FROM records WHERE k = ? AND deleted = 0 AND rid <> '#'").bind(K.claims).all()).results.forEach((r) => { if (splitRid(r.rid)[1] == null) { try { claims[r.rid] = JSON.parse(r.data); } catch {} } });
+  const bks = (await env.DB.prepare("SELECT rid, json_extract(data, '$.status') AS st, json_extract(data, '$.tech') AS tech FROM records WHERE k = ? AND deleted = 0 AND rid <> '#'").bind(BK).all()).results;
+  const mine = new Set(), open = new Set(), all = new Set();
+  for (const b of bks) {
+    all.add(b.rid);
+    const holder = (claims[b.rid] && claims[b.rid].tech) || b.tech || null;
+    if (holder) { if (holder === me) mine.add(b.rid); }
+    else if (!CLOSED.includes(b.st)) open.add(b.rid);
+  }
+  const techs = new Set((await env.DB.prepare("SELECT rid FROM records WHERE k = ? AND deleted = 0 AND rid LIKE ?").bind(K.pub, "techs" + SEP_A + "%").all()).results.map((r) => splitRid(r.rid)[1]));
+  return { me, mine, open, all, claims, techs };
+}
+// "full" | "mask" | false
+function techSees(k, rid, V) {
+  if (rid === "#") return "full";
+  const [top, child] = splitRid(rid);
+  const job = child != null ? child : top;
+  const otherTech = (x) => x !== V.me && V.techs.has(x);
+  switch (k) {
+    case BK: return V.mine.has(rid) ? "full" : V.open.has(rid) ? "mask" : false;
+    case K.claims: return V.mine.has(rid) ? "full" : false;
+    case K.assign: return V.mine.has(rid) || V.open.has(rid) ? "full" : false;
+    case K.inspect: case K.handover: case RATE: case K.warranty: case K.notify:
+      if (V.all.has(job)) return V.mine.has(job) ? "full" : false;
+      return otherTech(job) || otherTech(top) ? false : "full";
+    case K.pub: return top === "techs" ? (child === V.me ? "full" : false) : "full";
+    case K.tech: return top === "inst" && child === V.me ? "full" : false;
+    case SUITE: return ["settings", "duration", "avail"].includes(top) ? "full" : false;
+    case K.film: case K.glass: return "full";
+    default: return false;
+  }
+}
+function maskBooking(b) {
+  const o = { ...b, _masked: true };
+  for (const f of ["phone", "payment", "refCode", "consent", "history", "coupon", "email", "line"]) delete o[f];
+  if (o.deposit) o.deposit = { amount: o.deposit.amount, status: o.deposit.status };
+  return o;
+}
+function trimMeta(data, k, V) {
+  try {
+    const m = JSON.parse(data);
+    const ok = (rid) => !!techSees(k, rid, V);
+    if (m.t === "a") m.o = m.o.filter(ok);
+    else if (m.t === "o") {
+      m.o = m.o.filter((t) => (m.c && m.c[t]) ? true : ok(t));
+      for (const t of Object.keys(m.c || {})) m.c[t].o = m.c[t].o.filter((x) => ok(t + (m.c[t].t === "a" ? SEP_A : SEP_O) + x));
+    }
+    return JSON.stringify(m);
+  } catch { return data; }
+}
+async function syncPull(env, u, b) {
+  const since = Number(b.since || 0);
+  const cur = await env.DB.prepare("SELECT v FROM settings WHERE k = 'seq'").first();
+  const v = cur ? Number(cur.v) : 0;
+  if (u.role === "admin") {
+    const rows = await env.DB.prepare("SELECT k, rid, data, deleted, v FROM records WHERE v > ? ORDER BY v LIMIT 3000").bind(since).all();
+    return json({ role: "admin", v: rows.results.length === 3000 ? rows.results[rows.results.length - 1].v : v, recs: rows.results, more: rows.results.length === 3000 });
+  }
+  const V = await techView(env, u);
+  const have = b.have && typeof b.have === "object" ? b.have : {};
+  const list = (await env.DB.prepare("SELECT k, rid, v FROM records WHERE deleted = 0").all()).results;
+  const vis = {}, need = [];
+  for (const k of SYNC_KEYS) vis[k] = [];
+  for (const r of list) {
+    if (!vis[r.k]) continue;
+    const s = techSees(r.k, r.rid, V);
+    if (!s) continue;
+    vis[r.k].push(r.rid);
+    const h = have[r.k] && have[r.k][r.rid];
+    if (r.v > since || !h || (h === 2) !== (s === "mask")) need.push(r);
+  }
+  const recs = [];
+  for (let i = 0; i < need.length; i += 50) {
+    const part = need.slice(i, i + 50);
+    const stmts = part.map((r) => env.DB.prepare("SELECT k, rid, data, v FROM records WHERE k = ? AND rid = ?").bind(r.k, r.rid));
+    const res = await env.DB.batch(stmts);
+    res.forEach((x) => { const r = x.results && x.results[0]; if (!r) return; const s = techSees(r.k, r.rid, V);
+      if (s === "mask") r.data = JSON.stringify(maskBooking(JSON.parse(r.data)));
+      else if (r.rid === "#") r.data = trimMeta(r.data, r.k, V);
+      recs.push({ ...r, deleted: 0 }); });
+  }
+  return json({ role: "tech", me: V.me, v, recs, vis });
+}
+function techMayWrite(k, rid, data, ex, V) {
+  if (rid === "#") return false;
+  const [top, child] = splitRid(rid);
+  const job = child != null ? child : top;
+  switch (k) {
+    case BK: return V.mine.has(rid);
+    case K.claims: return (!ex || ex.tech === V.me) && (data === null || (data && data.tech === V.me)) && (V.mine.has(rid) || V.open.has(rid));
+    case K.assign: return V.mine.has(rid) || (ex && ex.tech === V.me);
+    case K.inspect: case K.handover: case RATE: case K.warranty: case K.notify:
+      if (V.all.has(job)) return V.mine.has(job);
+      return !(V.techs.has(job) && job !== V.me);
+    case K.pub: return top === "techs" && child === V.me;
+    case K.film: case K.glass: return true;
+    default: return false;
+  }
+}
+async function syncPush(env, u, b) {
+  if (!SYNC_KEYS.includes(b.k)) return json({ error: "bad_key" }, 400);
+  let ups = Object.entries(b.upserts || {}), dels = Array.isArray(b.deletes) ? b.deletes.map(String) : [];
+  if (ups.length + dels.length > 2000) return json({ error: "too_many" }, 413);
+  const rejected = [];
+  if (u.role !== "admin") {
+    const V = await techView(env, u);
+    const exOf = async (rid) => (b.k === K.claims || b.k === K.assign) ? await getRec(env, b.k, rid) : null;
+    const okU = [], okD = [];
+    for (const [rid, data] of ups) { if (techMayWrite(b.k, rid, data, await exOf(rid), V)) okU.push([rid, data]); else rejected.push(rid); }
+    for (const rid of dels) { if (techMayWrite(b.k, rid, null, await exOf(rid), V)) okD.push(rid); else rejected.push(rid); }
+    ups = okU; dels = okD;
+    // a tech can never change who holds a booking or its payment through the booking record
+    if (b.k === BK) for (const pair of ups) { const ex = await getRec(env, BK, pair[0]); if (ex) pair[1] = { ...pair[1], tech: ex.tech ?? pair[1].tech, deposit: ex.deposit ?? pair[1].deposit, payment: ex.payment }; }
+  }
+  const stmts = [];
+  const v = await nextV(env);
+  for (const [rid, data] of ups) {
+    const s = JSON.stringify(data);
+    if (rid.length > 200 || s.length > MAX_REC) { rejected.push(rid); continue; }
+    stmts.push(env.DB.prepare("INSERT INTO records (k, rid, data, deleted, v, by_user) VALUES (?, ?, ?, 0, ?, ?) ON CONFLICT(k, rid) DO UPDATE SET data = excluded.data, deleted = 0, v = excluded.v, by_user = excluded.by_user").bind(b.k, rid, s, v, u.id));
+  }
+  for (const rid of dels) stmts.push(env.DB.prepare("UPDATE records SET deleted = 1, data = NULL, v = ?, by_user = ? WHERE k = ? AND rid = ?").bind(v, u.id, b.k, rid));
+  if (stmts.length) await env.DB.batch(stmts);
+  return json({ ok: true, v, rejected });
+}
+
+// ---------- public tech application (film.karnet.org/join)
+const TXT = (x, n) => String(x == null ? "" : x).trim().slice(0, n);
+const okFile = (f) => f && typeof f === "object" && typeof f.data === "string" && /^data:(image\/(jpeg|png|webp)|application\/pdf);base64,/.test(f.data) ? { name: TXT(f.name, 120), type: TXT(f.type, 40), data: f.data } : null;
+async function publicApply(req, env, b) {
+  const ip = req.headers.get("CF-Connecting-IP") || "local";
+  const now = Date.now(), key = "apply:" + ip;
+  const f = await env.DB.prepare("SELECT count, locked_until FROM login_fail WHERE phone = ?").bind(key).first();
+  const windowStart = f && f.locked_until > now ? f : null;
+  if (windowStart && windowStart.count >= 5) return json({ error: "too_many" }, 429);
+  const a = b.app || {};
+  const idCard = digits(a.idCard), phone = normPhone(a.phone);
+  const history = (Array.isArray(a.history) ? a.history : []).slice(0, 8).map((h) => ({ shop: TXT(h.shop, 120), pos: TXT(h.pos, 80), from: TXT(h.from, 4), to: TXT(h.to, 4), years: Math.max(0, (+h.to || 0) - (+h.from || 0)), evidence: okFile(h.evidence) }));
+  const err = [];
+  if (!TXT(a.name, 100)) err.push("name");
+  if (idCard.length !== 13) err.push("idCard");
+  if (!TXT(a.address, 400)) err.push("address");
+  if (phone.length < 9) err.push("phone");
+  if (TXT(a.years, 3) === "") err.push("years");
+  if (!history.length || history.some((h) => !h.shop || !h.from || !h.to || !h.evidence)) err.push("history");
+  if (!TXT(a.bank && a.bank.acct, 30)) err.push("bank");
+  if (err.length) return json({ error: "invalid", fields: err }, 400);
+  const id = "TW" + now.toString(36).toUpperCase() + randHex(2).toUpperCase();
+  const rec = {
+    id, name: TXT(a.name, 100), idCard, address: TXT(a.address, 400), phone, line: TXT(a.line, 60), years: TXT(a.years, 3), history,
+    brands: (Array.isArray(a.brands) ? a.brands : []).map((x) => TXT(x, 30)).slice(0, 20), photo: okFile(a.photo),
+    bank: { bank: TXT(a.bank && a.bank.bank, 60), acct: TXT(a.bank && a.bank.acct, 30), acctName: TXT(a.bank && a.bank.acctName, 100) },
+    status: "รอตรวจ", adminNote: "", tier: "gen", premiumTest: false, suspended: false, createdAt: now, log: [[now, "สมัครผ่านเว็บ"]], src: "web",
+  };
+  if (JSON.stringify(rec).length > MAX_REC) return json({ error: "too_large" }, 413);
+  const dup = await env.DB.prepare("SELECT 1 FROM records WHERE k = ? AND deleted = 0 AND rid LIKE ? AND (json_extract(data, '$.idCard') = ? OR json_extract(data, '$.phone') = ?)").bind(K.tech, "inst" + SEP_A + "%", idCard, phone).first();
+  if (dup) return json({ error: "duplicate" }, 409);
+  await upsert(env, K.tech, "inst" + SEP_A + id, rec, await nextV(env));
+  await env.DB.prepare("INSERT INTO login_fail (phone, count, locked_until) VALUES (?, 1, ?) ON CONFLICT(phone) DO UPDATE SET count = CASE WHEN locked_until > ? THEN count + 1 ELSE 1 END, locked_until = CASE WHEN locked_until > ? THEN locked_until ELSE ? END").bind(key, now + 36e5, now, now, now + 36e5).run();
+  return json({ ok: true, id });
 }

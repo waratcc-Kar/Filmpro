@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>สมัครเป็นช่างติดฟิล์ม · FilmPro</title>
+<meta name="description" content="สมัครเป็นช่างติดตั้งฟิล์มกรองแสงกับ FilmPro รับงานติดตั้งถึงบ้านลูกค้าในกรุงเทพและปริมณฑล">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root { --paper: #F3F6F9; --ink: #121A24; --blue: #1D5BE3; --line: #DCE3EA; --muted: #5B6B7B; --bad: #C2410C; --ok: #15803D; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 16px/1.55 Prompt, system-ui, sans-serif; }
+.top { display: flex; align-items: center; gap: .55rem; padding: 1rem 1.25rem; font-weight: 700; font-size: 1.15rem; background: #fff; border-bottom: 1px solid var(--line); }
+.top a { color: inherit; text-decoration: none; display: flex; align-items: center; gap: .55rem; }
+.strip { width: 30px; height: 14px; border-radius: 3px; background: linear-gradient(90deg, #121A24, #5B6B7B 60%, #DCE3EA); }
+.wrap { max-width: 620px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+h1 { font-size: 1.6rem; line-height: 1.3; margin: 0 0 .35rem; }
+.lede { color: var(--muted); margin: 0 0 1.25rem; }
+.card { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 1.1rem; margin-bottom: 1rem; }
+.card h2 { font-size: 1.05rem; margin: 0 0 .75rem; }
+.card h2 small { font-weight: 400; color: var(--muted); font-size: .85rem; display: block; }
+.f { margin-bottom: .85rem; }
+.f:last-child { margin-bottom: 0; }
+label.l { display: block; font-weight: 500; font-size: .92rem; margin-bottom: .3rem; }
+label.l .req { color: var(--bad); }
+input, textarea { width: 100%; font: inherit; padding: .65rem .8rem; border: 1px solid var(--line); border-radius: 11px; background: #fff; color: var(--ink); min-height: 48px; }
+textarea { min-height: 80px; resize: vertical; }
+input:focus, textarea:focus { outline: 3px solid rgba(29,91,227,.22); border-color: var(--blue); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+@media (max-width: 480px) { .two { grid-template-columns: 1fr; } }
+.photo { display: flex; align-items: center; gap: 1rem; margin-bottom: .9rem; }
+.avatar { width: 76px; height: 76px; border-radius: 50%; background: var(--paper); border: 1px solid var(--line); overflow: hidden; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: .75rem; flex: none; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+.btn2 { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: .5rem 1rem; border: 1px solid var(--line); border-radius: 11px; background: #fff; font: 500 .95rem Prompt, system-ui, sans-serif; color: var(--ink); cursor: pointer; }
+.btn2 input { display: none; }
+.job { border: 1px solid var(--line); border-radius: 14px; padding: .9rem; margin-bottom: .75rem; background: #FAFBFD; }
+.job-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: .6rem; font-weight: 600; }
+.link { background: none; border: 0; color: var(--bad); font: 500 .9rem Prompt, system-ui, sans-serif; cursor: pointer; min-height: 40px; }
+.ev { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; font-size: .9rem; }
+.ev .ok { color: var(--ok); } .ev .no { color: var(--bad); }
+.brands { display: grid; grid-template-columns: 1fr 1fr; gap: .1rem .75rem; }
+.brands label { display: flex; align-items: center; gap: .55rem; min-height: 40px; font-size: .95rem; }
+.brands input { width: 20px; height: 20px; min-height: 0; accent-color: var(--blue); }
+.go { width: 100%; min-height: 54px; border: 0; border-radius: 13px; background: var(--blue); color: #fff; font: 600 1.08rem Prompt, system-ui, sans-serif; cursor: pointer; }
+.go:disabled { opacity: .55; cursor: wait; }
+.err { color: var(--bad); margin: 0 0 .9rem; font-size: .95rem; }
+.done { text-align: center; padding: 2.5rem 1.25rem; }
+.done .tick { width: 64px; height: 64px; border-radius: 50%; background: #DCFCE7; color: var(--ok); display: inline-flex; align-items: center; justify-content: center; margin-bottom: .75rem; }
+.note { color: var(--muted); font-size: .85rem; margin: .75rem 0 0; }
+:focus-visible { outline: 3px solid rgba(29,91,227,.4); outline-offset: 2px; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="top"><a href="/"><span class="strip"></span>FilmPro</a></div>
+<div class="wrap">
+  <form id="form" novalidate>
+    <h1>สมัครเป็นช่างติดฟิล์มกับ FilmPro</h1>
+    <p class="lede">รับงานติดตั้งฟิล์มถึงบ้านลูกค้าในกรุงเทพและปริมณฑล ทีมงานจะตรวจใบสมัครและติดต่อกลับทางเบอร์โทรที่ให้ไว้</p>
+
+    <section class="card">
+      <h2>ข้อมูลส่วนตัว</h2>
+      <div class="photo"><div class="avatar" id="avatar">รูปโปรไฟล์</div><label class="btn2">อัปโหลดรูปหน้าตรง<input type="file" accept="image/*" id="photo"></label></div>
+      <div class="f"><label class="l" for="name">ชื่อ-นามสกุล <span class="req">*</span></label><input id="name" autocomplete="name"></div>
+      <div class="f"><label class="l" for="idCard">เลขบัตรประชาชน <span class="req">*</span></label><input id="idCard" inputmode="numeric" maxlength="17" placeholder="13 หลัก" autocomplete="off"></div>
+      <div class="f"><label class="l" for="address">ที่อยู่ <span class="req">*</span></label><textarea id="address" rows="2" autocomplete="street-address"></textarea></div>
+      <div class="two">
+        <div class="f"><label class="l" for="phone">เบอร์โทร <span class="req">*</span></label><input id="phone" type="tel" inputmode="tel" autocomplete="tel"></div>
+        <div class="f"><label class="l" for="line">LINE ID</label><input id="line" autocomplete="off"></div>
+      </div>
+      <div class="f"><label class="l" for="years">ประสบการณ์ติดฟิล์ม (ปี) <span class="req">*</span></label><input id="years" type="number" inputmode="numeric" min="0" max="50"></div>
+    </section>
+
+    <section class="card">
+      <h2>ประวัติการทำงาน <small>แนบหลักฐานทุกรายการ เช่น รูปใบรับรอง หนังสือรับรอง หรือ PDF</small></h2>
+      <div id="jobs"></div>
+      <button type="button" class="btn2" id="addJob" style="width:100%">เพิ่มที่ทำงาน</button>
+    </section>
+
+    <section class="card">
+      <h2>แบรนด์ฟิล์มที่เคยติด</h2>
+      <div class="brands" id="brands"></div>
+    </section>
+
+    <section class="card">
+      <h2>บัญชีรับเงิน</h2>
+      <div class="f"><label class="l" for="bank">ธนาคาร</label><input id="bank" autocomplete="off"></div>
+      <div class="two">
+        <div class="f"><label class="l" for="acct">เลขบัญชี <span class="req">*</span></label><input id="acct" inputmode="numeric" autocomplete="off"></div>
+        <div class="f"><label class="l" for="acctName">ชื่อบัญชี</label><input id="acctName" autocomplete="off"></div>
+      </div>
+    </section>
+
+    <p class="err" id="err" role="alert" hidden></p>
+    <button class="go" id="go" type="submit">ส่งใบสมัคร</button>
+    <p class="note">ข้อมูลนี้ใช้เพื่อพิจารณารับเป็นช่างและจ่ายค่าแรงเท่านั้น</p>
+  </form>
+
+  <div class="card done" id="done" hidden>
+    <div class="tick"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></div>
+    <h1>ส่งใบสมัครแล้ว</h1>
+    <p class="lede" style="margin:0">ทีมงานจะตรวจข้อมูลแล้วโทรกลับตามเบอร์ที่ให้ไว้<br>เมื่ออนุมัติ คุณจะได้เบอร์และ PIN สำหรับเข้ารับงาน</p>
+  </div>
+</div>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const BRANDS = ["3M", "Lamina", "LLumar", "Hi-Kool", "V-Kool", "Solar Gard", "Xtra-Cole", "Avery", "Blaupunkt", "Wincos", "STEK", "XPEL", "Hüper Optik", "Smarttec", "Midas", "Spectre"];
+const st = { photo: null, history: [{ shop: "", pos: "", from: "", to: "", evidence: null }], brands: [] };
+function readFile(file) {
+  return new Promise((res, rej) => {
+    if (!file) return res(null);
+    if (file.type === "application/pdf") {
+      if (file.size > 700 * 1024) return rej("ไฟล์ PDF ใหญ่เกิน 700 KB ลองถ่ายรูปแทน");
+      const r = new FileReader(); r.onload = () => res({ name: file.name, type: file.type, data: r.result }); r.onerror = () => rej("อ่านไฟล์ไม่ได้"); r.readAsDataURL(file); return;
+    }
+    if (!file.type.startsWith("image/")) return rej("รองรับเฉพาะรูปภาพหรือ PDF");
+    const url = URL.createObjectURL(file), im = new Image();
+    im.onload = () => { const k = Math.min(1, 1000 / Math.max(im.width, im.height)), c = document.createElement("canvas"); c.width = im.width * k | 0; c.height = im.height * k | 0; c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(url); res({ name: file.name, type: "image/jpeg", data: c.toDataURL("image/jpeg", 0.72) }); };
+    im.onerror = () => rej("อ่านรูปไม่ได้"); im.src = url;
+  });
+}
+function jobs() {
+  $("jobs").innerHTML = st.history.map((h, k) => `<div class="job" data-k="${k}"><div class="job-h">ที่ทำงานที่ ${k + 1}${st.history.length > 1 ? `<button type="button" class="link" data-del="${k}">ลบ</button>` : ""}</div>
+    <div class="two"><div class="f"><label class="l" for="shop${k}">ชื่อร้าน/บริษัท <span class="req">*</span></label><input id="shop${k}" data-f="shop" value="${esc(h.shop)}"></div><div class="f"><label class="l" for="pos${k}">ตำแหน่ง</label><input id="pos${k}" data-f="pos" value="${esc(h.pos)}"></div>
+    <div class="f"><label class="l" for="from${k}">ตั้งแต่ปี (พ.ศ.) <span class="req">*</span></label><input id="from${k}" data-f="from" type="number" inputmode="numeric" value="${esc(h.from)}"></div><div class="f"><label class="l" for="to${k}">ถึงปี (พ.ศ.) <span class="req">*</span></label><input id="to${k}" data-f="to" type="number" inputmode="numeric" value="${esc(h.to)}"></div></div>
+    <div class="ev">${h.evidence ? `<span class="ok">แนบแล้ว: ${esc(h.evidence.name)}</span>` : `<span class="no">ยังไม่ได้แนบหลักฐาน</span>`}<label class="btn2">${h.evidence ? "เปลี่ยนไฟล์" : "แนบหลักฐาน"}<input type="file" accept="image/*,application/pdf" data-ev="${k}"></label></div></div>`).join("");
+}
+$("jobs").addEventListener("input", (e) => { const f = e.target.dataset.f; if (!f) return; st.history[+e.target.closest(".job").dataset.k][f] = e.target.value; });
+$("jobs").addEventListener("click", (e) => { const d = e.target.dataset.del; if (d != null) { st.history.splice(+d, 1); jobs(); } });
+$("jobs").addEventListener("change", async (e) => { const k = e.target.dataset.ev; if (k == null) return; try { st.history[+k].evidence = await readFile(e.target.files[0]); jobs(); } catch (m) { showErr(m); } });
+$("addJob").onclick = () => { st.history.push({ shop: "", pos: "", from: "", to: "", evidence: null }); jobs(); };
+$("brands").innerHTML = BRANDS.map((b) => `<label><input type="checkbox" value="${esc(b)}">${esc(b)}</label>`).join("");
+$("brands").addEventListener("change", () => { st.brands = [...$("brands").querySelectorAll("input:checked")].map((i) => i.value); });
+$("photo").addEventListener("change", async (e) => { try { st.photo = await readFile(e.target.files[0]); $("avatar").innerHTML = st.photo ? `<img alt="" src="${st.photo.data}">` : "รูปโปรไฟล์"; } catch (m) { showErr(m); } });
+function showErr(m) { $("err").textContent = m; $("err").hidden = false; $("err").scrollIntoView({ block: "center", behavior: "smooth" }); }
+$("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const v = (id) => $(id).value.trim();
+  const app = { name: v("name"), idCard: v("idCard").replace(/\D/g, ""), address: v("address"), phone: v("phone"), line: v("line"), years: v("years"), history: st.history, brands: st.brands, photo: st.photo, bank: { bank: v("bank"), acct: v("acct"), acctName: v("acctName") } };
+  const miss = [];
+  if (!app.name) miss.push("ชื่อ-นามสกุล");
+  if (app.idCard.length !== 13) miss.push("เลขบัตรประชาชน 13 หลัก");
+  if (!app.address) miss.push("ที่อยู่");
+  if (app.phone.replace(/\D/g, "").length < 9) miss.push("เบอร์โทร");
+  if (app.years === "") miss.push("ประสบการณ์");
+  app.history.forEach((h, k) => { if (!h.shop || !h.from || !h.to) miss.push(`ที่ทำงานที่ ${k + 1} ยังกรอกไม่ครบ`); if (!h.evidence) miss.push(`หลักฐานของที่ทำงานที่ ${k + 1}`); });
+  if (!app.bank.acct) miss.push("เลขบัญชี");
+  if (miss.length) return showErr("ยังขาด: " + miss.join(", "));
+  if (JSON.stringify(app).length > 1700000) return showErr("ไฟล์แนบรวมกันใหญ่เกินไป ลองแนบเป็นรูปแทน PDF หรือลดจำนวนไฟล์");
+  $("err").hidden = true; $("go").disabled = true; $("go").textContent = "กำลังส่ง…";
+  try {
+    const r = await fetch("/api/public/apply", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ app }) });
+    const j = await r.json().catch(() => ({}));
+    if (r.ok) { $("form").hidden = true; $("done").hidden = false; scrollTo(0, 0); return; }
+    showErr({ duplicate: "เบอร์โทรหรือเลขบัตรนี้สมัครไว้แล้ว ทีมงานกำลังตรวจอยู่", too_many: "ส่งใบสมัครหลายครั้งเกินไป ลองใหม่ในอีก 1 ชั่วโมง", too_large: "ไฟล์แนบใหญ่เกินไป" }[j.error] || "ส่งไม่สำเร็จ ตรวจข้อมูลที่ช่องมีเครื่องหมาย * แล้วลองอีกครั้ง");
+  } catch { showErr("เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง"); }
+  $("go").disabled = false; $("go").textContent = "ส่งใบสมัคร";
+});
+jobs();
+</script>
+</body>
+</html>
