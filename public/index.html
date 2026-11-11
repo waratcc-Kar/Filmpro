@@ -171,6 +171,20 @@ h2 { color: #1e40af; font-size: 1.1rem; margin: 0 0 .75rem; }
 .pick.main { border-color: #3b82f6; background: #eff6ff; }
 .stage { position: relative; aspect-ratio: 3/4; background: #000; border-radius: 1rem; overflow: hidden; }
 .stage video, .stage img, .stage svg { width: 100%; height: 100%; object-fit: cover; display: block; }
+.camwrap { position: relative; display: grid; gap: .4rem; }
+.camwrap.cmp { grid-template-columns: 1fr 1fr; }
+.camstage { aspect-ratio: auto; height: min(52vh, 480px); }
+.camwrap.cmp .camstage { height: min(46vh, 420px); }
+.camwrap .topinfo { z-index: 2; border-radius: 1rem 1rem 0 0; pointer-events: none; }
+.camstage .cap { bottom: .6rem; font-size: .9rem; line-height: 1.25; }
+.camstage .cap small { font-weight: 500; opacity: .9; }
+.tlabel { font-size: .75rem; color: #64748b; margin: .45rem 0 0; }
+.tchips { display: flex; gap: .4rem; overflow-x: auto; padding: .5rem 0 .2rem; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.tchips::-webkit-scrollbar { display: none; }
+.tchip { flex: none; display: flex; align-items: center; gap: .35rem; background: #fff; border: 1.5px solid #e2e8f0; border-radius: 999px; padding: .4rem .7rem; font: inherit; font-size: .85rem; color: #0E1B2A; cursor: pointer; }
+.tchip span { width: 1rem; height: 1rem; border-radius: 4px; border: 1px solid #0002; }
+.tchip small { color: #64748b; font-size: .72rem; }
+.tchip.on { border-color: #2563EB; background: #EFF6FF; font-weight: 600; }
 .ov { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: multiply; }
 .cap { position: absolute; left: 0; right: 0; bottom: 1rem; text-align: center; color: #fff; font-weight: 600; text-shadow: 0 1px 2px #000; }
 .topinfo { position: absolute; left: 0; right: 0; top: 0; padding: .75rem; color: #fff; font-size: .75rem; background: linear-gradient(#000a, transparent); }
@@ -3313,8 +3327,20 @@ function carSvg(dark, label) {
 }
 const loadBookings = () => { try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch { return []; } };
 const saveBookings = (rows) => localStorage.setItem(KEY, JSON.stringify(rows));
-function stopCam() { S.stream?.getTracks().forEach((t) => t.stop()); S.stream = null; }
-function go(step) { S.error = ""; S.step = step; if (step !== "admin" && location.hash === "#admin") history.replaceState(null, "", location.pathname + location.search); paint(); window.scrollTo(0, 0); }
+function stopCam() { S.stream?.getTracks().forEach((t) => t.stop()); S.stream = null; CAMV.length = 0; }
+/* ใช้ <video> ตัวเดิมซ้ำทุกครั้งที่หน้าวาดใหม่ ภาพกล้องจะได้ไม่กระพริบ/ดับตอนเปลี่ยนเฉด */
+const CAMV = [];
+function attachCam() {
+  document.querySelectorAll("video.camv").forEach((v, i) => {
+    if (CAMV[i]) { v.replaceWith(CAMV[i]); CAMV[i].play().catch(() => {}); return; }
+    v.srcObject = S.stream; v.play().catch(() => {}); CAMV[i] = v;
+  });
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && S.stream) { stopCam(); S.camResume = true; }
+  else if (!document.hidden && S.camResume && S.step === "camera") { S.camResume = false; openCam(); }
+});
+function go(step) { S.error = ""; if (S.step === "camera" && step !== "camera") { stopCam(); S.cameraOn = false; S.photoUrl = ""; S.compare = false; } S.step = step; if (step !== "admin" && location.hash === "#admin") history.replaceState(null, "", location.pathname + location.search); paint(); window.scrollTo(0, 0); }
 function chooseSeries(id, name) {
   const series = film(id).series.find((s) => s.name === name);
   const light = [...series.shades].sort((a, b) => Math.abs(a.vlt - 70) - Math.abs(b.vlt - 70))[0];
@@ -3376,13 +3402,18 @@ function quizHtml() {
 function cameraHtml() {
   const shades = seriesOf()?.shades || [];
   const d = shades[S.shadeIndex] || shades[0];
-  const c = shades[S.compareIndex] || shades[1] || d;
-  const visual = (primary) => S.photoUrl ? `<img alt="" src="${S.photoUrl}">` : primary && S.cameraOn && !S.note ? `<video id="cam" autoplay playsinline muted></video>` : carSvg(0.15, "ภาพจำลอง");
-  const pane = (shade, primary) => `<div class="stage">${visual(primary)}<div class="ov" style="background:${shade ? overlay(shade.vlt, shade.model, shade.tint) : "transparent"}"></div>${S.nightMode ? `<div class="ov" style="background:rgba(15,23,42,.45);mix-blend-mode:normal"></div>` : ""}</div>`;
+  const c = shades[S.compareIndex] ?? shades[Math.min(shades.length - 1, (S.shadeIndex || 0) + 1)] ?? d;
+  const live = S.cameraOn && !S.photoUrl && !S.note;
+  const visual = () => S.photoUrl ? `<img alt="" src="${S.photoUrl}">` : live ? `<video class="camv" autoplay playsinline muted></video>` : carSvg(0.15, "ภาพจำลอง");
+  const pane = (shade, side) => `<div class="stage camstage">${visual()}<div class="ov" data-ov="${side}" style="background:${shade ? overlay(shade.vlt, shade.model, shade.tint) : "transparent"}"></div>${S.nightMode ? `<div class="ov" style="background:rgba(15,23,42,.45);mix-blend-mode:normal"></div>` : ""}<div class="cap" data-cap="${side}">${shade ? `${esc(shade.model)}<br><small>${esc(darkLabel(shade.vlt))}</small>` : ""}</div></div>`;
   if (!S.cameraOn && !S.photoUrl) {
     return `<button class="back" data-act="go" data-step="shades">← กลับ</button><h1>สัมผัสทัศนวิสัยจริง</h1><p class="muted lede">ระบบจะจำลองเฉดสีและความเข้มของฟิล์มบนหน้าจอ</p><p class="amber">ควรนั่งในรถหรือส่องออกไปที่แสงธรรมชาติ สีบนจอเป็นภาพจำลอง</p><button class="btn" style="width:100%;padding:.8rem;font-size:1rem" data-act="cam">ทดสอบสีของฟิล์มด้วยกล้อง</button><button class="back" data-act="demo">ใช้ภาพจำลอง</button>`;
   }
-  return `<button class="back" data-act="cam-back">← กลับ</button><div style="position:relative"><div class="${S.compare ? "grid2" : ""}">${pane(d, true)}${S.compare ? pane(c, false) : ""}</div><div class="topinfo"><b>${esc(film(S.filmId)?.name || "")} | ${esc(S.series)}</b><div>${d ? `IRR ${esc(d.irr)} · TSER ${esc(d.tser)}` : ""}</div></div><div class="cap">${d ? `${esc(d.model)} · ${esc(darkLabel(d.vlt))}` : ""}</div></div>${S.note ? `<label class="btn" style="display:block;text-align:center;width:100%;padding:.8rem;margin:.5rem 0">ทดสอบสีของฟิล์มด้วยกล้อง<input id="camsnap2" type="file" accept="image/*" capture="environment" hidden></label><p class="amber">${esc(S.note)}</p>` : S.photoUrl ? `<button class="series" data-act="cam">กลับไปใช้กล้อง</button>` : `<p class="muted" style="text-align:center;margin:.4rem 0">ส่องกล้องออกไปนอกกระจก แล้วเลือกความเข้มด้านล่าง</p>`}<div class="grid2"><button class="series" data-act="night">${S.nightMode ? "กลางคืน" : "กลางวัน"}</button><button class="series" data-act="compare">เปรียบเทียบ</button></div><button class="series" data-act="disc">ข้อมูลเกี่ยวกับเฉดสีบนหน้าจอ</button><p class="muted">เลือกความเข้ม</p><div class="chips">${shades.map((s, i) => `<button class="series" style="width:auto;padding:.4rem .6rem" data-act="setshade" data-i="${i}"><span style="display:inline-block;width:.9rem;height:.9rem;background:${overlay(s.vlt, s.model, s.tint)};border-radius:3px"></span> ${esc(s.model)}</button>`).join("")}</div>`;
+  const chip = (s, i, on) => `<button class="tchip${on ? " on" : ""}" data-act="setshade" data-i="${i}"><span style="background:${overlay(s.vlt, s.model, s.tint)}"></span>${esc(s.model)}<small>${s.vlt}%</small></button>`;
+  const chips = S.compare
+    ? `<div class="tlabel">ซ้าย</div><div class="tchips">${shades.map((s, i) => chip(s, i, i === S.shadeIndex)).join("")}</div><div class="tlabel">ขวา</div><div class="tchips">${shades.map((s, i) => chip(s, i, s === c).replace('data-act="setshade"', 'data-act="setcompare"')).join("")}</div>`
+    : `<div class="tchips">${shades.map((s, i) => chip(s, i, i === S.shadeIndex)).join("")}</div>`;
+  return `<button class="back" data-act="cam-back" style="margin-bottom:.4rem">← กลับ</button><div class="camwrap${S.compare ? " cmp" : ""}"><div class="topinfo"><b>${esc(film(S.filmId)?.name || "")} | ${esc(S.series)}</b>${!S.compare && d ? `<div>IRR ${esc(d.irr)} · TSER ${esc(d.tser)}</div>` : ""}</div>${pane(d, "a")}${S.compare ? pane(c, "b") : ""}</div>${chips}${S.note ? `<label class="btn" style="display:block;text-align:center;width:100%;padding:.8rem;margin:.5rem 0">ทดสอบสีของฟิล์มด้วยกล้อง<input id="camsnap2" type="file" accept="image/*" capture="environment" hidden></label><p class="amber">${esc(S.note)}</p>` : S.photoUrl ? `<button class="series" data-act="cam">กลับไปใช้กล้อง</button>` : ""}<div class="grid2" style="margin-top:.6rem"><button class="series" data-act="night">${S.nightMode ? "☀︎ ดูแบบกลางวัน" : "☾ ดูแบบกลางคืน"}</button><button class="series" data-act="compare">${S.compare ? "ดูทีละเฉด" : "เปรียบเทียบ 2 เฉด"}</button></div><button class="series" data-act="disc">ข้อมูลเกี่ยวกับเฉดสีบนหน้าจอ</button>`;
 }
 function bookHtml() {
   const q = buildQuote();
@@ -3470,10 +3501,8 @@ function paint() {
   bar.hidden = S.focus || !!S.legal || S.disclaimer;
   document.getElementById("cta").hidden = S.step !== "home";
   document.getElementById("ctaLabel").hidden = S.step === "home";
-  if (S.cameraOn && !S.photoUrl && !S.note && S.stream) {
-    const video = document.getElementById("cam");
-    if (video) video.srcObject = S.stream;
-  }
+  if (S.cameraOn && !S.photoUrl && !S.note && S.stream) attachCam();
+  if (S.step === "camera") document.querySelectorAll(".tchips").forEach((row) => { const on = row.querySelector(".on"); if (on) row.scrollLeft = on.offsetLeft - row.clientWidth / 2 + on.offsetWidth / 2; });
 }
 async function openCam() {
   S.cameraOn = true; S.photoUrl = ""; S.note = ""; S.step = "camera"; paint();
@@ -3482,8 +3511,8 @@ async function openCam() {
     stopCam();
     const stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: "environment" } } });
     S.stream = stream;
-    const video = document.getElementById("cam");
-    if (video) { video.srcObject = stream; await video.play().catch(() => {}); }
+    if (S.step !== "camera") { stopCam(); return; }
+    attachCam();
   } catch {
     S.note = "เปิดกล้องไม่ได้ (ยังไม่ได้อนุญาตให้ใช้กล้อง หรือเปิดผ่านแอปที่ไม่รองรับ) ลองกดอนุญาตกล้องในเบราว์เซอร์ หรือกดปุ่มด้านบนเพื่อถ่ายรูปแล้วดูฟิล์มบนรูปแทน";
     S.cameraOn = true;
@@ -3526,8 +3555,9 @@ document.addEventListener("click", (event) => {
   if (act === "demo") { stopCam(); S.cameraOn = true; S.photoUrl = ""; S.note = "กำลังใช้ภาพจำลอง"; go("camera"); }
   if (act === "cam-back") { stopCam(); S.cameraOn = false; S.photoUrl = ""; go("shades"); }
   if (act === "night") { S.nightMode = !S.nightMode; paint(); }
-  if (act === "compare") { S.compare = !S.compare; paint(); }
+  if (act === "compare") { S.compare = !S.compare; if (S.compare && S.compareIndex == null) { const n = (seriesOf()?.shades || []).length; S.compareIndex = Math.min(n - 1, (S.shadeIndex || 0) + 1); } paint(); }
   if (act === "setshade") { S.shadeIndex = Number(btn.dataset.i); paint(); }
+  if (act === "setcompare") { S.compareIndex = Number(btn.dataset.i); paint(); }
   if (act === "disc") { S.disclaimer = true; paint(); }
   if (act === "close-disc") { S.disclaimer = false; paint(); }
   if (act === "legal") { S.legal = btn.dataset.which; paint(); }
