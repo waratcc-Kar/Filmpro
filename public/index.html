@@ -442,6 +442,14 @@ h2.sect { margin: 0 0 .7rem; }
 .slist { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; }
 .slist .series { margin: 0; border: 0; border-top: 1px solid var(--line); border-radius: 0; padding: 1rem; }
 .slist .series:first-child { border-top: 0; }
+.slist .s-top { display: block; }
+.slist .sname { display: block; font-size: 1.25rem; font-weight: 700; line-height: 1.25; color: var(--ink); letter-spacing: -.01em; }
+.slist .stech { font-size: .85rem; margin-top: .15rem; }
+.s-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: .25rem .4rem; margin-top: .45rem; color: var(--ink); }
+.s-price b { font-size: 1rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.s-price small { font-size: .85rem; color: var(--muted); }
+.s-price .s-note { font-size: .8rem; color: var(--muted); background: var(--paper); border-radius: 999px; padding: .1rem .55rem; }
+.s-price.off { font-size: .9rem; color: var(--muted); }
 .slist .series:hover { background: #FAFBFD; }
 .sname { font-size: 1.05rem; font-weight: 600; }
 .stech { display: block; color: var(--muted); font-size: .78rem; margin-top: .05rem; }
@@ -3308,6 +3316,14 @@ const caption = (brandId, series, size, sun) => {
   const sunText = extra == null && sun !== "ไม่มี" ? " · ซันรูฟ: รอราคา" : extra ? ` · รวมซันรูฟ +${money(extra)} บาท` : "";
   return `${kind === "approx" ? "ประมาณ " : ""}${money(base + (extra || 0))} บาท${sunText}`;
 };
+const seriesPrice = (brandId, series, size, sun, on) => {
+  if (!on) return `<span class="s-price off">รอราคา · ติดต่อร้าน</span>`;
+  const kind = priceKind(brandId, series, size);
+  if (kind === "start" && series.start) return `<span class="s-price"><small>เริ่มต้น</small> <b>${money(series.start)}</b> <small>บาท</small></span>`;
+  const base = basePrice(brandId, series, size), extra = sunAddon(series, size, sun);
+  const note = extra == null && sun !== "ไม่มี" ? "ซันรูฟ: รอราคา" : extra ? `รวมซันรูฟ +${money(extra)}` : "";
+  return `<span class="s-price">${kind === "approx" ? "<small>ประมาณ</small> " : ""}<b>${money(base + (extra || 0))}</b> <small>บาท</small>${note ? `<span class="s-note">${note}</span>` : ""}</span>`;
+};
 const showsPrice = (brandId, series, size) => {
   const kind = priceKind(brandId, series, size);
   if (kind === "start" && series.start) return true;
@@ -3584,7 +3600,7 @@ function seriesHtml() {
   const sun = S.sunroof || "ไม่มี";
   const rows = brand.series.filter((s) => !S.pricedOnly || showsPrice(S.filmId, s, size)).slice().sort((a, b) => Number(showsPrice(S.filmId, b, size)) - Number(showsPrice(S.filmId, a, size)));
   const empty = S.pricedOnly && !rows.length ? `<p class="muted lede">ไซส์ ${esc(sizeLabel(size))} ยังไม่มีราคาที่เผยแพร่ของแบรนด์นี้</p>` : "";
-  return `<button class="back" data-act="go" data-step="path">← กลับ</button><div class="bhead">${brand.logo ? `<span class="logo-tile bh-logo"><img alt="" src="${brand.logo}"></span>` : ""}<div><h1>${esc(brand.name)}</h1><p class="muted">ราคาติดทั้งคันสำหรับ ${esc(S.brand)} ${esc(S.model)} ไซส์ ${esc(sizeLabel(size))}${tierSize(brand.id, size) !== size ? ` (${esc(brand.name)} จัดเป็นไซส์ ${esc(sizeLabel(tierSize(brand.id, size)))})` : ""}</p></div></div>${ringLegend}<div class="segs"><button type="button" class="chip ${S.pricedOnly ? "off" : "on"}" data-act="priced" data-on="0">ทุกรุ่น</button><button type="button" class="chip ${S.pricedOnly ? "on" : "off"}" data-act="priced" data-on="1">เฉพาะที่มีราคา</button></div><div class="slist">${rows.map((s) => { const on = showsPrice(S.filmId, s, size); const front = frontCaption(s, size); return `<button class="series" data-act="series" data-name="${esc(s.name)}"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem"><span style="display:flex;align-items:center;gap:.5rem;min-width:0"><span><b class="sname">${esc(s.name)}</b>${s.tech ? `<span class="stech">${esc(s.tech)}</span>` : ""}${on ? "" : `<br><span class="ex">รอราคา</span>`}</span></span><span class="pricebox">${on && promoOf(S.filmId, s, size) && listBasePrice(S.filmId, s, size) != null ? `<span class="promo-badge">ลด ${promoOf(S.filmId, s, size).pct}%</span><s>${money(listBasePrice(S.filmId, s, size) + (sunAddon(s, size, sun) || 0))}</s>` : ""}<b class="${on ? "price-on" : "price-off"}">${esc(caption(S.filmId, s, size, sun))}</b></span></div>${front ? `<p class="front">${esc(front)}</p>` : ""}${ringRow(s)}</button>`; }).join("")}</div>${empty}`;
+  return `<button class="back" data-act="go" data-step="path">← กลับ</button><div class="bhead">${brand.logo ? `<span class="logo-tile bh-logo"><img alt="" src="${brand.logo}"></span>` : ""}<div><h1>${esc(brand.name)}</h1><p class="muted">ราคาติดทั้งคันสำหรับ ${esc(S.brand)} ${esc(S.model)} ไซส์ ${esc(sizeLabel(size))}${tierSize(brand.id, size) !== size ? ` (${esc(brand.name)} จัดเป็นไซส์ ${esc(sizeLabel(tierSize(brand.id, size)))})` : ""}</p></div></div>${ringLegend}<div class="segs"><button type="button" class="chip ${S.pricedOnly ? "off" : "on"}" data-act="priced" data-on="0">ทุกรุ่น</button><button type="button" class="chip ${S.pricedOnly ? "on" : "off"}" data-act="priced" data-on="1">เฉพาะที่มีราคา</button></div><div class="slist">${rows.map((s) => { const on = showsPrice(S.filmId, s, size); const front = frontCaption(s, size); return `<button class="series" data-act="series" data-name="${esc(s.name)}"><span class="s-top"><b class="sname">${esc(s.name)}</b>${s.tech ? `<span class="stech">${esc(s.tech)}</span>` : ""}</span>${seriesPrice(S.filmId, s, size, sun, on)}${front ? `<p class="front">${esc(front)}</p>` : ""}${ringRow(s)}</button>`; }).join("")}</div>${empty}`;
 }
 function shadesHtml() {
   const series = seriesOf();
