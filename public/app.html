@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<script src="/fp-sync.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#FFFFFF">
+<title>FilmPro ช่าง</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root { --paper: #F3F6F9; --surface: #fff; --ink: #121A24; --muted: #5B6B7B; --line: #DCE3EA; --blue: #1D5BE3; --blue-soft: #E8EFFD; --ok: #15803D; --ok-soft: #DCFCE7; --warn: #B45309; --warn-soft: #FEF3C7; --bad: #C2410C; --bad-soft: #FFEDD5; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; }
+body { background: var(--paper); color: var(--ink); font: 400 16px/1.5 Prompt, system-ui, sans-serif; min-height: 100vh; padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid rgba(29,91,227,.4); outline-offset: 2px; }
+.top { position: sticky; top: 0; z-index: 10; background: var(--surface); border-bottom: 1px solid var(--line); padding: calc(.7rem + env(safe-area-inset-top)) 1rem .7rem; display: flex; align-items: center; gap: .6rem; }
+.top .strip { width: 26px; height: 12px; border-radius: 3px; background: linear-gradient(90deg, #121A24, #5B6B7B 60%, #DCE3EA); flex: none; }
+.top h1 { font-size: 1.15rem; margin: 0; font-weight: 700; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.top .me { font-size: .85rem; color: var(--muted); white-space: nowrap; }
+.iconbtn { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 12px; border: 0; background: transparent; margin-left: -.5rem; }
+main { max-width: 640px; margin: 0 auto; padding: 1rem; }
+.sec { font-size: .95rem; font-weight: 600; color: var(--muted); margin: 1.25rem .25rem .6rem; display: flex; justify-content: space-between; align-items: baseline; }
+.sec:first-child { margin-top: .25rem; }
+.empty { text-align: center; color: var(--muted); padding: 2.5rem 1rem; background: var(--surface); border: 1px dashed var(--line); border-radius: 16px; }
+.empty b { display: block; color: var(--ink); font-size: 1.05rem; margin-bottom: .25rem; }
+.job { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 1rem; margin-bottom: .75rem; display: block; width: 100%; text-align: left; }
+button.job:active { background: #FAFBFD; }
+.job.offer { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue) inset; }
+.when { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin-bottom: .45rem; }
+.when b { font-size: 1.05rem; }
+.pill { display: inline-flex; align-items: center; gap: .25rem; font-size: .78rem; font-weight: 500; padding: .12rem .55rem; border-radius: 999px; background: var(--paper); color: var(--muted); white-space: nowrap; }
+.pill.blue { background: var(--blue-soft); color: var(--blue); }
+.pill.ok { background: var(--ok-soft); color: var(--ok); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.pill.bad { background: var(--bad-soft); color: var(--bad); }
+.meta { display: grid; gap: .3rem; color: var(--ink); font-size: .95rem; }
+.meta div { display: flex; gap: .5rem; align-items: flex-start; }
+.meta svg { flex: none; margin-top: .2rem; color: var(--muted); }
+.meta .km { color: var(--muted); }
+.row-end { display: flex; justify-content: space-between; align-items: center; gap: .75rem; margin-top: .75rem; }
+.price { font-weight: 600; font-variant-numeric: tabular-nums; }
+.price small { font-weight: 400; color: var(--muted); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: .4rem; min-height: 48px; padding: .55rem 1.1rem; border-radius: 12px; border: 1px solid var(--blue); background: var(--blue); color: #fff; font-weight: 600; text-decoration: none; }
+.btn.ghost { background: var(--surface); color: var(--ink); border-color: var(--line); }
+.btn.wide { width: 100%; }
+.btn:disabled, .btn[aria-disabled=true] { opacity: .45; pointer-events: none; }
+.btns { display: flex; gap: .6rem; margin-top: .8rem; }
+.btns .btn { flex: 1; }
+.timer { font-variant-numeric: tabular-nums; }
+/* bottom tabs */
+.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--surface); border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(3, 1fr); padding-bottom: env(safe-area-inset-bottom); }
+.tabs button { border: 0; background: none; min-height: 62px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .15rem; font-size: .8rem; color: var(--muted); position: relative; }
+.tabs button[aria-current=page] { color: var(--blue); font-weight: 600; }
+.tabs .dot { position: absolute; top: 7px; left: calc(50% + 6px); min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--bad); color: #fff; font-size: .7rem; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+/* job detail */
+.hero { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 1.1rem; margin-bottom: .9rem; }
+.hero h2 { margin: 0 0 .15rem; font-size: 1.35rem; line-height: 1.3; }
+.hero .sub { color: var(--muted); font-size: .92rem; }
+.contact { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-top: .9rem; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 1rem; margin-bottom: .9rem; }
+.card h3 { font-size: 1rem; margin: 0 0 .6rem; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: .35rem 1rem; font-size: .95rem; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; text-align: right; font-weight: 500; }
+.steps { list-style: none; margin: 0; padding: 0; }
+.step { display: flex; gap: .85rem; padding: .85rem 0; border-top: 1px solid var(--line); align-items: center; }
+.step:first-child { border-top: 0; padding-top: .2rem; }
+.step .n { width: 32px; height: 32px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; font-weight: 600; background: var(--paper); color: var(--muted); }
+.step.done .n { background: var(--ok-soft); color: var(--ok); }
+.step.now .n { background: var(--blue); color: #fff; }
+.step .t { flex: 1; min-width: 0; }
+.step .t b { display: block; }
+.step .t span { color: var(--muted); font-size: .88rem; }
+.step .btn { min-height: 44px; padding: .4rem .9rem; }
+.linkbtn { background: none; border: 0; color: var(--bad); font-weight: 500; min-height: 44px; padding: 0; }
+/* feed */
+.feed { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.fi { display: flex; gap: .75rem; padding: .9rem 1rem; border-top: 1px solid var(--line); width: 100%; text-align: left; background: none; border-left: 0; border-right: 0; border-bottom: 0; }
+.fi:first-child { border-top: 0; }
+.fi .ic { width: 36px; height: 36px; border-radius: 10px; background: var(--paper); display: flex; align-items: center; justify-content: center; flex: none; color: var(--muted); }
+.fi.unread .ic { background: var(--blue-soft); color: var(--blue); }
+.fi .t { flex: 1; min-width: 0; }
+.fi .t b { display: block; font-weight: 500; }
+.fi.unread .t b { font-weight: 600; }
+.fi .t span { color: var(--muted); font-size: .85rem; }
+.toast { position: fixed; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--ink); color: #fff; padding: .7rem 1rem; border-radius: 12px; font-size: .95rem; z-index: 50; max-width: calc(100% - 2rem); box-shadow: 0 6px 20px rgba(0,0,0,.2); }
+.sheet-bg { position: fixed; inset: 0; background: rgba(18,26,36,.45); z-index: 40; display: flex; align-items: flex-end; justify-content: center; }
+.sheet { background: var(--surface); width: 100%; max-width: 640px; border-radius: 20px 20px 0 0; padding: 1.25rem 1rem calc(1rem + env(safe-area-inset-bottom)); }
+.sheet h3 { margin: 0 0 .75rem; font-size: 1.1rem; }
+.opt { display: flex; align-items: center; gap: .6rem; min-height: 48px; border-top: 1px solid var(--line); }
+.opt:first-of-type { border-top: 0; }
+.opt input { width: 20px; height: 20px; accent-color: var(--blue); }
+.fp-me { display: none !important; }
+@media (prefers-reduced-motion: no-preference) { .toast { animation: up .2s ease-out; } @keyframes up { from { opacity: 0; transform: translate(-50%, 8px); } } }
+</style>
+</head>
+<body>
+<header class="top" id="top"></header>
+<main id="main"></main>
+<nav class="tabs" id="tabs" aria-label="เมนูหลัก"></nav>
+<script>
+"use strict";
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const J = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch { return d; } };
+const W = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+const money = (n) => Number(n || 0).toLocaleString("th-TH");
+const ME = localStorage.getItem("filmpro_me") || "";
+const K = { bk: "filmpro_bookings_v1", claims: "filmpro_claims_v1", assign: "filmpro_assign_v1", pub: "filmpro_techpub_v1", ins: "filmpro_inspect_v1", ho: "filmpro_handover_v1", rate: "filmpro_ratings_v1", seen: "filmpro_app_seen" };
+const I = {
+  pin: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>',
+  car: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 17h2v-4l-2-5H5l-2 5v4h2"/><circle cx="7.5" cy="17" r="2"/><circle cx="16.5" cy="17" r="2"/><path d="M9.5 17h5M3 13h18"/></svg>',
+  film: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v5"/></svg>',
+  phone: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg>',
+  map: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3Z"/><path d="M9 3v15M15 6v15"/></svg>',
+  back: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>',
+  open: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>',
+  mine: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>',
+  bell: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>',
+  star: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1Z"/></svg>',
+  x: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+};
+const WINDOW_TH = { front: "บานหน้า", frontSide: "คู่หน้า", rearSide: "คู่หลัง", rear: "บานหลัง", sunroof: "ซันรูฟ", sunroof2: "ซันรูฟ ช่องที่ 2", glassRoof: "หลังคาแก้ว" };
+const DECLINE = ["ติดงานอื่นช่วงเวลานั้น", "ไกลเกินไป", "ไม่ถนัดฟิล์มยี่ห้อนี้", "เหตุผลส่วนตัว"];
+const CLOSED = ["cancelled", "done", "completed", "closed", "refunded"];
+
+// ---------- data
+const data = () => {
+  const bookings = J(K.bk, []), claims = J(K.claims, {}), assign = J(K.assign, {}), pub = J(K.pub, {}), ins = (J(K.ins, {}).ins) || {}, ho = (J(K.ho, {}).ho) || {}, rate = J(K.rate, {});
+  const me = (pub.techs || []).find((t) => t.id === ME) || { id: ME, name: "" };
+  return { bookings: Array.isArray(bookings) ? bookings : [], claims, assign, me, ins, ho, rate };
+};
+const holder = (D, b) => (D.claims[b.id] && D.claims[b.id].tech) || b.tech || null;
+const depositOk = (b) => !b.deposit || b.deposit.amount == null || ["paid", "refunded"].includes(b.deposit.status);
+const sortByDate = (a, b) => ((a.date || "9") + (a.time || "")).localeCompare((b.date || "9") + (b.time || ""));
+function lists(D) {
+  const now = Date.now();
+  const offers = D.bookings.filter((b) => { const A = D.assign[b.id]; return A && A.state === "offered" && A.tech === ME && A.expires > now && !holder(D, b) && !CLOSED.includes(b.status); }).sort(sortByDate);
+  const offerIds = new Set(offers.map((b) => b.id));
+  const open = D.bookings.filter((b) => !holder(D, b) && !CLOSED.includes(b.status) && !offerIds.has(b.id)).sort(sortByDate);
+  const mine = D.bookings.filter((b) => holder(D, b) === ME && b.status !== "cancelled").sort(sortByDate);
+  return { offers, open, mine };
+}
+function stageOf(D, b) {
+  const i = D.ins[b.id], h = D.ho[b.id];
+  if (b.status === "cancelled") return { k: "cancelled", t: "ยกเลิกแล้ว", c: "bad", step: 0 };
+  if (h && h.status === "ต้องแก้ไข") return { k: "redo", t: "ลูกค้าขอแก้ไข", c: "bad", step: 2 };
+  if (h && h.status === "ส่งมอบแล้ว") return { k: "done", t: D.rate[b.id] ? "เสร็จ · ได้รับคะแนนแล้ว" : "ส่งมอบแล้ว", c: "ok", step: 3 };
+  if (i && i.status === "ตรวจแล้ว") return { k: "inspected", t: "ตรวจรถแล้ว · รอส่งมอบ", c: "blue", step: 2 };
+  if (i) return { k: "inspecting", t: "กำลังตรวจรถ", c: "warn", step: 1 };
+  return { k: "assigned", t: "รอตรวจรถก่อนติด", c: "", step: 1 };
+}
+const TH_DAY = ["อา.", "จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส."], TH_MON = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+const ymd = (d) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+function dayLabel(s) {
+  if (!s) return "ยังไม่ระบุวัน";
+  const d = new Date(s + "T00:00:00"); if (isNaN(d)) return s;
+  const t = new Date(), tm = new Date(Date.now() + 864e5);
+  const base = `${TH_DAY[d.getDay()]} ${d.getDate()} ${TH_MON[d.getMonth()]}`;
+  return s === ymd(t) ? "วันนี้ · " + base : s === ymd(tm) ? "พรุ่งนี้ · " + base : base;
+}
+function km(D, b) {
+  const a = D.me, g = b.geo;
+  if (!a || a.lat == null || a.lng == null || !g || g.lat == null) return null;
+  const R = 6371, r = (x) => x * Math.PI / 180, dLa = r(g.lat - a.lat), dLo = r(g.lng - a.lng);
+  const h = Math.sin(dLa / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(g.lat)) * Math.sin(dLo / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+const carText = (b) => [b.car && b.car.brand, b.car && b.car.model].filter(Boolean).join(" ") + (b.car && b.car.size ? ` · ไซส์ ${b.car.size}` : "");
+const filmText = (b) => [b.film && (b.film.brandName || b.film.brand), b.film && b.film.series].filter(Boolean).join(" ");
+
+// ---------- actions
+function toast(m) { let t = $(".toast"); if (t) t.remove(); t = document.createElement("div"); t.className = "toast"; t.setAttribute("role", "status"); t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 3500); }
+async function claim(bid, viaOffer) {
+  const C = J(K.claims, {});
+  if (C[bid] && C[bid].tech && C[bid].tech !== ME) { toast("มีช่างรับงานนี้ไปแล้ว"); return render(); }
+  // write straight to the server so two techs pressing together cannot both win
+  const r = await fetch("/api/sync", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ k: K.claims, upserts: { [bid]: { tech: ME, at: Date.now(), by: viaOffer ? "system" : "tech" } } }) }).then((x) => x.json()).catch(() => null);
+  if (!r || !r.ok || (r.rejected || []).includes(bid)) { toast("รับงานไม่สำเร็จ อาจมีช่างรับไปก่อนแล้ว"); window.FPSync && FPSync.pull(); return; }
+  C[bid] = { tech: ME, at: Date.now(), by: viaOffer ? "system" : "tech" }; W(K.claims, C);
+  const A = J(K.assign, {});
+  if (A[bid] && A[bid].tech === ME) { A[bid].state = "accepted"; (A[bid].history = A[bid].history || []).push({ tech: ME, res: "accept", at: Date.now() }); W(K.assign, A); }
+  toast("รับงานแล้ว · อยู่ในงานของฉัน");
+  location.hash = "#job/" + encodeURIComponent(bid);
+}
+function decline(bid, reason) {
+  const A = J(K.assign, {}), a = A[bid];
+  if (!a || a.tech !== ME) return;
+  (a.history = a.history || []).push({ tech: ME, res: "decline", reason: reason || "", at: Date.now() });
+  a.expires = Date.now() - 1; // the system offers it to the next tech
+  W(K.assign, A);
+  toast("ปฏิเสธงานแล้ว");
+  render();
+}
+function release(bid) {
+  const C = J(K.claims, {});
+  if (!C[bid] || C[bid].tech !== ME) return;
+  delete C[bid]; W(K.claims, C);
+  toast("คืนงานแล้ว · งานกลับไปเป็นคิวว่าง");
+  location.hash = "#mine";
+}
+
+// ---------- notifications (built from changes since last look)
+function events(D) {
+  const seen = J(K.seen, { snap: {}, read: {}, first: true });
+  const out = [], snap = {};
+  const L = lists(D);
+  L.offers.forEach((b) => out.push({ id: "offer:" + b.id, at: (D.assign[b.id] || {}).offeredAt || 0, icon: I.open, t: "ระบบเสนองานให้คุณ", s: `${dayLabel(b.date)} ${b.time || ""} · ${b.location || ""}`, go: "#open" }));
+  D.bookings.forEach((b) => {
+    const mineNow = holder(D, b) === ME, st = stageOf(D, b);
+    const cur = { mine: mineNow, date: b.date, time: b.time, loc: b.location, st: b.status, stage: st.k, rated: !!D.rate[b.id] };
+    if (mineNow || (seen.snap[b.id] && seen.snap[b.id].mine)) snap[b.id] = cur;
+    const p = seen.snap[b.id];
+    if (!p || seen.first) return;
+    const at = Date.now();
+    if (!p.mine && mineNow && (D.claims[b.id] || {}).by === "admin") out.push({ id: "assigned:" + b.id, at, icon: I.mine, t: "แอดมินมอบงานให้คุณ", s: `${b.customer || b.id} · ${dayLabel(b.date)} ${b.time || ""}`, go: "#job/" + b.id });
+    if (p.mine && !mineNow && b.status !== "cancelled") out.push({ id: "removed:" + b.id + ":" + at, at, icon: I.x, t: "งานถูกย้ายออกจากคุณ", s: `${b.id} · ติดต่อแอดมินถ้าสงสัย`, go: "#mine" });
+    if (mineNow && p.mine && (p.date !== cur.date || p.time !== cur.time)) out.push({ id: "time:" + b.id + ":" + cur.date + cur.time, at, icon: I.open, t: "เปลี่ยนวันเวลานัด", s: `${b.customer || b.id} · ${dayLabel(b.date)} ${b.time || ""}`, go: "#job/" + b.id });
+    if (mineNow && p.mine && p.loc !== cur.loc) out.push({ id: "loc:" + b.id + ":" + cur.loc, at, icon: I.pin, t: "เปลี่ยนสถานที่ติดตั้ง", s: `${b.customer || b.id} · ${b.location || ""}`, go: "#job/" + b.id });
+    if (p.mine && p.st !== "cancelled" && b.status === "cancelled") out.push({ id: "cancel:" + b.id, at, icon: I.x, t: "ลูกค้ายกเลิกคิว", s: `${b.customer || b.id} · ${dayLabel(b.date)}`, go: "#mine" });
+    if (mineNow && p.stage !== "redo" && cur.stage === "redo") out.push({ id: "redo:" + b.id, at, icon: I.x, t: "ลูกค้าขอให้แก้ไขงาน", s: `${b.customer || b.id}`, go: "#job/" + b.id });
+    if (mineNow && !p.rated && cur.rated) out.push({ id: "rate:" + b.id, at, icon: I.star, t: `ลูกค้าให้คะแนน ${(D.rate[b.id] || {}).stars || ""}`.trim(), s: `${b.customer || b.id}`, go: "#job/" + b.id });
+  });
+  const log = (seen.log || []).filter((e) => !out.some((o) => o.id === e.id));
+  const fresh = out.filter((e) => !e.id.startsWith("offer:"));
+  const merged = [...out.filter((e) => e.id.startsWith("offer:")), ...fresh, ...log.filter((e) => !e.id.startsWith("offer:"))].slice(0, 40);
+  seen.log = [...fresh, ...log.filter((e) => !e.id.startsWith("offer:"))].slice(0, 40);
+  seen.snap = snap; seen.first = false;
+  try { localStorage.setItem(K.seen, JSON.stringify(seen)); } catch {}
+  return { items: merged.sort((a, b) => b.at - a.at), read: seen.read || {} };
+}
+function markRead(ids) { const s = J(K.seen, { snap: {}, read: {} }); s.read = s.read || {}; ids.forEach((i) => s.read[i] = 1); try { localStorage.setItem(K.seen, JSON.stringify(s)); } catch {} }
+
+// ---------- views
+let route = "open", jobId = null, sheet = null, EV = { items: [], read: {} };
+function parseRoute() {
+  const h = decodeURIComponent(location.hash.replace(/^#/, ""));
+  if (h.startsWith("job/")) { route = "job"; jobId = h.slice(4); }
+  else { route = ["open", "mine", "feed"].includes(h) ? h : "open"; jobId = null; }
+}
+function card(D, b, kind) {
+  const d = km(D, b), A = D.assign[b.id];
+  const left = kind === "offer" && A ? Math.max(0, A.expires - Date.now()) : 0;
+  const st = kind === "mine" ? stageOf(D, b) : null;
+  const pills = [
+    kind === "offer" ? `<span class="pill blue">เสนอให้คุณ · <span class="timer" data-exp="${A.expires}">${fmtLeft(left)}</span></span>` : "",
+    kind === "open" && !depositOk(b) ? `<span class="pill warn">รอลูกค้าชำระมัดจำ</span>` : "",
+    st ? `<span class="pill ${st.c}">${esc(st.t)}</span>` : "",
+  ].join("");
+  const body = `<div class="when"><b>${esc(dayLabel(b.date))}</b><span>${esc(b.time || "")}</span>${pills}</div>
+    <div class="meta">
+      <div>${I.pin}<span>${esc(b.location || "ไม่ระบุสถานที่")}${d != null ? ` <span class="km">· ห่างจากคุณ ${d.toFixed(1)} กม.</span>` : ""}</span></div>
+      <div>${I.car}<span>${esc(carText(b) || "-")}</span></div>
+      <div>${I.film}<span>${esc(filmText(b) || "-")}</span></div>
+    </div>`;
+  if (kind === "mine") return `<button class="job" data-go="#job/${esc(b.id)}">${kind === "mine" && b.customer ? `<div style="font-weight:600;margin-bottom:.35rem">${esc(b.customer)}</div>` : ""}${body}</button>`;
+  const price = b.total != null ? `<span class="price">${money(b.total)} <small>บาท</small></span>` : "<span></span>";
+  if (kind === "offer") return `<div class="job offer">${body}<div class="row-end">${price}<span class="pill">${esc(b.id)}</span></div><div class="btns"><button class="btn ghost" data-act="decline" data-id="${esc(b.id)}">ปฏิเสธ</button><button class="btn" data-act="accept" data-id="${esc(b.id)}">รับงาน</button></div></div>`;
+  return `<div class="job">${body}<div class="row-end">${price}<button class="btn" data-act="claim" data-id="${esc(b.id)}" ${depositOk(b) ? "" : 'aria-disabled="true" disabled'}>รับงานนี้</button></div></div>`;
+}
+const fmtLeft = (ms) => { const m = Math.floor(ms / 60000), s = Math.floor(ms / 1000) % 60; return `เหลือ ${m}:${String(s).padStart(2, "0")}`; };
+function viewOpen(D) {
+  const L = lists(D);
+  let h = "";
+  if (L.offers.length) h += `<div class="sec">เสนอให้คุณ <span>${L.offers.length} งาน</span></div>` + L.offers.map((b) => card(D, b, "offer")).join("");
+  h += `<div class="sec">คิวว่าง <span>${L.open.length} งาน</span></div>`;
+  h += L.open.length ? L.open.map((b) => card(D, b, "open")).join("") : `<div class="empty"><b>ยังไม่มีคิวว่าง</b>มีคิวใหม่เมื่อไหร่จะขึ้นที่นี่ทันที</div>`;
+  return h;
+}
+function viewMine(D) {
+  const L = lists(D), today = ymd(new Date());
+  const active = L.mine.filter((b) => stageOf(D, b).k !== "done"), done = L.mine.filter((b) => stageOf(D, b).k === "done").reverse();
+  const t = active.filter((b) => b.date === today), next = active.filter((b) => b.date !== today);
+  if (!L.mine.length) return `<div class="empty"><b>ยังไม่มีงานของคุณ</b>รับงานได้ที่แท็บคิวว่าง</div>`;
+  let h = "";
+  if (t.length) h += `<div class="sec">วันนี้ <span>${t.length} งาน</span></div>` + t.map((b) => card(D, b, "mine")).join("");
+  if (next.length) h += `<div class="sec">${t.length ? "ถัดไป" : "งานที่รับไว้"} <span>${next.length} งาน</span></div>` + next.map((b) => card(D, b, "mine")).join("");
+  if (done.length) h += `<div class="sec">เสร็จแล้ว <span>${done.length} งาน</span></div>` + done.slice(0, 20).map((b) => card(D, b, "mine")).join("");
+  return h;
+}
+function viewFeed() {
+  const it = EV.items;
+  if (!it.length) return `<div class="empty"><b>ยังไม่มีการแจ้งเตือน</b>งานที่ถูกเสนอ เปลี่ยนนัด หรือลูกค้าให้คะแนน จะแจ้งที่นี่</div>`;
+  const h = `<div class="feed">${it.map((e) => `<button class="fi ${EV.read[e.id] ? "" : "unread"}" data-go="${esc(e.go)}"><span class="ic">${e.icon}</span><span class="t"><b>${esc(e.t)}</b><span>${esc(e.s)}</span></span></button>`).join("")}</div>`;
+  setTimeout(() => markRead(it.map((e) => e.id)), 1500);
+  return h;
+}
+function viewJob(D) {
+  const b = D.bookings.find((x) => x.id === jobId);
+  if (!b) return `<div class="empty"><b>ไม่พบงานนี้</b>งานอาจถูกยกเลิกหรือมอบให้ช่างคนอื่นแล้ว</div><p style="text-align:center"><a class="btn ghost" href="#mine">กลับไปงานของฉัน</a></p>`;
+  const mine = holder(D, b) === ME, st = stageOf(D, b), d = km(D, b);
+  if (!mine) {
+    return `<div class="hero"><h2>${esc(dayLabel(b.date))} ${esc(b.time || "")}</h2><div class="sub">${esc(b.location || "")}</div></div>${card(D, b, "open")}`;
+  }
+  const tel = String(b.phone || "").replace(/[^\d+]/g, "");
+  const mapUrl = b.geo && b.geo.lat != null ? `https://www.google.com/maps/dir/?api=1&destination=${b.geo.lat},${b.geo.lng}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(b.location || "")}`;
+  const vlt = b.vlt || {};
+  const rows = Object.keys(WINDOW_TH).filter((k) => vlt[k]).map((k) => `<dt>${WINDOW_TH[k]}</dt><dd>${esc(vlt[k])}</dd>`).join("");
+  const i = D.ins[b.id], h = D.ho[b.id];
+  const s1 = st.step > 1 || (i && i.status === "ตรวจแล้ว") ? "done" : "now";
+  const s2 = st.k === "done" ? "done" : s1 === "done" ? "now" : "";
+  const redo = st.k === "redo";
+  const step = (cls, n, t, sub, btn) => `<li class="step ${cls}"><span class="n">${cls === "done" ? "✓" : n}</span><span class="t"><b>${t}</b><span>${sub}</span></span>${btn || ""}</li>`;
+  return `
+  <div class="hero">
+    <div class="when"><b>${esc(dayLabel(b.date))}</b><span>${esc(b.time || "")}</span><span class="pill ${st.c}">${esc(st.t)}</span></div>
+    <h2>${esc(b.customer || "ลูกค้า")}</h2>
+    <div class="sub">${esc(b.location || "")}${d != null ? ` · ${d.toFixed(1)} กม.` : ""}</div>
+    <div class="contact">
+      ${tel ? `<a class="btn ghost" href="tel:${esc(tel)}">${I.phone} โทรหาลูกค้า</a>` : `<span class="btn ghost" aria-disabled="true">${I.phone} ไม่มีเบอร์</span>`}
+      <a class="btn ghost" href="${esc(mapUrl)}" target="_blank" rel="noopener">${I.map} นำทาง</a>
+    </div>
+  </div>
+  <section class="card"><h3>ขั้นตอนงาน</h3><ol class="steps">
+    ${step(s1, 1, "ตรวจสภาพรถก่อนติด", i && i.status === "ตรวจแล้ว" ? "ตรวจแล้ว ลูกค้าเซ็นรับทราบ" : i ? "ทำค้างไว้ กดเพื่อทำต่อ" : "ถ่ายรูปกระจก บันทึกตำหนิ ให้ลูกค้าเซ็น", s1 === "done" ? "" : `<a class="btn" href="/inspect?job=${encodeURIComponent(b.id)}">${i ? "ทำต่อ" : "เริ่ม"}</a>`)}
+    ${step(s2 || (redo ? "now" : ""), 2, redo ? "แก้ไขงานตามที่ลูกค้าแจ้ง" : "ติดฟิล์มและส่งมอบ", st.k === "done" ? "ส่งมอบแล้ว" : redo ? "ดูรายการที่ต้องแก้ แล้วส่งมอบใหม่" : "ถ่ายรูปหลังติด ตรวจรับกับลูกค้า ออกใบส่งมอบ", s2 === "now" || redo ? `<a class="btn" href="/handover?job=${encodeURIComponent(b.id)}">${h ? "ทำต่อ" : "เริ่ม"}</a>` : "")}
+    ${step(D.rate[b.id] ? "done" : "", 3, "ลูกค้าให้คะแนน", D.rate[b.id] ? `ได้ ${esc(D.rate[b.id].stars || D.rate[b.id].score || "")} ดาว` : "ลูกค้าให้คะแนนหลังรับรถ", "")}
+  </ol></section>
+  <section class="card"><h3>รถ</h3><dl class="kv">
+    <dt>รุ่น</dt><dd>${esc([b.car && b.car.brand, b.car && b.car.model].filter(Boolean).join(" ") || "-")}</dd>
+    ${b.car && b.car.size ? `<dt>ไซส์</dt><dd>${esc(b.car.size)}</dd>` : ""}
+    ${b.car && b.car.color ? `<dt>สี</dt><dd>${esc(b.car.color)}</dd>` : ""}
+    ${b.car && b.car.plate ? `<dt>ทะเบียน</dt><dd>${esc(b.car.plate)} ${esc(b.car.province || "")}</dd>` : ""}
+    ${b.sunroof && b.sunroof !== "ไม่มี" ? `<dt>ซันรูฟ</dt><dd>${esc(b.sunroof)}</dd>` : ""}
+  </dl></section>
+  <section class="card"><h3>ฟิล์มที่ลูกค้าเลือก</h3><dl class="kv"><dt>ยี่ห้อ / รุ่น</dt><dd>${esc(filmText(b) || "-")}</dd>${rows}${b.windshieldUpgrade ? `<dt>อัปเกรดบานหน้า</dt><dd>${esc(b.windshieldUpgrade)}</dd>` : ""}</dl></section>
+  ${b.total != null ? `<section class="card"><dl class="kv"><dt>ราคางาน</dt><dd>${money(b.total)} บาท</dd>${b.deposit && b.deposit.amount ? `<dt>มัดจำ</dt><dd>${money(b.deposit.amount)} บาท · ${b.deposit.status === "paid" ? "ชำระแล้ว" : "ยังไม่ชำระ"}</dd>` : ""}</dl></section>` : ""}
+  ${st.step <= 1 && !i ? `<p style="text-align:center;margin:.5rem 0 1rem"><button class="linkbtn" data-act="release" data-id="${esc(b.id)}">คืนงานนี้</button></p>` : ""}`;
+}
+function render() {
+  parseRoute();
+  const D = data();
+  EV = events(D);
+  const L = lists(D);
+  const unread = EV.items.filter((e) => !EV.read[e.id]).length;
+  const titles = { open: "คิวว่าง", mine: "งานของฉัน", feed: "แจ้งเตือน", job: "รายละเอียดงาน" };
+  $("#top").innerHTML = route === "job"
+    ? `<a class="iconbtn" href="#mine" aria-label="กลับ">${I.back}</a><h1>${esc(titles.job)}</h1><span class="me">${esc(jobId || "")}</span>`
+    : `<span class="strip"></span><h1>${titles[route]}</h1><span class="me">${esc(D.me.name || "")}</span><button class="iconbtn" id="out" aria-label="ออกจากระบบ" title="ออกจากระบบ" style="margin:0 -.5rem 0 0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></button>`;
+  const tab = (r, icon, label, n) => `<button data-go="#${r}" ${route === r || (route === "job" && r === "mine") ? 'aria-current="page"' : ""}>${icon}${n ? `<span class="dot">${n > 99 ? "99+" : n}</span>` : ""}<span>${label}</span></button>`;
+  $("#tabs").innerHTML = tab("open", I.open, "คิวว่าง", L.offers.length) + tab("mine", I.mine, "งานของฉัน", L.mine.filter((b) => stageOf(D, b).k !== "done" && b.date === ymd(new Date())).length) + tab("feed", I.bell, "แจ้งเตือน", route === "feed" ? 0 : unread);
+  $("#main").innerHTML = !ME ? `<div class="empty"><b>บัญชีนี้ยังไม่ได้ผูกกับรายชื่อช่าง</b>ติดต่อแอดมินให้ผูกบัญชีในหน้า "ผู้ใช้"</div>` : route === "open" ? viewOpen(D) : route === "mine" ? viewMine(D) : route === "feed" ? viewFeed() : viewJob(D);
+  const o = $("#out"); if (o) o.onclick = () => { if (!confirm("ออกจากระบบ?")) return; window.FPSync && FPSync.flush(); fetch("/api/logout", { method: "POST" }).finally(() => location.href = "/staff"); };
+}
+function openDecline(bid) {
+  const bg = document.createElement("div"); bg.className = "sheet-bg";
+  bg.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-label="เหตุผลที่ปฏิเสธ"><h3>ปฏิเสธงานนี้เพราะ</h3>${DECLINE.map((r, i) => `<label class="opt"><input type="radio" name="r" value="${esc(r)}" ${i === 0 ? "checked" : ""}>${esc(r)}</label>`).join("")}<div class="btns"><button class="btn ghost" data-x>ยกเลิก</button><button class="btn" data-ok>ปฏิเสธงาน</button></div></div>`;
+  bg.addEventListener("click", (e) => { if (e.target === bg || e.target.closest("[data-x]")) bg.remove(); if (e.target.closest("[data-ok]")) { decline(bid, bg.querySelector("input:checked").value); bg.remove(); } });
+  document.body.appendChild(bg);
+  bg.querySelector("input").focus();
+}
+document.addEventListener("click", (e) => {
+  const go = e.target.closest("[data-go]"); if (go) { location.hash = go.dataset.go; return; }
+  const a = e.target.closest("[data-act]"); if (!a) return;
+  const id = a.dataset.id;
+  if (a.dataset.act === "claim") claim(id, false);
+  if (a.dataset.act === "accept") claim(id, true);
+  if (a.dataset.act === "decline") openDecline(id);
+  if (a.dataset.act === "release" && confirm("คืนงานนี้ให้ช่างคนอื่น? ลูกค้าจะยังไม่ได้รับแจ้ง แอดมินจะเห็นว่างานกลับมาว่าง")) release(id);
+});
+window.addEventListener("hashchange", () => { render(); scrollTo(0, 0); });
+window.addEventListener("storage", (e) => { if (!e.key || e.key.startsWith("filmpro_")) { if (!document.querySelector(".sheet-bg")) render(); } });
+setInterval(() => { document.querySelectorAll(".timer[data-exp]").forEach((t) => { const l = +t.dataset.exp - Date.now(); if (l <= 0) render(); else t.textContent = fmtLeft(l); }); }, 1000);
+render();
+</script>
+</body>
+</html>

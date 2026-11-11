@@ -10,7 +10,7 @@ const SYNC_KEYS = [
 ];
 const PAGES = {
   admin: ["tech", "admin-v2", "staff-users"],
-  tech: ["inspect", "handover", "notify"],
+  tech: ["app", "inspect", "handover", "notify"],
 };
 const SESSION_DAYS = 30;
 const MAX_FAILS = 5, LOCK_MIN = 15;
@@ -28,7 +28,10 @@ export default {
       if (need) {
         const u = await currentUser(req, env);
         if (!u) return Response.redirect(new URL("/staff?next=" + encodeURIComponent(path + url.search + url.hash), url).toString(), 302);
-        if (need === "admin" && u.role !== "admin") return Response.redirect(new URL("/inspect", url).toString(), 302);
+        if (need === "admin" && u.role !== "admin") return Response.redirect(new URL("/app", url).toString(), 302);
+        // techs work from the tech app; the inspection and handover pages open for one job at a time
+        if (u.role !== "admin" && page === "notify") return Response.redirect(new URL("/app#feed", url).toString(), 302);
+        if (u.role !== "admin" && (page === "inspect" || page === "handover") && !url.searchParams.get("job")) return Response.redirect(new URL("/app", url).toString(), 302);
         const res = await env.ASSETS.fetch(req);
         const h = new Headers(res.headers);
         h.set("Cache-Control", "no-store");
@@ -407,6 +410,12 @@ async function syncPush(env, u, b) {
   for (const [rid, data] of ups) {
     const s = JSON.stringify(data);
     if (rid.length > 200 || s.length > MAX_REC) { rejected.push(rid); continue; }
+    if (u.role !== "admin" && b.k === K.claims) {
+      // first tech to claim wins, even when two press at the same moment
+      const r = await env.DB.prepare("INSERT INTO records (k, rid, data, deleted, v, by_user) VALUES (?, ?, ?, 0, ?, ?) ON CONFLICT(k, rid) DO UPDATE SET data = excluded.data, deleted = 0, v = excluded.v, by_user = excluded.by_user WHERE records.deleted = 1 OR json_extract(records.data, '$.tech') IS NULL OR json_extract(records.data, '$.tech') = ?").bind(b.k, rid, s, v, u.id, data.tech).run();
+      if (!r.meta || !r.meta.changes) rejected.push(rid);
+      continue;
+    }
     stmts.push(env.DB.prepare("INSERT INTO records (k, rid, data, deleted, v, by_user) VALUES (?, ?, ?, 0, ?, ?) ON CONFLICT(k, rid) DO UPDATE SET data = excluded.data, deleted = 0, v = excluded.v, by_user = excluded.by_user").bind(b.k, rid, s, v, u.id));
   }
   for (const rid of dels) stmts.push(env.DB.prepare("UPDATE records SET deleted = 1, data = NULL, v = ?, by_user = ? WHERE k = ? AND rid = ?").bind(v, u.id, b.k, rid));

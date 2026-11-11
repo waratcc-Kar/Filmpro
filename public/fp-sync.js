@@ -13,7 +13,7 @@
   if (!LS || location.protocol === "file:") return;
   var origSet = Storage.prototype.setItem, origRemove = Storage.prototype.removeItem;
   var page = location.pathname.replace(/^\//, "").replace(/\.html$/, "").replace(/\/$/, "");
-  var STAFF = ["tech", "admin-v2", "staff-users", "inspect", "handover", "notify"].indexOf(page) >= 0;
+  var STAFF = ["app", "tech", "admin-v2", "staff-users", "inspect", "handover", "notify"].indexOf(page) >= 0;
 
   // ---------- record encoding: a stored value <-> {rid: value}, rid "#" holds the shape and order
   function isObj(x) { return !!x && typeof x === "object" && !Array.isArray(x); }
@@ -139,6 +139,7 @@
       if (r.status === 401) { location.href = "/staff?next=" + encodeURIComponent(location.pathname + location.search + location.hash); return; }
       if (r.status !== 200 || !r.body) break;
       role = r.body.role;
+      if (role === "tech" && r.body.me) origSet.call(LS, "filmpro_me", r.body.me);
       apply(r.body.recs || [], r.body.vis);
       if (r.body.v > maxV) maxV = r.body.v;
       ok = true;
@@ -148,7 +149,8 @@
       if (Object.keys(cache[k].recs).length || role === "tech") writeLocal(k, false);
       else if (LS.getItem(k) != null) { dirty[k] = 1; schedule(k, 50); } // first admin device with data seeds the server
     });
-    window.FPSync = { online: ok, flush: flushAll, pull: pull };
+    window.FPSync = { online: ok, flush: flushAll, pull: pull, role: role, idle: function (k) { return !dirty[k] && !inflight[k]; } };
+    if (role === "tech" && (page === "inspect" || page === "handover")) techSkin();
 
     // 2) push local changes
     Storage.prototype.setItem = function (k, v) { origSet.call(this, k, v); if (this === LS && cache[k]) { dirty[k] = 1; schedule(k); } };
@@ -222,6 +224,70 @@
       });
     }
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", ui); else ui();
+  }
+
+  // ================= tech mode for the inspection / handover pages: one job, no admin tools
+  function techSkin() {
+    var job = new URLSearchParams(location.search).get("job");
+    if (!job) return;
+    document.documentElement.classList.add("fp-tech");
+    var css = document.createElement("style");
+    css.textContent = [
+      "html.fp-tech body{font-family:Prompt,system-ui,sans-serif!important;background:#F3F6F9!important;color:#121A24;padding-top:60px!important;padding-bottom:5rem!important}",
+      "html.fp-tech #fpSuiteNav,html.fp-tech .fp-hide,html.fp-tech .fp-me{display:none!important}",
+      ".fp-back{position:fixed;top:0;left:0;right:0;z-index:9999;height:56px;display:flex;align-items:center;gap:.6rem;padding:0 1rem;background:#fff;border-bottom:1px solid #DCE3EA;font:600 16px/1.2 Prompt,system-ui,sans-serif}",
+      ".fp-back a{display:inline-flex;align-items:center;gap:.35rem;color:#121A24;text-decoration:none;min-height:44px;padding-right:.5rem}",
+      ".fp-back small{margin-left:auto;font-weight:500;color:#5B6B7B}",
+      "html.fp-tech button,html.fp-tech select,html.fp-tech input:not([type=checkbox]):not([type=radio]),html.fp-tech textarea{font-family:inherit!important}",
+      "html.fp-tech .btn{min-height:48px;border-radius:12px!important;background:#1D5BE3!important;border-color:#1D5BE3!important}",
+      "html.fp-tech .btn2{min-height:44px;border-radius:12px!important}",
+      "html.fp-tech .card{border-radius:16px!important;border-color:#DCE3EA!important}",
+      "html.fp-tech #tabs{position:sticky;top:56px;z-index:5;background:#F3F6F9;padding:.5rem 0;overflow-x:auto;white-space:nowrap;flex-wrap:nowrap!important}",
+      "html.fp-tech #tabs::-webkit-scrollbar{display:none}"
+    ].join("");
+    document.head.appendChild(css);
+    var HIDE_TXT = ["ข้อมูลตัวอย่าง", "รีเซ็ต", "รายการ (แอดมิน)", "ตั้งค่าประกัน", "ตรวจสอบประกัน", "เลือกงาน", "นำเข้า JSON", "ส่งออก JSON", "ดึงงานใหม่", "รอยืนยัน", "งานของฉัน"];
+    function clean() {
+      var b = document.body; if (!b) return;
+      b.querySelectorAll("button,a").forEach(function (el) { var t = (el.textContent || "").trim(); if (!el.closest(".fp-back") && HIDE_TXT.some(function (h) { return t.indexOf(h) === 0; })) el.classList.add("fp-hide"); });
+      b.querySelectorAll("select").forEach(function (el) { var o = el.options[0]; if (o && /เลือกช่าง/.test(o.textContent)) el.classList.add("fp-hide"); });
+      b.querySelectorAll("div,p,footer,span").forEach(function (el) { if (!el.children.length && /localStorage|ข้อมูลเก็บในเครื่องนี้|ต้นแบบ|ระบบจำลอง/.test(el.textContent || "")) el.classList.add("fp-hide"); });
+      if (page === "handover") b.querySelectorAll("div,section").forEach(function (el) { if (el.firstElementChild && /^เพิ่มงาน/.test((el.firstElementChild.textContent || "").trim()) && el.querySelector("input")) el.classList.add("fp-hide"); });
+    }
+    function bar() {
+      if (document.querySelector(".fp-back")) return;
+      var d = document.createElement("div");
+      d.className = "fp-back";
+      d.innerHTML = '<a href="/app#job/' + encodeURIComponent(job) + '"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>กลับไปหน้างาน</a><small></small>';
+      d.querySelector("small").textContent = (page === "inspect" ? "ตรวจรถ · " : "ส่งมอบ · ") + job;
+      document.body.appendChild(d);
+    }
+    function open() {
+      try {
+        if (page === "inspect") new Function("id", "open_(id)")(job);
+        else new Function("id", "cur=id;go('s1')")(job);
+      } catch (e) { console.warn("open job", e); }
+    }
+    // when the step is finished, return to the job in the tech app once the save reached the server
+    var doneKey = page === "inspect" ? "filmpro_inspect_v1" : "filmpro_handover_v1";
+    var leaving = false;
+    function checkDone() {
+      if (leaving) return;
+      var d = readLocal(doneKey) || {}, it = page === "inspect" ? (d.ins || {})[job] : (d.ho || {})[job];
+      var done = it && (page === "inspect" ? it.status === "ตรวจแล้ว" : it.status === "ส่งมอบแล้ว");
+      if (!done || !startDone) return;
+      leaving = true;
+      flushAll();
+      var t0 = Date.now();
+      (function wait() { if ((window.FPSync.idle(doneKey) && window.FPSync.idle("filmpro_handover_v1")) || Date.now() - t0 > 6000) location.href = "/app#job/" + encodeURIComponent(job); else setTimeout(wait, 200); })();
+    }
+    var startDone = false;
+    window.addEventListener("load", function () {
+      var d0 = readLocal(doneKey) || {}, it0 = page === "inspect" ? (d0.ins || {})[job] : (d0.ho || {})[job];
+      startDone = !(it0 && (it0.status === "ตรวจแล้ว" || it0.status === "ส่งมอบแล้ว"));
+      bar(); open(); clean();
+      new MutationObserver(function () { clean(); checkDone(); }).observe(document.body, { childList: true, subtree: true });
+    });
   }
 
   // ================= customer: push own booking / slip / rating, pull own booking for tracking

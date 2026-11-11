@@ -2989,7 +2989,7 @@ const FPA=(()=>{const AK='filmpro_assign_v1',CK='filmpro_claims_v1',BK='filmpro_
  function tick(now=Date.now()){const P=FPM.pub();if(!P.techs.length)return J(AK,{});const S=J(AK,{}),C=J(CK,{});let ch=false;
   J(BK,[]).filter(b=>b.status!=='cancelled'&&(!b.deposit||(b.deposit||{}).status==='paid')).forEach(b=>{if(C[b.id]&&C[b.id].tech){if(S[b.id]&&S[b.id].state==='offered'){S[b.id].state='accepted';ch=true;}return;}
    let A=S[b.id];if(!A){A=S[b.id]={history:[],state:'new'};offerNext(b,A,P,now);ch=true;return;}
-   if(A.state==='offered'&&now>=A.expires){A.history.push({tech:A.tech,res:'timeout',at:A.expires});offerNext(b,A,P,now);ch=true;}});
+   if(A.state==='offered'&&now>=A.expires){const L_=A.history[A.history.length-1];if(!(L_&&L_.tech===A.tech&&L_.res==='decline'))A.history.push({tech:A.tech,res:'timeout',at:A.expires});offerNext(b,A,P,now);ch=true;}});
   if(ch)W(AK,S);return S;}
  function accept(bid,tid,now=Date.now()){const S=tick(now),A=S[bid];if(!A||A.state!=='offered'||A.tech!==tid)return 'งานนี้ไม่ได้มอบให้คุณแล้ว (หมดเวลา/มอบให้คนอื่น)';
   A.state='accepted';A.history.push({tech:tid,res:'accept',at:now});W(AK,S);const C=J(CK,{});C[bid]={tech:tid,at:now,by:'system'};W(CK,C);return '';}

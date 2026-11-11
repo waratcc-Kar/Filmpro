@@ -57,7 +57,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(29,91,227,.4
 <script>
 const $ = (id) => document.getElementById(id);
 const next = new URLSearchParams(location.search).get("next");
-const home = (u) => next && next.startsWith("/") && !next.startsWith("//") ? next : u.role === "admin" ? "/admin-v2" : "/inspect";
+const home = (u) => next && next.startsWith("/") && !next.startsWith("//") ? next : u.role === "admin" ? "/admin-v2" : "/app";
 const MSG = { bad_login: "เบอร์หรือ PIN ไม่ถูกต้อง", locked: "ใส่ผิดหลายครั้ง ระบบล็อกไว้ 15 นาที", bad_code: "รหัสตั้งค่าไม่ถูกต้อง", invalid: "กรอกชื่อ เบอร์ และ PIN 6 หลักให้ครบ", already_setup: "ตั้งค่าไปแล้ว เข้าสู่ระบบได้เลย" };
 async function post(url, data) { const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }); return { st: r.status, j: await r.json().catch(() => ({})) }; }
 document.querySelectorAll(".pin").forEach((i) => i.addEventListener("input", () => { i.value = i.value.replace(/\D/g, "").slice(0, 6); }));
