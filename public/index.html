@@ -521,6 +521,83 @@ footer.wrap { color: var(--muted); }
 footer.wrap a { color: var(--muted); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } .btn:active, .series:active, .tchip:active, .qopt:active { transform: none; } }
 .svcnote{margin-top:.6rem;padding:.55rem .75rem;border-radius:10px;background:#EFF6FF;color:#1E40AF;font-size:.82rem}
+
+/* ===== FilmPro UI v4 — design system: trust navy + one blue for action, tinted-glass hero, line icons only ===== */
+:root {
+  --paper: #F4F6F8; --surface: #FFFFFF; --ink: #0F1B2D; --ink-2: #33445A; --muted: #56677A; --line: #DDE3EA; --line-2: #C9D2DC;
+  --blue: #1E4FD8; --blue-deep: #173FB0; --wash: #EBF1FD; --ok: #0E7A54; --ok-wash: #E6F5EE; --warn: #9A5B00; --warn-wash: #FFF5E0;
+  --film: #0F1B2D; --film2: #22344A;
+  --r-lg: 16px; --r-md: 12px; --r-sm: 8px;
+  --sh-1: 0 1px 2px rgba(15,27,45,.06); --sh-2: 0 18px 40px -22px rgba(15,27,45,.45);
+  --t: 150ms ease;
+}
+body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+h1 { font-size: 1.55rem; font-weight: 600; letter-spacing: -.005em; color: var(--ink); }
+.muted { color: var(--muted); }
+a, button, [data-act], select, label { cursor: pointer; }
+button, .btn, .way, .card, .chip, .field, .home-field, .sh-use, .slots button, .cal-grid button { transition: background-color var(--t), border-color var(--t), color var(--t), box-shadow var(--t); }
+:focus-visible { outline: 3px solid rgba(30,79,216,.38); outline-offset: 2px; }
+.field:focus, .home-field:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(30,79,216,.18); }
+.field, .home-field { min-height: 48px; border: 1px solid var(--line-2); background: var(--surface); color: var(--ink); }
+.field::placeholder { color: #8695A6; }
+
+/* buttons: one primary, one secondary, one quiet */
+.btn, .home-go, #bookBtn { background: var(--blue); border-color: var(--blue); color: #fff; }
+.btn:hover, .home-go:hover, #bookBtn:hover { background: var(--blue-deep); border-color: var(--blue-deep); }
+.btn.ghost, .btn.secondary, .btn.alt { background: var(--surface); color: var(--ink); border: 1px solid var(--line-2); }
+.btn.ghost:hover, .btn.secondary:hover, .btn.alt:hover { background: #F7F9FB; border-color: #AEB9C6; }
+.back { color: var(--ink-2); font-weight: 500; min-height: 44px; display: inline-flex; align-items: center; }
+.back:hover { color: var(--blue); }
+
+/* surfaces */
+.card, .slist, .way { border: 1px solid var(--line); box-shadow: var(--sh-1); }
+.way:hover, .brandcard:hover { border-color: #AEB9C6; }
+.slist .series { transition: background-color var(--t); }
+.chip { min-height: 44px; padding: 0 1rem; }
+.consent { align-items: center; }
+.consent input { width: 22px; height: 22px; flex: none; margin: 0; }
+.chip:hover { border-color: #AEB9C6; }
+
+/* header */
+header.top { background: rgba(255,255,255,.92); backdrop-filter: saturate(1.4) blur(10px); -webkit-backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--line); }
+.hicon { min-width: 2.75rem; height: 2.75rem; }
+
+/* footer: what the customer can count on, then the small print */
+footer.wrap.foot { text-align: left; color: var(--muted); font-size: .85rem; padding-top: .5rem; padding-bottom: 2.5rem; }
+.trust { list-style: none; margin: 0 0 1.25rem; padding: 1rem; display: grid; gap: .75rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+.trust li { display: flex; gap: .7rem; align-items: flex-start; color: var(--ink-2); line-height: 1.45; }
+.trust svg { flex: none; width: 1.35rem; height: 1.35rem; color: var(--blue); margin-top: .05rem; }
+.trust b { display: block; color: var(--ink); font-weight: 600; font-size: .92rem; }
+.trust span { font-size: .82rem; color: var(--muted); }
+.foot .fine { margin: 0 0 .5rem; font-size: .8rem; }
+.foot nav { display: flex; flex-wrap: wrap; gap: 0 1rem; }
+.foot nav a { color: var(--ink-2); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; font-size: .88rem; }
+.foot nav a:hover { color: var(--blue); text-decoration: underline; }
+.foot nav a[hidden] { display: none; }
+@media (min-width: 700px) { .trust { grid-template-columns: repeat(2, 1fr); } }
+
+/* sticky total: a floating summary that lines up with the content */
+@media (min-width: 700px) {
+  .bar.has-sum { left: 50%; right: auto; transform: translateX(-50%); width: min(40rem, calc(100% - 2rem)); bottom: 1rem; border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--sh-2); padding: .7rem .8rem .7rem 1.1rem; }
+}
+
+/* desktop: use the width where it helps */
+@media (min-width: 960px) {
+  h1 { font-size: 1.85rem; }
+  body[data-step="path"] .wrap, body[data-step="shades"] .wrap { max-width: 60rem; }
+  body[data-step="path"] .chips[style] { grid-template-columns: repeat(4, 1fr) !important; }
+  body[data-step="path"] .ways { max-width: 40rem; }
+  body[data-step="shades"] .shlist, body[data-step="shades"] .shades-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: start; }
+  body[data-step="shades"] .shlist .shade { margin: 0; }
+  body[data-step="shades"] .camcta { max-width: 26rem; }
+  /* home: headline left, form right, full-bleed tinted glass */
+  body.is-home .home { min-height: calc(100vh - 0px); display: flex; align-items: center; padding: 0; }
+  body.is-home .hero-glass { height: 100%; }
+  body.is-home .home-card { max-width: 72rem; width: 100%; padding: 4rem 2rem; display: grid; grid-template-columns: 1fr 25rem; grid-template-rows: auto auto; column-gap: 4rem; align-items: end; }
+  body.is-home .home-card h1 { grid-column: 1; grid-row: 1; font-size: 3.4rem; line-height: 1.2; }
+  body.is-home .home-sub { grid-column: 1; grid-row: 2; align-self: start; font-size: 1.35rem; margin-top: .6rem; }
+  body.is-home .home-card .pill { grid-column: 2; grid-row: 1 / span 2; align-self: center; margin-top: 0; padding: 1.4rem; }
+}
 </style>
 </head>
 <body>
@@ -533,9 +610,15 @@ footer.wrap a { color: var(--muted); }
   <a class="icon" style="background:#1D5BE3" href="tel:020000000">โทร</a>
   <div id="barSum" class="barsum" hidden><div class="bs-text"><span class="muted">ราคาทั้งคัน</span><b id="barTotal"></b></div><button id="barGo" class="btn" type="button" data-act="tobook">ดูสรุปและจองคิว</button></div>
 </div>
-<footer class="wrap" style="text-align:center;color:#94a3b8;font-size:.75rem">
-  <p>ราคาที่แสดงคือราคาติดทั้งคันรวมบานหน้า ยืนยันราคาสุดท้ายกับร้านก่อนวันติดตั้ง</p>
-  <p><a href="#track">เช็กสถานะการจอง</a> · <a href="tech.html">หลังบ้าน FilmPro</a> · <a href="notify.html">สำหรับช่าง</a> · <a id="adminLink" href="#admin">คิวในเครื่อง</a></p>
+<footer class="wrap foot">
+  <ul class="trust">
+    <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/></svg><div><b>ติดตั้งถึงบ้านหรือที่ทำงาน</b><span>กรุงเทพฯ และปริมณฑล นัดวันเวลาได้เอง</span></div></li>
+    <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6Z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg><div><b>ฟิล์มแท้ มีใบรับประกัน</b><span>ออกใบรับประกันให้ทุกงานหลังส่งมอบ</span></div></li>
+    <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><div><b>ช่างผ่านการตรวจสอบจากร้าน</b><span>ตรวจและถ่ายรูปรถก่อนติดทุกครั้ง</span></div></li>
+    <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></svg><div><b>ราคาชัดก่อนจอง</b><span>เห็นราคาทั้งคันก่อนจอง ชำระผ่าน PromptPay แล้วแนบสลิปในหน้าเว็บ</span></div></li>
+  </ul>
+  <p class="fine">ราคาที่แสดงคือราคาติดทั้งคันรวมบานหน้า ยืนยันราคาสุดท้ายกับร้านก่อนวันติดตั้ง</p>
+  <nav aria-label="ลิงก์อื่น"><a href="#track">เช็กสถานะการจอง</a><a href="/join">สมัครเป็นช่าง</a><a href="/staff">สำหรับทีมงาน</a><a id="adminLink" href="#admin" hidden>คิวในเครื่อง</a></nav>
 </footer>
 <script>/* FilmPro Suite shared data layer (same copy as tech/handover/notify) */
 (function (W) {
@@ -3615,7 +3698,7 @@ function seriesHtml() {
 function shadesHtml() {
   const series = seriesOf();
   const q = buildQuote();
-  return `<button class="back" data-act="go" data-step="series">← กลับ</button><h1>เลือกความเข้มฟิล์ม</h1><p class="muted lede">${esc(film(S.filmId).name)} ${esc(series.name)} ราคาเท่ากันทุกเฉด</p><button class="camcta" data-act="cam">${ICON.cam} ส่องกล้องดูผ่านฟิล์มจริง</button>${S.rec && S.rec.id === S.filmId && S.rec.name === series.name && S.rec.side ? `<div class="recbar"><div><b>แนะนำจากคำตอบของคุณ</b><div>รอบคัน ${esc(S.rec.side)}${S.rec.front ? ` · บานหน้า ${esc(S.rec.front)}` : ""}</div></div><button class="btn" data-act="userec">ใช้ตามที่แนะนำ</button></div>` : ""}${ringLegend}${series.shades.map((d) => `<article class="shade"><div class="sh-head"><div class="sh-name"><b>${esc(d.model)}</b><span class="sh-dark">${darkPct(d.vlt) === "ใส" ? "ฟิล์มใส" : "เข้ม " + darkPct(d.vlt) + "%"}${d.color ? ` · โทน ${esc(d.color)}` : ""}</span></div>${swatchHtml(d, film(S.filmId).name)}</div>${ringRow(d)}<button class="series sh-use${Object.values(S.shades || {}).length && Object.values(S.shades).every((m) => m === d.model) ? " on" : ""}" data-act="allshade" data-m="${esc(d.model)}">ใช้เบอร์นี้ทุกบาน</button></article>`).join("") || `<p class="muted">ซีรีส์นี้ไม่มีตารางเฉดในข้อมูลตัวอย่าง</p>`}<div class="card" id="pickcard" style="padding:1rem"><h2 style="margin-bottom:.3rem">เบอร์ฟิล์มแต่ละบาน</h2><p class="muted" style="margin:0 0 .8rem;font-size:.875rem">ปรับแยกบานได้ เช่น บานหน้าอ่อนกว่ารอบคัน</p>${groupsFor(S.sunroof || "ไม่มี").map((id) => `<label style="display:block;margin-bottom:.7rem">${groupLabel(id)}<select class="field" data-shade="${id}" style="${series.shades.length && !S.shades[id] ? "border-color:#f59e0b;color:#94a3b8" : ""}"><option value="" ${!S.shades[id] ? "selected" : ""} disabled>— เลือกเบอร์ฟิล์ม —</option>${series.shades.map((d) => `<option value="${esc(d.model)}" ${S.shades[id] === d.model ? "selected" : ""}>${esc(d.model)} · ${esc(darkLabel(d.vlt))}</option>`).join("")}</select></label>`).join("")}${upgrades(S.filmId, series).length ? `<label>อัปเกรดกระจกบานหน้า (เฉพาะ Lunaray)<select id="upgrade" class="field"><option value="">ไม่อัปเกรด</option>${upgrades(S.filmId, series).map((u) => `<option value="${esc(u.to)}" ${S.upgrade === u.to ? "selected" : ""}>อัปเกรดเป็น ${esc(u.to)} (+${money(u.price)} บาท)</option>`).join("")}</select></label>` : ""}${S.shadeErr ? `<p class="err">${esc(S.shadeErr)}</p>` : ""}<button class="btn" style="width:100%;padding:.8rem;margin-top:.5rem" data-act="tobook">ดูสรุปและจองคิว</button></div>${q ? `<p style="text-align:center;font-weight:700;color:#1d4ed8">รวมทั้งคัน ${esc(q.totalLabel)}</p>` : ""}`;
+  return `<button class="back" data-act="go" data-step="series">← กลับ</button><h1>เลือกความเข้มฟิล์ม</h1><p class="muted lede">${esc(film(S.filmId).name)} ${esc(series.name)} ราคาเท่ากันทุกเฉด</p><button class="camcta" data-act="cam">${ICON.cam} ส่องกล้องดูผ่านฟิล์มจริง</button>${S.rec && S.rec.id === S.filmId && S.rec.name === series.name && S.rec.side ? `<div class="recbar"><div><b>แนะนำจากคำตอบของคุณ</b><div>รอบคัน ${esc(S.rec.side)}${S.rec.front ? ` · บานหน้า ${esc(S.rec.front)}` : ""}</div></div><button class="btn" data-act="userec">ใช้ตามที่แนะนำ</button></div>` : ""}${ringLegend}<div class="shlist">${series.shades.map((d) => `<article class="shade"><div class="sh-head"><div class="sh-name"><b>${esc(d.model)}</b><span class="sh-dark">${darkPct(d.vlt) === "ใส" ? "ฟิล์มใส" : "เข้ม " + darkPct(d.vlt) + "%"}${d.color ? ` · โทน ${esc(d.color)}` : ""}</span></div>${swatchHtml(d, film(S.filmId).name)}</div>${ringRow(d)}<button class="series sh-use${Object.values(S.shades || {}).length && Object.values(S.shades).every((m) => m === d.model) ? " on" : ""}" data-act="allshade" data-m="${esc(d.model)}">ใช้เบอร์นี้ทุกบาน</button></article>`).join("") || `<p class="muted">ซีรีส์นี้ไม่มีตารางเฉดในข้อมูลตัวอย่าง</p>`}</div><div class="card" id="pickcard" style="padding:1rem"><h2 style="margin-bottom:.3rem">เบอร์ฟิล์มแต่ละบาน</h2><p class="muted" style="margin:0 0 .8rem;font-size:.875rem">ปรับแยกบานได้ เช่น บานหน้าอ่อนกว่ารอบคัน</p>${groupsFor(S.sunroof || "ไม่มี").map((id) => `<label style="display:block;margin-bottom:.7rem">${groupLabel(id)}<select class="field" data-shade="${id}" style="${series.shades.length && !S.shades[id] ? "border-color:#f59e0b;color:#94a3b8" : ""}"><option value="" ${!S.shades[id] ? "selected" : ""} disabled>— เลือกเบอร์ฟิล์ม —</option>${series.shades.map((d) => `<option value="${esc(d.model)}" ${S.shades[id] === d.model ? "selected" : ""}>${esc(d.model)} · ${esc(darkLabel(d.vlt))}</option>`).join("")}</select></label>`).join("")}${upgrades(S.filmId, series).length ? `<label>อัปเกรดกระจกบานหน้า (เฉพาะ Lunaray)<select id="upgrade" class="field"><option value="">ไม่อัปเกรด</option>${upgrades(S.filmId, series).map((u) => `<option value="${esc(u.to)}" ${S.upgrade === u.to ? "selected" : ""}>อัปเกรดเป็น ${esc(u.to)} (+${money(u.price)} บาท)</option>`).join("")}</select></label>` : ""}${S.shadeErr ? `<p class="err">${esc(S.shadeErr)}</p>` : ""}<button class="btn" style="width:100%;padding:.8rem;margin-top:.5rem" data-act="tobook">ดูสรุปและจองคิว</button></div>${q ? `<p style="text-align:center;font-weight:700;color:#1d4ed8">รวมทั้งคัน ${esc(q.totalLabel)}</p>` : ""}`;
 }
 function quizHtml() {
   const total = QUIZ.length;
@@ -3739,6 +3822,7 @@ function paint() {
   const prog = document.getElementById("progress");
   if (prog) prog.innerHTML = n ? [1, 2, 3, 4, 5, 6].map((i) => `<i class="${i <= n ? "on" : ""}" style="--k:${i}"></i>`).join("") : "";
   document.body.classList.toggle("is-home", S.step === "home");
+  document.body.dataset.step = S.step;
   app.innerHTML = view() + legalHtml();
   const bar = document.getElementById("bar");
   bar.hidden = S.focus || !!S.legal || S.disclaimer;
