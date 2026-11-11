@@ -3094,9 +3094,12 @@ function marketFor(brandId, series, size) {
   if (!ratios.length || list == null) return null;
   return list * ratios[Math.floor(ratios.length / 2)];
 }
+/* ปิดส่วนลดทั้งหมดไว้ก่อน (โปรแบรนด์ ราคาตามตลาด โค้ดลูกค้าใหม่ โค้ดแนะนำเพื่อน) เปลี่ยนเป็น true เพื่อเปิดกลับ */
+const DISCOUNTS_ON = false;
 const basePrice = (brandId, series, size) => {
   const list = listBasePrice(brandId, series, size);
   if (list == null) return null;
+  if (!DISCOUNTS_ON) return list;
   const m = marketFor(brandId, series, size);
   if (m != null) return Math.floor(Math.min(list, m) / 100) * 100;
   const p = CATALOG.promos?.[brandId + "|" + series.name];
@@ -3178,7 +3181,7 @@ function buildQuote() {
   const promo = promoOf(S.filmId, series, size);
   const promoSave = base != null && listBase != null && promo ? listBase - base : 0;
   const gross = base == null ? null : base + (extraSun || 0) + upgradePrice;
-  const coupon = gross != null && S.coupon ? S.coupon : null;
+  const coupon = DISCOUNTS_ON && gross != null && S.coupon ? S.coupon : null;
   const couponSave = coupon ? Math.min(coupon.amount, gross) : 0;
   const total = gross == null ? null : gross - couponSave;
   const kind = priceKind(S.filmId, series, size);
@@ -3390,7 +3393,7 @@ function homeHtml() {
 }
 function pathHtml() {
   const size = sizeOf(S.brand, S.model);
-  return `<h1>เลือกวิธีค้นหาฟิล์ม</h1><p class="muted lede">เลือกแบบที่เหมาะกับคุณ</p><button class="series" data-act="quiz"><b>ช่วยแนะนำฟิล์มให้ฉัน</b><div class="muted">ตอบคำถามสั้น ๆ แล้วระบบจะแนะนำฟิล์มที่เหมาะ</div></button><button class="series" data-act="brands"><b>เลือกเอง</b><div class="muted">เลือกยี่ห้อและรุ่นที่ต้องการเอง</div></button><h2 id="brands">เลือกยี่ห้อฟิล์ม</h2>${Object.keys(CATALOG.promos || {}).length ? `<p class="promo-strip"><b>ราคาหลังโปรเท่ากับหรือถูกกว่าร้านทั่วไป</b><br>ราคาที่แสดงหักโปรแล้ว ลูกค้าใหม่ใช้โค้ด NEW500 ลดเพิ่ม 500 บาท หรือใช้โค้ดจากเพื่อนลดเพิ่ม 1,000 บาท</p>` : ""}<div class="chips" style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">${CATALOG.filmBrands.map((b) => `<button class="card brandcard" data-act="brand" data-id="${esc(b.id)}">${brandMaxPromo(b, size) ? `<span class="tag pricetag promo">ลดสูงสุด ${brandMaxPromo(b, size)}%</span>` : b.series.some((s) => showsPrice(b.id, s, size)) ? `<span class="tag pricetag">มีราคา</span>` : ""}${b.logo ? `<span class="logo-tile"><img alt="" src="${b.logo}"></span>` : `<span class="logo-tile"><b>${esc(b.name)}</b></span>`}<div>${esc(b.name)}</div></button>`).join("")}</div>`;
+  return `<h1>เลือกวิธีค้นหาฟิล์ม</h1><p class="muted lede">เลือกแบบที่เหมาะกับคุณ</p><button class="series" data-act="quiz"><b>ช่วยแนะนำฟิล์มให้ฉัน</b><div class="muted">ตอบคำถามสั้น ๆ แล้วระบบจะแนะนำฟิล์มที่เหมาะ</div></button><button class="series" data-act="brands"><b>เลือกเอง</b><div class="muted">เลือกยี่ห้อและรุ่นที่ต้องการเอง</div></button><h2 id="brands">เลือกยี่ห้อฟิล์ม</h2>${DISCOUNTS_ON && Object.keys(CATALOG.promos || {}).length ? `<p class="promo-strip"><b>ราคาหลังโปรเท่ากับหรือถูกกว่าร้านทั่วไป</b><br>ราคาที่แสดงหักโปรแล้ว ลูกค้าใหม่ใช้โค้ด NEW500 ลดเพิ่ม 500 บาท หรือใช้โค้ดจากเพื่อนลดเพิ่ม 1,000 บาท</p>` : ""}<div class="chips" style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">${CATALOG.filmBrands.map((b) => `<button class="card brandcard" data-act="brand" data-id="${esc(b.id)}">${brandMaxPromo(b, size) ? `<span class="tag pricetag promo">ลดสูงสุด ${brandMaxPromo(b, size)}%</span>` : b.series.some((s) => showsPrice(b.id, s, size)) ? `<span class="tag pricetag">มีราคา</span>` : ""}${b.logo ? `<span class="logo-tile"><img alt="" src="${b.logo}"></span>` : `<span class="logo-tile"><b>${esc(b.name)}</b></span>`}<div>${esc(b.name)}</div></button>`).join("")}</div>`;
 }
 function seriesHtml() {
   const brand = film(S.filmId);
@@ -3450,7 +3453,7 @@ function bookHtml() {
   const q = buildQuote();
   return `<button class="back" data-act="go" data-step="shades">← กลับ</button><h1>สรุปรายการ</h1>${q ? quoteHtml(q) : ""}
   <div class="card" style="padding:1rem;margin-bottom:1rem"><h2>ข้อมูลการจอง</h2><div class="grid2"><input class="field" data-bind="firstName" placeholder="ชื่อ" value="${esc(S.firstName)}"><input class="field" data-bind="lastName" placeholder="สกุล" value="${esc(S.lastName)}"></div><input class="field" data-bind="phone" placeholder="เบอร์ติดต่อ" value="${esc(S.phone)}" style="margin-top:.6rem"><input class="field" data-bind="carColor" placeholder="สีรถ" value="${esc(S.carColor)}" style="margin-top:.6rem"><div class="grid2" style="margin-top:.6rem"><label class="muted">ทะเบียนรถ *<input id="plateNo" class="field" data-bind="plateNo" value="${esc(S.plateNo)}" placeholder="เช่น 1กข 1234"></label><label class="muted">จังหวัด *<select id="plateProv" class="field" data-bind="plateProv"><option value="">เลือกจังหวัด</option>${PROVINCES.map((p) => `<option ${S.plateProv === p ? "selected" : ""}>${esc(p)}</option>`).join("")}</select></label></div><div class="svcnote">ช่างไปติดตั้งถึงที่ เฉพาะกรุงเทพฯ และปริมณฑล (นนทบุรี ปทุมธานี สมุทรปราการ สมุทรสาคร นครปฐม)</div><label class="muted" style="display:block;margin-top:.5rem">จังหวัดที่ติดตั้ง *<select id="areaProv" class="field" data-bind="areaProv"><option value="">เลือกจังหวัดที่ให้ช่างไป</option>${SERVICE_AREA.map((p) => `<option ${S.areaProv === p ? "selected" : ""}>${esc(p)}</option>`).join("")}</select></label><input class="field" data-bind="location" placeholder="สถานที่ติดตั้ง เช่น คอนโด/บ้านเลขที่ ถนน เขต" value="${esc(S.location)}" style="margin-top:.6rem"><div style="margin:.6rem 0"><button type="button" class="series" data-act="geo">ใช้ตำแหน่งปัจจุบัน (ไม่บังคับ)</button> <span class="muted">${esc(S.geoText)}</span></div><div class="muted">วันที่ติดตั้ง${S.bookDate ? ` · <b style="color:#1d4ed8">${esc(thDate(S.bookDate))}</b>` : ""}</div>${calendarHtml()}<div style="margin-top:.7rem"><span class="muted">เลือกเวลา</span><div class="slots" id="timeSlots">${S.bookDate ? TIME_SLOTS.map((slot) => { const past = slotPassed(S.bookDate, slot); return `<button type="button" data-act="slot" data-time="${slot}" class="${S.bookTime === slot && !past ? "on" : ""}" ${past ? "disabled" : ""}>${slot}</button>`; }).join("") : `<span class="muted" style="font-size:.85rem">เลือกวันที่ก่อน</span>`}</div></div></div>
-  <div class="card coupon" style="padding:1rem;margin-bottom:1rem"><h2 style="margin-bottom:.5rem">โค้ดส่วนลด</h2>${S.coupon ? `<div class="coupon-on"><div><b>${esc(S.coupon.code)}</b><div class="muted">${esc(S.coupon.label)}</div></div><button type="button" class="back" style="margin:0" data-act="uncoupon">เอาออก</button></div>` : `<div class="coupon-row"><input id="couponInput" class="field" placeholder="เช่น NEW500 หรือโค้ดจากเพื่อน" value="${esc(S.couponDraft || "")}" autocapitalize="characters"><button type="button" class="btn" data-act="coupon">ใช้โค้ด</button></div>`}${S.couponErr ? `<p class="err" style="margin:.5rem 0 0">${esc(S.couponErr)}</p>` : ""}</div>
+  ${DISCOUNTS_ON ? `<div class="card coupon" style="padding:1rem;margin-bottom:1rem"><h2 style="margin-bottom:.5rem">โค้ดส่วนลด</h2>${S.coupon ? `<div class="coupon-on"><div><b>${esc(S.coupon.code)}</b><div class="muted">${esc(S.coupon.label)}</div></div><button type="button" class="back" style="margin:0" data-act="uncoupon">เอาออก</button></div>` : `<div class="coupon-row"><input id="couponInput" class="field" placeholder="เช่น NEW500 หรือโค้ดจากเพื่อน" value="${esc(S.couponDraft || "")}" autocapitalize="characters"><button type="button" class="btn" data-act="coupon">ใช้โค้ด</button></div>`}${S.couponErr ? `<p class="err" style="margin:.5rem 0 0">${esc(S.couponErr)}</p>` : ""}</div>` : ""}
   <p class="muted">ขั้นถัดไปคือชำระเต็มจำนวนผ่าน PromptPay แล้วนำสลิปมาให้ร้านตรวจ</p>
   <label style="display:flex;gap:.5rem;font-size:.8rem" class="muted"><input id="consent" type="checkbox" ${S.consent ? "checked" : ""}> <span>ยอมรับ <button type="button" class="back" data-act="legal" data-which="privacy">นโยบายความเป็นส่วนตัว</button> และ <button type="button" class="back" data-act="legal" data-which="terms">เงื่อนไขการใช้บริการ</button></span></label>${S.error ? `<p class="err">${esc(S.error)}</p>` : ""}<button id="bookBtn" class="btn" style="width:100%;padding:.85rem" data-act="save" ${S.busy ? "disabled" : ""}>${S.busy ? "กำลังบันทึก…" : "จองคิวและไปชำระเงิน"}</button>`;
 }
@@ -3468,6 +3471,7 @@ function quoteRequestHtml(row) {
   </ol>${url ? `<a class="btn" href="${esc(url)}" target="_blank" rel="noreferrer" style="display:block;text-align:center;text-decoration:none;padding:.85rem;margin-top:.9rem;background:#06C755">ขอราคาทาง LINE</a>` : ""}<a class="btn" href="tel:${esc(CATALOG.shop.phone || "")}" style="display:block;text-align:center;text-decoration:none;padding:.7rem;margin-top:.5rem;background:#fff;color:#1e293b;border:1px solid #e2e8f0">โทรหาร้าน</a>`;
 }
 function referHtml(row) {
+  if (!DISCOUNTS_ON) return "";
   const code = row.refCode || myRefCode(row.id);
   const text = `ติดฟิล์มกรองแสงถึงที่กับ FilmPro ใช้โค้ด ${code} ลด 1,000 บาท`;
   return `<div class="card refer"><h2>ชวนเพื่อนติดฟิล์ม</h2><p class="muted" style="margin:0 0 .6rem">ส่งโค้ดนี้ให้เพื่อน เพื่อนจองครั้งแรกลด 1,000 บาท</p><div class="refcode">${esc(code)}</div><a class="btn" href="https://line.me/R/share?text=${encodeURIComponent(text)}" target="_blank" rel="noreferrer" style="display:block;text-align:center;text-decoration:none;padding:.75rem;margin-top:.7rem;background:#06C755">ส่งโค้ดให้เพื่อนทาง LINE</a></div>`;
