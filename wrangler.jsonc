@@ -1,0 +1,9 @@
+{
+  // FilmPro — static site on Cloudflare Workers (Static Assets). No Worker script needed.
+  "name": "filmpro",
+  "compatibility_date": "2026-11-10",
+  "assets": {
+    "directory": "./public",
+    "not_found_handling": "404-page"
+  }
+}
