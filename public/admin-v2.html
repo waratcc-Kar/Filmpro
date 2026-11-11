@@ -4,8 +4,8 @@
 <title>FilmPro Back-office</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
-body{font-family:'Sarabun',sans-serif;background:#f1f5f9;color:#1e293b}
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap');
+body{font-family:Prompt,system-ui,sans-serif;background:#f1f5f9;color:#1e293b}
 .card{background:#fff;border:1px solid #e2e8f0;border-radius:20px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .btn{background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%);border-radius:12px;color:#fff}.btn:disabled{opacity:.4}
 .btn2{background:#fff;border:1px solid #e2e8f0;border-radius:12px}
@@ -22,7 +22,11 @@ label.f{display:block;font-size:13px;font-weight:500;margin-top:8px}
 .star{font-size:30px;line-height:1;color:#d1d5db}.star.on{color:#f59e0b}
 .kpi{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:10px;text-align:center}.kpi b{display:block;font-size:18px;color:#1e40af}
 .bubble{max-width:80%;padding:6px 10px;border-radius:14px;font-size:14px}
-</style></head>
+</style><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/fp-theme.css">
+<script src="/fp-theme.js" defer></script>
+</head>
 <body><div class="max-w-md mx-auto pb-24">
 <header class="sticky top-0 z-10 bg-white/95 backdrop-blur border-b px-3 py-2">
  <div class="flex items-center justify-between gap-2"><div><b class="text-blue-800">FilmPro</b> <span class="text-xs text-gray-500">หลังบ้าน</span></div><div id="who" class="flex gap-1 items-center"></div></div>
@@ -195,11 +199,11 @@ function fpImport(){try{const B=JSON.parse(localStorage.getItem('filmpro_booking
 var j_;load();render();addEventListener('storage',e=>{if(e.key===KN||e.key==='filmpro_bookings_v1')render();});setInterval(()=>{if(!document.querySelector('input:focus,select:focus,textarea:focus'))render();},15000);
 
 </script><script>/* FilmPro Suite nav — links every page of the suite (same origin = shared localStorage) */
-(function(){var P=[['index.html','หน้าลูกค้า'],['tech.html','หลังบ้าน/ช่าง'],['inspect.html','ตรวจสภาพรถ'],['handover.html','ส่งมอบงาน'],['notify.html','แจ้งเตือนช่าง'],['admin-v2.html','Admin V2']];
-var cur=(location.pathname.split('/').pop()||'index.html');
+(function(){var P=[['/admin-v2','คิวงาน'],['/tech','จัดการช่าง'],['/staff-users','ผู้ใช้'],['/inspect','ตรวจสภาพรถ'],['/handover','ส่งมอบงาน'],['/notify','แจ้งเตือนช่าง'],['/','หน้าลูกค้า']];
+var cur='/'+(location.pathname.split('/').pop()||'').replace(/\.html$/,'');
 function go(){if(document.getElementById('fpSuiteNav'))return;var n=document.createElement('nav');n.id='fpSuiteNav';
-n.style.cssText='display:flex;gap:6px;overflow-x:auto;padding:6px 10px;background:#0E1B2A;font:13px Sarabun,sans-serif;position:relative;z-index:60;-webkit-overflow-scrolling:touch';
-n.innerHTML='<b style="color:#fff;white-space:nowrap;padding:4px 6px 4px 0">FilmPro</b>'+P.map(function(p){var on=p[0]===cur;return '<a href="'+p[0]+'" style="white-space:nowrap;text-decoration:none;padding:4px 10px;border-radius:999px;'+(on?'background:#2563EB;color:#fff':'color:#cbd5e1;border:1px solid #334155')+'">'+p[1]+'</a>';}).join('');
+n.style.cssText='display:flex;gap:6px;overflow-x:auto;padding:6px 10px;background:#0E1B2A;font:13px Prompt,system-ui,sans-serif;position:relative;z-index:60;-webkit-overflow-scrolling:touch';
+n.innerHTML='<b style="color:#fff;white-space:nowrap;padding:4px 6px 4px 0">FilmPro</b>'+P.map(function(p){var on=p[0]===cur||(p[0]==='/'&&cur==='/index');return '<a href="'+p[0]+'"'+(on?' aria-current="page"':'')+' style="white-space:nowrap;text-decoration:none;padding:4px 10px;border-radius:999px;'+(on?'background:#1E4FD8;color:#fff':'color:#C9D3DD;border:1px solid #33445A')+'">'+p[1]+'</a>';}).join('');
 document.body.insertBefore(n,document.body.firstChild);}
 if(document.body)go();else document.addEventListener('DOMContentLoaded',go);})();
 </script>

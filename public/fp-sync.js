@@ -140,6 +140,8 @@
       if (r.status !== 200 || !r.body) break;
       role = r.body.role;
       if (role === "tech" && r.body.me) origSet.call(LS, "filmpro_me", r.body.me);
+      // signed in through /staff already: skip the old page-level admin password
+      if (role === "admin") { try { sessionStorage.setItem("fp_admin", "1"); } catch (e) {} }
       apply(r.body.recs || [], r.body.vis);
       if (r.body.v > maxV) maxV = r.body.v;
       ok = true;
@@ -213,7 +215,7 @@
         if (st !== 200 || !res || !res.user) return;
         var u = res.user;
         var css = document.createElement("style");
-        css.textContent = ".fp-me{position:fixed;left:10px;bottom:10px;z-index:99999;display:flex;align-items:center;gap:6px;padding:4px 4px 4px 10px;border-radius:999px;background:#121A24;color:#fff;font:500 12px/1.2 Prompt,system-ui,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.2)}.fp-me i{width:7px;height:7px;border-radius:50%;background:#22C55E}.fp-me.off i{background:#F59E0B}.fp-me a,.fp-me button{color:#fff;background:rgba(255,255,255,.14);border:0;border-radius:999px;padding:6px 10px;font:inherit;cursor:pointer;text-decoration:none}@media print{.fp-me{display:none}}";
+        css.textContent = ".fp-me{position:fixed;left:10px;bottom:10px;z-index:99999;display:flex;align-items:center;gap:6px;padding:4px 4px 4px 10px;border-radius:999px;background:#0F1B2D;color:#fff;font:500 12px/1.2 Prompt,system-ui,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.2)}.fp-me i{width:7px;height:7px;border-radius:50%;background:#22C55E}.fp-me.off i{background:#F59E0B}.fp-me a,.fp-me button{color:#fff;background:rgba(255,255,255,.14);border:0;border-radius:999px;padding:6px 10px;font:inherit;cursor:pointer;text-decoration:none}@media print{.fp-me{display:none}}";
         document.head.appendChild(css);
         el = document.createElement("div");
         el.className = "fp-me";
@@ -233,15 +235,15 @@
     document.documentElement.classList.add("fp-tech");
     var css = document.createElement("style");
     css.textContent = [
-      "html.fp-tech body{font-family:Prompt,system-ui,sans-serif!important;background:#F3F6F9!important;color:#121A24;padding-top:60px!important;padding-bottom:5rem!important}",
+      "html.fp-tech body{font-family:Prompt,system-ui,sans-serif!important;background:#F3F6F9!important;color:#0F1B2D;padding-top:60px!important;padding-bottom:5rem!important}",
       "html.fp-tech #fpSuiteNav,html.fp-tech .fp-hide,html.fp-tech .fp-me{display:none!important}",
-      ".fp-back{position:fixed;top:0;left:0;right:0;z-index:9999;height:56px;display:flex;align-items:center;gap:.6rem;padding:0 1rem;background:#fff;border-bottom:1px solid #DCE3EA;font:600 16px/1.2 Prompt,system-ui,sans-serif}",
-      ".fp-back a{display:inline-flex;align-items:center;gap:.35rem;color:#121A24;text-decoration:none;min-height:44px;padding-right:.5rem}",
-      ".fp-back small{margin-left:auto;font-weight:500;color:#5B6B7B}",
+      ".fp-back{position:fixed;top:0;left:0;right:0;z-index:9999;height:56px;display:flex;align-items:center;gap:.6rem;padding:0 1rem;background:#fff;border-bottom:1px solid #DDE3EA;font:600 16px/1.2 Prompt,system-ui,sans-serif}",
+      ".fp-back a{display:inline-flex;align-items:center;gap:.35rem;color:#0F1B2D;text-decoration:none;min-height:44px;padding-right:.5rem}",
+      ".fp-back small{margin-left:auto;font-weight:500;color:#56677A}",
       "html.fp-tech button,html.fp-tech select,html.fp-tech input:not([type=checkbox]):not([type=radio]),html.fp-tech textarea{font-family:inherit!important}",
-      "html.fp-tech .btn{min-height:48px;border-radius:12px!important;background:#1D5BE3!important;border-color:#1D5BE3!important}",
+      "html.fp-tech .btn{min-height:48px;border-radius:12px!important;background:#1E4FD8!important;border-color:#1E4FD8!important}",
       "html.fp-tech .btn2{min-height:44px;border-radius:12px!important}",
-      "html.fp-tech .card{border-radius:16px!important;border-color:#DCE3EA!important}",
+      "html.fp-tech .card{border-radius:16px!important;border-color:#DDE3EA!important}",
       "html.fp-tech #tabs{position:sticky;top:56px;z-index:5;background:#F3F6F9;padding:.5rem 0;overflow-x:auto;white-space:nowrap;flex-wrap:nowrap!important}",
       "html.fp-tech #tabs::-webkit-scrollbar{display:none}"
     ].join("");

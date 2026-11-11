@@ -1,0 +1,75 @@
+/* FilmPro design system v4 for the staff pages (admin, tech roster, inspection, handover, notifications).
+   Same tokens as the customer site and the tech app. Loaded last in <head> so it wins over each page's old styles. */
+:root {
+  --paper: #F4F6F8; --surface: #FFFFFF; --ink: #0F1B2D; --ink-2: #33445A; --muted: #56677A; --faint: #6B7A8C;
+  --line: #DDE3EA; --line-2: #C9D2DC; --blue: #1E4FD8; --blue-deep: #173FB0; --wash: #EBF1FD;
+  --ok: #0E7A54; --ok-wash: #E6F5EE; --warn: #9A5B00; --warn-wash: #FFF5E0; --bad: #C0262D; --bad-wash: #FDECEC;
+  --r-lg: 16px; --r-md: 12px; --sh-1: 0 1px 2px rgba(15,27,45,.06); --t: 150ms ease;
+}
+html { -webkit-text-size-adjust: 100%; }
+body, .fpx { font-family: Prompt, system-ui, -apple-system, "Segoe UI", sans-serif !important; color: var(--ink); -webkit-font-smoothing: antialiased; }
+body { background: var(--paper) !important; }
+:focus-visible { outline: 3px solid rgba(30,79,216,.38) !important; outline-offset: 2px; }
+a, button, select, label, [onclick] { cursor: pointer; }
+
+/* readable small text: the old pages lean on 10–12px */
+.text-\[10px\] { font-size: 11.5px !important; line-height: 1.45 !important; }
+.text-\[11px\] { font-size: 12.5px !important; line-height: 1.45 !important; }
+.text-xs { font-size: 13px !important; line-height: 1.5 !important; }
+.text-sm { font-size: 14.5px !important; line-height: 1.55 !important; }
+.text-gray-400, .text-slate-400 { color: var(--faint) !important; }
+.text-gray-500, .text-slate-500, .text-gray-600, .text-slate-600 { color: var(--muted) !important; }
+.text-gray-700, .text-gray-800, .text-gray-900, .text-slate-700, .text-slate-800, .text-slate-900 { color: var(--ink) !important; }
+.text-blue-600, .text-blue-700, .text-blue-800, .text-indigo-600, .text-indigo-700, .text-sky-700 { color: var(--blue) !important; }
+.text-red-600, .text-red-700, .text-rose-600 { color: var(--bad) !important; }
+.text-emerald-600, .text-emerald-700, .text-green-600, .text-green-700 { color: var(--ok) !important; }
+.text-amber-600, .text-amber-700, .text-orange-600, .text-yellow-700 { color: var(--warn) !important; }
+.bg-blue-600, .bg-indigo-600, .bg-blue-500 { background-color: var(--blue) !important; }
+.bg-blue-50, .bg-indigo-50, .bg-sky-50 { background-color: var(--wash) !important; }
+.bg-gray-50, .bg-slate-50 { background-color: #F7F9FB !important; }
+.bg-gray-100, .bg-slate-100 { background-color: #EEF2F6 !important; }
+.bg-emerald-50, .bg-green-50 { background-color: var(--ok-wash) !important; }
+.bg-amber-50, .bg-yellow-50, .bg-orange-50 { background-color: var(--warn-wash) !important; }
+.bg-red-50, .bg-rose-50 { background-color: var(--bad-wash) !important; }
+.border-gray-100, .border-gray-200, .border-slate-200, .border-slate-100 { border-color: var(--line) !important; }
+
+/* surfaces */
+.card, .fpx .card { background: var(--surface) !important; border: 1px solid var(--line) !important; border-radius: var(--r-lg) !important; box-shadow: var(--sh-1) !important; }
+.kpi { border-radius: var(--r-md) !important; }
+.pill { border-radius: 999px !important; }
+
+/* buttons: primary, secondary, danger, success */
+.btn, .fbtn, .fpx .fbtn { background: var(--blue) !important; color: #fff !important; border: 1px solid var(--blue) !important; border-radius: var(--r-md) !important; font-weight: 600; min-height: 44px; transition: background-color var(--t), border-color var(--t); }
+.btn:hover:not(:disabled), .fbtn:hover { background: var(--blue-deep) !important; border-color: var(--blue-deep) !important; }
+.btn2, .fbtn2, .fpx .fbtn2 { background: var(--surface) !important; color: var(--ink) !important; border: 1px solid var(--line-2) !important; border-radius: var(--r-md) !important; font-weight: 500; min-height: 40px; transition: background-color var(--t), border-color var(--t); }
+.btn2:hover:not(:disabled), .fbtn2:hover { background: #F7F9FB !important; border-color: #AEB9C6 !important; }
+.btnr, .fred, .fpx .fred { background: var(--bad) !important; color: #fff !important; border-radius: var(--r-md) !important; font-weight: 600; min-height: 40px; }
+.btng, .fgreen, .fpx .fgreen { background: var(--ok) !important; color: #fff !important; border-radius: var(--r-md) !important; font-weight: 600; min-height: 40px; }
+.btn:disabled, .btn2:disabled, .fbtn:disabled { opacity: .45 !important; cursor: not-allowed; }
+
+/* fields */
+input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=range]):not([type=color]), select, textarea {
+  font-family: inherit !important; color: var(--ink) !important; background: var(--surface) !important; border: 1px solid var(--line-2) !important; border-radius: 10px !important; min-height: 44px; font-size: 15px;
+}
+textarea { min-height: 80px; }
+input:focus, select:focus, textarea:focus { outline: none !important; border-color: var(--blue) !important; box-shadow: 0 0 0 3px rgba(30,79,216,.18) !important; }
+input[type=checkbox], input[type=radio] { accent-color: var(--blue); width: 18px; height: 18px; }
+::placeholder { color: #8695A6 !important; }
+
+/* suite navigation (admins only) */
+#fpSuiteNav { background: #0F1B2D !important; font-family: Prompt, system-ui, sans-serif !important; padding: 8px 12px !important; gap: 6px !important; align-items: center; scrollbar-width: none; }
+#fpSuiteNav::-webkit-scrollbar { display: none; }
+#fpSuiteNav b { font-weight: 700; letter-spacing: -.01em; display: inline-flex; align-items: center; gap: 8px; }
+#fpSuiteNav b::before { content: ""; width: 22px; height: 10px; border-radius: 3px; background: linear-gradient(90deg, #fff 0%, #8EA0B4 55%, #33445A 100%); }
+#fpSuiteNav a { min-height: 34px; display: inline-flex; align-items: center; font-size: 13.5px; transition: background-color var(--t), color var(--t); }
+#fpSuiteNav a:not([aria-current]):hover { background: rgba(255,255,255,.08); color: #fff !important; }
+
+/* line icons that replace emoji (drawn by fp-theme.js) */
+.fpi { display: inline-block; width: 1.05em; height: 1.05em; vertical-align: -0.15em; background: currentColor; -webkit-mask: var(--i) center / contain no-repeat; mask: var(--i) center / contain no-repeat; flex: none; }
+
+/* the admin pages were built phone-width: give them room on a computer */
+@media (min-width: 960px) { body:not(.fp-tech) .max-w-md, body:not(.fp-tech) .max-w-xl, body:not(.fp-tech) .max-w-2xl { max-width: 56rem !important; } }
+.fp-hide { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+@media print { #fpSuiteNav, .fp-me { display: none !important; } body { background: #fff !important; } .card { box-shadow: none !important; } }

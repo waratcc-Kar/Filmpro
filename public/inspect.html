@@ -5,8 +5,8 @@
 <!-- FilmPro Part 0: Pre-install inspection. Pulls customer bookings from localStorage 'filmpro_bookings_v1' (written by index.html) + jobs from 'filmpro_tech_v1'. Jobs share shape {id,customer,phone,car,film,inst,pre,createdAt} with filmpro_tech_v1 / filmpro_handover_v1; pre={panelKey:dataURL,interior}. Export JSON {source,inst:[{id,name}],jobs:[...]} imports directly into Handover. -->
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
-body{font-family:'Sarabun',sans-serif;background:#f1f5f9;color:#1e293b}
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap');
+body{font-family:Prompt,system-ui,sans-serif;background:#f1f5f9;color:#1e293b}
 .card{background:#fff;border:1px solid #e2e8f0;border-radius:20px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .btn{background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%);border-radius:12px;color:#fff}
 .btn:disabled{opacity:.4}
@@ -23,7 +23,11 @@ label.f{display:block;font-size:13px;font-weight:500;margin-top:8px}
 .star{font-size:28px;line-height:1;color:#d1d5db}.star.on{color:#f59e0b}
 canvas.sig{width:100%;height:140px;border:1px dashed #94a3b8;border-radius:12px;background:#fff;touch-action:none}
 @media print{.noprint{display:none!important}body{background:#fff}.card{box-shadow:none;border-color:#cbd5e1;break-inside:avoid}}
-</style></head>
+</style><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/fp-theme.css">
+<script src="/fp-theme.js" defer></script>
+</head>
 <body><div class="max-w-md mx-auto pb-20">
 <header class="noprint sticky top-0 z-10 bg-white/95 backdrop-blur border-b px-3 py-2">
  <div class="flex items-center justify-between"><div><b class="text-blue-800">FilmPro Inspect</b> <span class="text-xs text-gray-500">ตรวจสภาพรถก่อนติดตั้ง</span></div>
@@ -260,7 +264,7 @@ function finish(){const h=I();h.status='ตรวจแล้ว';h.doneAt=now()
 function exportJSON(){return {source:'filmpro-inspect-v1',exportedAt:now(),inst:Object.entries(D.inst).map(([id,v])=>({id,name:v.name})),jobs:D.jobs.filter(j=>D.ins[j.id]?.status==='ตรวจแล้ว').map(j=>toJob(j.id))};}
 function dl(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(exportJSON())],{type:'application/json'}));a.download='filmpro-inspect-'+now().slice(0,10)+'.json';a.click();}
 function importJSON(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);let n=0;const ins=Array.isArray(o.inst)?o.inst:Object.entries(o.inst||{}).map(([id,v])=>({id,...v}));ins.forEach(i=>D.inst[i.id]={name:i.name});(o.jobs||[]).forEach(j=>{if(!job(j.id)){D.jobs.push(mkJob(j));n++;}});save();render();alert('นำเข้า '+n+' งาน');}catch(e){alert('ไฟล์ JSON ไม่ถูกต้อง');}};r.readAsText(f);}
-function demoImg(label,hue){const c=document.createElement('canvas');c.width=320;c.height=240;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,320,240);g.addColorStop(0,`hsl(${hue},45%,35%)`);g.addColorStop(1,`hsl(${hue},45%,15%)`);x.fillStyle=g;x.fillRect(0,0,320,240);x.fillStyle='#fff';x.font='bold 22px Sarabun,sans-serif';x.textAlign='center';x.fillText(label,160,125);return c.toDataURL('image/jpeg',.7);}
+function demoImg(label,hue){const c=document.createElement('canvas');c.width=320;c.height=240;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,320,240);g.addColorStop(0,`hsl(${hue},45%,35%)`);g.addColorStop(1,`hsl(${hue},45%,15%)`);x.fillStyle=g;x.fillRect(0,0,320,240);x.fillStyle='#fff';x.font='bold 22px Prompt,system-ui,sans-serif';x.textAlign='center';x.fillText(label,160,125);return c.toDataURL('image/jpeg',.7);}
 function demoShared(){if(!pub().techs.length)localStorage.setItem(PUB_KEY,JSON.stringify({techs:[{id:'T0001',name:'ช่าง A',status:'active',verified:true,level:4,avg:4.7,lat:13.7563,lng:100.5018,area:'กรุงเทพ',brands:['3M','STEK','XPEL','Lamina'],ws:true,sun:true},{id:'T0002',name:'ช่าง B',status:'active',verified:true,level:3,avg:4.45,lat:13.6900,lng:100.7500,area:'บางนา สมุทรปราการ',brands:['3M','Lamina'],ws:true,sun:true},{id:'T0003',name:'ช่าง C',status:'active',verified:false,level:2,avg:4.1,lat:13.8600,lng:100.5200,area:'นนทบุรี',brands:['Lamina','Hi-Kool'],ws:false,sun:false},{id:'T0004',name:'ช่าง D',status:'active',verified:false,level:1,avg:4.2,lat:14.3500,lng:100.5700,area:'อยุธยา',brands:['Hi-Kool'],ws:false,sun:false}],rules:DEF_RULES}));
  const B=bookings();if(!B.some(b=>b.demo)){const mk=(id,loc,geo,car,film,sun,price)=>({id,demo:true,createdAt:new Date().toISOString(),status:'booked',customer:'ลูกค้าตัวอย่าง '+id.slice(-1),phone:'08x',location:loc,geo,date:'2026-10-20',time:'10:00',car:{brand:car[0],model:car[1],size:'M',color:'ขาว',plate:'9กก '+id.slice(-3),province:'กรุงเทพฯ'},sunroof:sun,film:{brand:film[0],series:film[1]},vlt:{front:'VLT 70%',frontSide:'VLT 40%',rearSide:'VLT 40%',rear:'VLT 40%'},windshieldUpgrade:'',price});
   B.push(mk('BDEMO01','สาทร กรุงเทพ',{lat:13.72,lng:100.53},['Toyota','Yaris'],['lamina','Ceramatrix'],'',9000),mk('BDEMO02','บางนา',{lat:13.668,lng:100.634},['BMW','X5'],['3m','Crystalline'],'ซันรูฟ 1 ช่อง',42000),mk('BDEMO03','อยุธยา',null,['Honda','City'],['hi-kool','Ceramic'],'',6500));localStorage.setItem(BK_KEY,JSON.stringify(B));}}
@@ -275,11 +279,11 @@ load();syncTech();syncBookings();render();addEventListener('storage',e=>{if(e.ke
  if(L.length)h+=`<div class="card p-4 mb-3"><h2 class="font-semibold">รูปรถจากลูกค้า (ตอนจอง)</h2><div class="text-xs text-gray-500 mb-2">${esc(b.car.color||'')} · ${esc(b.car.plate||'')} ${esc(b.car.province||'')}${b.deposit?' · มัดจำ: '+({paid:'ชำระแล้ว',unpaid:'ยังไม่ชำระ',refunded:'คืนแล้ว'}[b.deposit.status]||'-'):''}</div><div class="grid grid-cols-2 gap-2">${L.map(([k,n])=>`<div><img src="${P[k]}" class="rounded-lg w-full aspect-[4/3] object-cover" onclick="zoom(this.src)"><div class="text-[11px] text-gray-500 text-center">${n}</div></div>`).join('')}</div></div>`;}catch(e){}return h;};})();
 </script>
 <script>/* FilmPro Suite nav — links every page of the suite (same origin = shared localStorage) */
-(function(){var P=[['index.html','หน้าลูกค้า'],['tech.html','หลังบ้าน/ช่าง'],['inspect.html','ตรวจสภาพรถ'],['handover.html','ส่งมอบงาน'],['notify.html','แจ้งเตือนช่าง'],['admin-v2.html','Admin V2']];
-var cur=(location.pathname.split('/').pop()||'index.html');
+(function(){var P=[['/admin-v2','คิวงาน'],['/tech','จัดการช่าง'],['/staff-users','ผู้ใช้'],['/inspect','ตรวจสภาพรถ'],['/handover','ส่งมอบงาน'],['/notify','แจ้งเตือนช่าง'],['/','หน้าลูกค้า']];
+var cur='/'+(location.pathname.split('/').pop()||'').replace(/\.html$/,'');
 function go(){if(document.getElementById('fpSuiteNav'))return;var n=document.createElement('nav');n.id='fpSuiteNav';
-n.style.cssText='display:flex;gap:6px;overflow-x:auto;padding:6px 10px;background:#0E1B2A;font:13px Sarabun,sans-serif;position:relative;z-index:60;-webkit-overflow-scrolling:touch';
-n.innerHTML='<b style="color:#fff;white-space:nowrap;padding:4px 6px 4px 0">FilmPro</b>'+P.map(function(p){var on=p[0]===cur;return '<a href="'+p[0]+'" style="white-space:nowrap;text-decoration:none;padding:4px 10px;border-radius:999px;'+(on?'background:#2563EB;color:#fff':'color:#cbd5e1;border:1px solid #334155')+'">'+p[1]+'</a>';}).join('');
+n.style.cssText='display:flex;gap:6px;overflow-x:auto;padding:6px 10px;background:#0E1B2A;font:13px Prompt,system-ui,sans-serif;position:relative;z-index:60;-webkit-overflow-scrolling:touch';
+n.innerHTML='<b style="color:#fff;white-space:nowrap;padding:4px 6px 4px 0">FilmPro</b>'+P.map(function(p){var on=p[0]===cur||(p[0]==='/'&&cur==='/index');return '<a href="'+p[0]+'"'+(on?' aria-current="page"':'')+' style="white-space:nowrap;text-decoration:none;padding:4px 10px;border-radius:999px;'+(on?'background:#1E4FD8;color:#fff':'color:#C9D3DD;border:1px solid #33445A')+'">'+p[1]+'</a>';}).join('');
 document.body.insertBefore(n,document.body.firstChild);}
 if(document.body)go();else document.addEventListener('DOMContentLoaded',go);})();
 </script>

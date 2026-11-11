@@ -5,7 +5,7 @@
 <!-- Extended: reads jobs from FilmPro Inspect (pre photos, inspect.exist/defects/filmZones, carPhoto); writes ratings to shared localStorage 'filmpro_ratings_v1' {jobId:{...CATS, wavg, recommend, comment, inst, at, claim}} read by FilmPro Tech. -->
 <!-- FilmPro Part 3: Job completion / handover. Job record compatible with filmpro-tech-v1 (id, customer, car, film, inst). Export JSON {ratings:[{job,rating}]} matches Part 2 job.rating shape. -->
 <script src="https://cdn.tailwindcss.com"></script>
-<style>.fpx{font-family:'Sarabun',sans-serif;color:#1e293b}
+<style>.fpx{font-family:Prompt,system-ui,sans-serif;color:#1e293b}
 .fpx .card{background:#fff;border:1px solid #e2e8f0;border-radius:20px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .fpx .fbtn{background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%);border-radius:12px;color:#fff;padding:10px 14px;display:inline-block;text-align:center}
 .fpx .fbtn2{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:8px 12px;display:inline-block;text-align:center}
@@ -2419,7 +2419,7 @@ var qrcode = function() {
     can(roles) { const m = auth.me(); return !!m && (roles.includes(m.role)); },
     // Blocks the page with an overlay unless the session has one of `roles`.
     guard(roles, base = '') { if (auth.can(roles)) return true; const go = () => { const d = document.createElement('div'); d.id = 'fpGuard';
-        d.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.92);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Sarabun,sans-serif';
+        d.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.92);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Prompt,system-ui,sans-serif';
         d.innerHTML = `<div style="background:#fff;border-radius:20px;padding:24px;max-width:360px;width:100%;text-align:center"><div style="font-size:18px;font-weight:700;color:#1e40af">ต้องเข้าสู่ระบบ</div><div style="font-size:14px;color:#475569;margin:8px 0 16px">หน้านี้สำหรับ: ${roles.map(r => ROLES[r]).join(' / ')}</div><a href="${base}login.html?next=${encodeURIComponent(location.pathname.split('/').pop() + location.search + location.hash)}" style="display:block;background:#2563eb;color:#fff;border-radius:12px;padding:12px">เข้าสู่ระบบ</a><a href="${base}index.html" style="display:block;margin-top:10px;color:#2563eb;font-size:14px">กลับหน้าหลัก</a></div>`;
         document.body.appendChild(d); };
       if (document.body) go(); else document.addEventListener('DOMContentLoaded', go); return false; }
@@ -2631,8 +2631,8 @@ var qrcode = function() {
 window.FP_TRACK_URL="index.html";FP.sync();
 </script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
-body{font-family:'Sarabun',sans-serif;background:#f1f5f9;color:#1e293b}
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap');
+body{font-family:Prompt,system-ui,sans-serif;background:#f1f5f9;color:#1e293b}
 .card{background:#fff;border:1px solid #e2e8f0;border-radius:20px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .btn{background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%);border-radius:12px;color:#fff}
 .btn:disabled{opacity:.4}
@@ -2649,7 +2649,11 @@ label.f{display:block;font-size:13px;font-weight:500;margin-top:8px}
 .star{font-size:28px;line-height:1;color:#d1d5db}.star.on{color:#f59e0b}
 canvas.sig{width:100%;height:140px;border:1px dashed #94a3b8;border-radius:12px;background:#fff;touch-action:none}
 @media print{.noprint{display:none!important}body{background:#fff}.card{box-shadow:none;border-color:#cbd5e1;break-inside:avoid}}
-</style></head>
+</style><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/fp-theme.css">
+<script src="/fp-theme.js" defer></script>
+</head>
 <body><div class="max-w-md mx-auto pb-20">
 <header class="noprint sticky top-0 z-10 bg-white/95 backdrop-blur border-b px-3 py-2">
  <div class="flex items-center justify-between"><div><b class="text-blue-800">FilmPro Handover</b> <span class="text-xs text-gray-500">ส่งมอบงานติดฟิล์ม</span></div>
@@ -2847,7 +2851,7 @@ function vSet(){return `<h2 class="text-lg font-bold mb-2">แม่แบบก
  <label class="f">จำนวนวันกำหนดแก้ไขงาน</label><input type="number" value="${D.S.redoDays}" onchange="D.S.redoDays=+this.value||3;save()"></div>
  ${Object.entries(D.W).map(([k,w])=>`<div class="card p-3 mb-2 text-xs"><b class="text-sm">${esc(k)}</b> · ${esc(w.years)} ปี<div>คุ้มครอง: ${esc(w.coverage)}</div><div>ยกเว้น: ${esc(w.excl)}</div><button class="btn2 px-2 py-1 mt-1" onclick="delete D.W['${esc(k)}'];save();render()">ลบ</button></div>`).join('')}`;}
 // ---------- demo
-function demoImg(label,hue){const c=document.createElement('canvas');c.width=320;c.height=240;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,320,240);g.addColorStop(0,`hsl(${hue},45%,35%)`);g.addColorStop(1,`hsl(${hue},45%,15%)`);x.fillStyle=g;x.fillRect(0,0,320,240);x.fillStyle='#fff';x.font='bold 22px Sarabun,sans-serif';x.textAlign='center';x.fillText(label,160,125);return c.toDataURL('image/jpeg',.7);}
+function demoImg(label,hue){const c=document.createElement('canvas');c.width=320;c.height=240;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,320,240);g.addColorStop(0,`hsl(${hue},45%,35%)`);g.addColorStop(1,`hsl(${hue},45%,15%)`);x.fillStyle=g;x.fillRect(0,0,320,240);x.fillStyle='#fff';x.font='bold 22px Prompt,system-ui,sans-serif';x.textAlign='center';x.fillText(label,160,125);return c.toDataURL('image/jpeg',.7);}
 function demo(){D=blank();D.inst={'T0001':{name:'ช่างเอก'},'T0002':{name:'ช่างบอย'}};D.W={'3M':{years:'7',coverage:DEF_W.coverage,excl:DEF_W.excl}};
  const pre={};['front','fl','fr','rl','rr','rear','interior'].forEach((k,i)=>pre[k]=demoImg('ก่อน: '+(k==='interior'?'ภายใน':PANELS.find(p=>p[0]===k)[1]),20+i*5));
  D.jobs=[{id:'J0001',customer:'คุณสมชาย',phone:'0812345678',car:'Toyota Camry',film:'3M Crystalline',inst:'T0001',pre,createdAt:now()},{id:'J0002',customer:'คุณมาลี',phone:'0898765432',car:'Honda HR-V',film:'Lamina Digital Ceramatrix Boost',inst:'T0002',createdAt:now()},{id:'J0003',customer:'คุณวิชัย',phone:'0861112222',car:'BMW X5',film:'LLumar IRX',inst:'T0001',createdAt:now()}];
@@ -2866,11 +2870,11 @@ function hoCollect(pid,m){const r=FP.pay.markPaid(pid,m,'ช่างรับ �
 (function(){const a4=vS4,a5=vS5,sr=submitRating;vS4=function(){return a4()+(cur?hoPanel():'');};vS5=function(){return a5()+(cur?hoPanel():'');};submitRating=function(){const r=sr.apply(this,arguments);FP.sync();return r;};})();
 </script>
 <script>/* FilmPro Suite nav — links every page of the suite (same origin = shared localStorage) */
-(function(){var P=[['index.html','หน้าลูกค้า'],['tech.html','หลังบ้าน/ช่าง'],['inspect.html','ตรวจสภาพรถ'],['handover.html','ส่งมอบงาน'],['notify.html','แจ้งเตือนช่าง'],['admin-v2.html','Admin V2']];
-var cur=(location.pathname.split('/').pop()||'index.html');
+(function(){var P=[['/admin-v2','คิวงาน'],['/tech','จัดการช่าง'],['/staff-users','ผู้ใช้'],['/inspect','ตรวจสภาพรถ'],['/handover','ส่งมอบงาน'],['/notify','แจ้งเตือนช่าง'],['/','หน้าลูกค้า']];
+var cur='/'+(location.pathname.split('/').pop()||'').replace(/\.html$/,'');
 function go(){if(document.getElementById('fpSuiteNav'))return;var n=document.createElement('nav');n.id='fpSuiteNav';
-n.style.cssText='display:flex;gap:6px;overflow-x:auto;padding:6px 10px;background:#0E1B2A;font:13px Sarabun,sans-serif;position:relative;z-index:60;-webkit-overflow-scrolling:touch';
-n.innerHTML='<b style="color:#fff;white-space:nowrap;padding:4px 6px 4px 0">FilmPro</b>'+P.map(function(p){var on=p[0]===cur;return '<a href="'+p[0]+'" style="white-space:nowrap;text-decoration:none;padding:4px 10px;border-radius:999px;'+(on?'background:#2563EB;color:#fff':'color:#cbd5e1;border:1px solid #334155')+'">'+p[1]+'</a>';}).join('');
+n.style.cssText='display:flex;gap:6px;overflow-x:auto;padding:6px 10px;background:#0E1B2A;font:13px Prompt,system-ui,sans-serif;position:relative;z-index:60;-webkit-overflow-scrolling:touch';
+n.innerHTML='<b style="color:#fff;white-space:nowrap;padding:4px 6px 4px 0">FilmPro</b>'+P.map(function(p){var on=p[0]===cur||(p[0]==='/'&&cur==='/index');return '<a href="'+p[0]+'"'+(on?' aria-current="page"':'')+' style="white-space:nowrap;text-decoration:none;padding:4px 10px;border-radius:999px;'+(on?'background:#1E4FD8;color:#fff':'color:#C9D3DD;border:1px solid #33445A')+'">'+p[1]+'</a>';}).join('');
 document.body.insertBefore(n,document.body.firstChild);}
 if(document.body)go();else document.addEventListener('DOMContentLoaded',go);})();
 </script>
