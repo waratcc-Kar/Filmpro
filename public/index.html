@@ -594,6 +594,10 @@ footer.wrap.foot { text-align: left; color: var(--muted); font-size: .85rem; pad
 .wc-table tbody th { font-weight: 500; }
 .wc-two { display: grid; gap: .25rem 1rem; } .wc-two p { margin: 0 0 .75rem; color: var(--ink-2); font-size: .92rem; }
 .wc-care { margin: 0 0 1rem; padding-left: 1.2rem; color: var(--ink-2); font-size: .92rem; } .wc-care li { margin: .2rem 0; }
+.wc-card { display: flex; align-items: center; gap: .75rem; padding: .6rem; border: 1px solid var(--line); border-radius: 12px; text-decoration: none; color: var(--ink); margin: 0 0 .75rem; }
+.wc-card img { width: 88px; height: 64px; object-fit: cover; border-radius: 8px; flex: none; }
+.wc-card span { font-weight: 500; font-size: .92rem; }
+.wc-note { margin: 0 0 1rem; font-size: .85rem; color: var(--muted); }
 .wc-foot { margin: 0; font-size: .8rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: .75rem; }
 .wc-actions { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-top: 1rem; }
 .wc-actions .btn { min-height: 48px; } .wc-actions .btn[hidden] { display: none; }
@@ -4177,8 +4181,17 @@ function warrantyHtml() {
       <dt>วันที่ติดตั้ง</dt><dd>${wDate(W.start)}</dd>
       <dt>ระยะประกัน</dt><dd>${esc(W.w.years || "-")} ปี · ถึง ${wDate(W.exp)}</dd>
       <dt>ช่างผู้ติดตั้ง</dt><dd>${esc(b.tech ? FP.techName(b.tech) : "-")}</dd>
-      ${W.w.roll ? `<dt>เลขม้วนฟิล์ม</dt><dd>${esc(W.w.roll)}</dd>` : ""}${W.w.cardNo ? `<dt>บัตรรับประกันแบรนด์</dt><dd>${esc(W.w.cardNo)}</dd>` : ""}
+      <dt>ร้านผู้ติดตั้ง</dt><dd>${esc((FP.suite().settings || {}).shop || "FilmPro")}</dd>
     </dl>
+    <h2 class="fh">บัตรรับประกันของแบรนด์</h2>
+    <dl class="wc-kv">
+      <dt>แบรนด์</dt><dd>${esc((b.film && (b.film.brandName || b.film.brand)) || "-")}</dd>
+      <dt>เลขบัตร / Serial</dt><dd>${esc(W.w.cardNo || "-")}</dd>
+      ${W.w.product ? `<dt>รหัสสินค้า</dt><dd>${esc(W.w.product)}</dd>` : ""}
+      <dt>เลขม้วน / Lot</dt><dd>${esc(W.w.roll || "-")}</dd>
+    </dl>
+    ${W.w.cardPhoto ? `<a class="wc-card noprint" href="${W.w.cardPhoto}" target="_blank" rel="noopener"><img src="${W.w.cardPhoto}" alt="รูปบัตรรับประกันของแบรนด์"><span>ดูรูปบัตรรับประกันตัวจริง</span></a>` : ""}
+    <p class="wc-note">ประกันเนื้อฟิล์มเป็นไปตามเงื่อนไขของแบรนด์ ส่วนงานติดตั้งรับประกันโดย FilmPro เก็บบัตรตัวจริงไว้คู่กับใบนี้</p>
     <h2 class="fh">ฟิล์มที่ติดตั้ง</h2>
     <table class="wc-table"><thead><tr><th scope="col">ตำแหน่ง</th><th scope="col">ฟิล์ม</th><th scope="col">เบอร์</th></tr></thead><tbody>${rows || `<tr><td colspan="3">${esc(film)}</td></tr>`}</tbody></table>
     <div class="wc-two">

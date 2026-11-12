@@ -524,7 +524,7 @@ async function publicWarranty(env, code) {
   const claims = (await env.DB.prepare("SELECT data FROM records WHERE k = ? AND deleted = 0 AND rid LIKE ? AND json_extract(data, '$.bid') = ?").bind(SUITE, "wclaims" + SEP_A + "%", w.job).all()).results.map((r) => JSON.parse(r.data));
   const plate = bk && bk.car && bk.car.plate ? String(bk.car.plate).replace(/\d(?=\d{2})/g, "•") : "";
   return json({
-    code, film: w.film || null, car: bk && bk.car ? [bk.car.brand, bk.car.model].filter(Boolean).join(" ") : w.car || null, plate,
+    code, film: w.film || null, cardNo: w.cardNo || null, roll: w.roll || null, car: bk && bk.car ? [bk.car.brand, bk.car.model].filter(Boolean).join(" ") : w.car || null, plate,
     installedAt: (ho && (ho.acceptedAt || ho.installedAt)) || w.issuedAt || null, years: w.years || null, expiry: exp,
     valid: !exp || new Date(exp + "T23:59:59+07:00") >= new Date(), coverage: w.coverage || null,
     openClaims: claims.filter((c) => !/^ปิด/.test(c.status || "")).length,

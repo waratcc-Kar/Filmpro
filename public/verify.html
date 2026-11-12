@@ -57,6 +57,7 @@ async function check(code) {
     const state = j.openClaims ? "อยู่ระหว่างเคลม" : j.valid ? "คุ้มครองอยู่" : "หมดอายุแล้ว";
     $("out").innerHTML = `<div class="res ${j.valid ? "ok" : "bad"}"><div class="badge">${j.valid ? OK : NO}ใบรับประกันแท้ จาก FilmPro · ${state}</div><dl>
       <dt>รหัส</dt><dd>${esc(j.code)}</dd><dt>ฟิล์ม</dt><dd>${esc(j.film || "-")}</dd><dt>รถ</dt><dd>${esc(j.car || "-")}${j.plate ? " · " + esc(j.plate) : ""}</dd>
+      ${j.cardNo ? `<dt>บัตรแบรนด์</dt><dd>${esc(j.cardNo)}</dd>` : ""}${j.roll ? `<dt>เลขม้วน / Lot</dt><dd>${esc(j.roll)}</dd>` : ""}
       <dt>ติดตั้งเมื่อ</dt><dd>${th(j.installedAt)}</dd><dt>คุ้มครองถึง</dt><dd>${th(j.expiry)}${j.years ? ` (${esc(j.years)} ปี)` : ""}</dd></dl>
       <p class="note">ข้อมูลส่วนตัวของเจ้าของรถไม่แสดงในหน้านี้</p></div>`;
   } catch { $("out").innerHTML = '<div class="res bad">เชื่อมต่อไม่ได้ ลองอีกครั้ง</div>'; }
