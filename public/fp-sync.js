@@ -248,7 +248,7 @@
       "html.fp-tech #tabs::-webkit-scrollbar{display:none}"
     ].join("");
     document.head.appendChild(css);
-    var HIDE_TXT = ["ข้อมูลตัวอย่าง", "รีเซ็ต", "รายการ (แอดมิน)", "ตั้งค่าประกัน", "ตรวจสอบประกัน", "เลือกงาน", "นำเข้า JSON", "ส่งออก JSON", "ดึงงานใหม่", "รอยืนยัน", "งานของฉัน"];
+    var HIDE_TXT = ["รับโอนแล้ว", "รับเงินสด", "ข้อมูลตัวอย่าง", "รีเซ็ต", "รายการ (แอดมิน)", "ตั้งค่าประกัน", "ตรวจสอบประกัน", "เลือกงาน", "นำเข้า JSON", "ส่งออก JSON", "ดึงงานใหม่", "รอยืนยัน", "งานของฉัน"];
     function clean() {
       var b = document.body; if (!b) return;
       b.querySelectorAll("button,a").forEach(function (el) { var t = (el.textContent || "").trim(); if (!el.closest(".fp-back") && HIDE_TXT.some(function (h) { return t.indexOf(h) === 0; })) el.classList.add("fp-hide"); });

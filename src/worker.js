@@ -302,7 +302,12 @@ async function techView(env, u) {
     else if (!CLOSED.includes(b.st)) open.add(b.rid);
   }
   const techs = new Set((await env.DB.prepare("SELECT rid FROM records WHERE k = ? AND deleted = 0 AND rid LIKE ?").bind(K.pub, "techs" + SEP_A + "%").all()).results.map((r) => splitRid(r.rid)[1]));
-  return { me, mine, open, all, claims, techs };
+  const payMine = new Set();
+  if (mine.size) {
+    const pays = (await env.DB.prepare("SELECT rid, json_extract(data, '$.bid') AS bid FROM records WHERE k = ? AND deleted = 0 AND rid LIKE ?").bind(SUITE, "payments" + SEP_A + "%").all()).results;
+    for (const p of pays) if (mine.has(p.bid)) payMine.add(p.rid);
+  }
+  return { me, mine, open, all, claims, techs, payMine };
 }
 // "full" | "mask" | false
 function techSees(k, rid, V) {
@@ -319,7 +324,7 @@ function techSees(k, rid, V) {
       return otherTech(job) || otherTech(top) ? false : "full";
     case K.pub: return top === "techs" ? (child === V.me ? "full" : false) : "full";
     case K.tech: return top === "inst" && child === V.me ? "full" : false;
-    case SUITE: return ["settings", "duration", "avail"].includes(top) ? "full" : false;
+    case SUITE: return top === "payments" && child != null ? (V.payMine.has(rid) ? "full" : false) : ["settings", "duration", "avail"].includes(top) ? "full" : false;
     case K.film: case K.glass: return "full";
     default: return false;
   }

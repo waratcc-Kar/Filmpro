@@ -216,6 +216,7 @@ async function claim(bid, viaOffer) {
   const A = J(K.assign, {});
   if (A[bid] && A[bid].tech === ME) { A[bid].state = "accepted"; (A[bid].history = A[bid].history || []).push({ tech: ME, res: "accept", at: Date.now() }); W(K.assign, A); }
   toast("รับงานแล้ว · อยู่ในงานของฉัน");
+  window.FPSync && FPSync.pull();
   location.hash = "#job/" + encodeURIComponent(bid);
 }
 function decline(bid, reason) {
@@ -343,7 +344,7 @@ function viewJob(D) {
     <h2>${esc(b.customer || "ลูกค้า")}</h2>
     <div class="sub">${esc(b.location || "")}${d != null ? ` · ${d.toFixed(1)} กม.` : ""}</div>
     <div class="contact">
-      ${tel ? `<a class="btn ghost" href="tel:${esc(tel)}">${I.phone} โทรหาลูกค้า</a>` : `<span class="btn ghost" aria-disabled="true">${I.phone} ไม่มีเบอร์</span>`}
+      ${tel ? `<a class="btn ghost" href="tel:${esc(tel)}">${I.phone} โทรหาลูกค้า</a>` : `<span class="btn ghost" aria-disabled="true">${I.phone} ${b._masked ? "กำลังโหลดเบอร์…" : "ไม่มีเบอร์"}</span>`}
       <a class="btn ghost" href="${esc(mapUrl)}" target="_blank" rel="noopener">${I.map} นำทาง</a>
     </div>
   </div>
