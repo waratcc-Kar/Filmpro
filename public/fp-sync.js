@@ -28,7 +28,10 @@
       meta = { t: "o", o: Object.keys(val), c: {} };
       meta.o.forEach(function (k) {
         var x = val[k];
-        if (idArr(x) && x.length) { meta.c[k] = { t: "a", o: x.map(function (i) { return String(i.id); }) }; x.forEach(function (i) { recs[k + SEP_A + i.id] = i; }); }
+        // empty arrays/objects stay containers, so records other devices add to them later are not hidden
+        if (Array.isArray(x) && !x.length) { meta.c[k] = { t: "a", o: [] }; }
+        else if (isObj(x) && !Object.keys(x).length) { meta.c[k] = { t: "o", o: [] }; }
+        else if (idArr(x) && x.length) { meta.c[k] = { t: "a", o: x.map(function (i) { return String(i.id); }) }; x.forEach(function (i) { recs[k + SEP_A + i.id] = i; }); }
         else if (recMap(x)) { meta.c[k] = { t: "o", o: Object.keys(x) }; Object.keys(x).forEach(function (s) { recs[k + SEP_O + s] = x[s]; }); }
         else recs[k] = x;
       });
@@ -66,7 +69,8 @@
     var out = {};
     order(listed, have).forEach(function (k) {
       var c = m && m.c ? m.c[k] : null;
-      if (c || (kids[k] && !(m && top[k]))) {
+      var tv = top[k] ? recs[k] : undefined, emptyTop = tv === undefined || (Array.isArray(tv) && !tv.length) || (isObj(tv) && !Object.keys(tv).length);
+      if (c || (kids[k] && (!(m && top[k]) || emptyTop))) {
         var t = c ? c.t : kids[k].t, it = kids[k] ? kids[k].it : {};
         var ids = order(c ? c.o : [], it);
         if (t === "a") out[k] = ids.map(function (s) { return recs[it[s]]; });
@@ -315,7 +319,7 @@
       });
     }
     function track() {
-      var m = location.hash.match(/^#track\/([^/]+)\/([^/?#]+)/);
+      var m = location.hash.match(/^#(?:track|warranty)\/([^/]+)\/([^/?#]+)/);
       if (!m) return;
       var id = decodeURIComponent(m[1]), phone = decodeURIComponent(m[2]);
       xhr("GET", "/api/public/track?id=" + encodeURIComponent(id) + "&phone=" + encodeURIComponent(phone), null, function (st, res) {

@@ -114,6 +114,8 @@ async function api(req, env, url) {
   // --- public (customer) endpoints: no login, checked by booking phone
   if (p === "/api/public/push" && m === "POST") return publicPush(env, await body(req));
   if (p === "/api/public/apply" && m === "POST") return publicApply(req, env, await body(req));
+  if (p === "/api/public/claim" && m === "POST") return publicClaim(env, await body(req));
+  if (p === "/api/public/warranty" && m === "GET") return publicWarranty(env, url.searchParams.get("code"));
   if (p === "/api/public/track" && m === "GET") return publicTrack(env, url.searchParams.get("id"), url.searchParams.get("phone"));
 
   // --- staff endpoints
@@ -269,6 +271,11 @@ async function publicTrack(env, id, phone) {
     const r = await env.DB.prepare("SELECT k, rid, data FROM records WHERE k = ? AND deleted = 0 AND rid = ?").bind(k, "jobs" + SEP_A + id).first();
     if (r) recs.push(r);
   }
+  // the warranty card issued at handover, and any warranty claims on this job
+  const wr = await env.DB.prepare("SELECT k, rid, data FROM records WHERE k = ? AND deleted = 0 AND json_extract(data, '$.job') = ?").bind("filmpro_warranty_v1", id).all();
+  recs.push(...wr.results);
+  const cl = await env.DB.prepare("SELECT k, rid, data FROM records WHERE k = ? AND deleted = 0 AND rid LIKE ? AND json_extract(data, '$.bid') = ?").bind(SUITE, "wclaims" + SEP_A + "%", id).all();
+  recs.push(...cl.results);
   // the assigned tech's public card, without home location
   const claim = recs.find((r) => r.k === "filmpro_claims_v1" && r.rid === id);
   const tid = claim ? JSON.parse(claim.data)?.tech : null;
@@ -307,7 +314,10 @@ async function techView(env, u) {
     const pays = (await env.DB.prepare("SELECT rid, json_extract(data, '$.bid') AS bid FROM records WHERE k = ? AND deleted = 0 AND rid LIKE ?").bind(SUITE, "payments" + SEP_A + "%").all()).results;
     for (const p of pays) if (mine.has(p.bid)) payMine.add(p.rid);
   }
-  return { me, mine, open, all, claims, techs, payMine };
+  const warMine = new Set();
+  const wars = (await env.DB.prepare("SELECT rid, json_extract(data, '$.job') AS job FROM records WHERE k = ? AND deleted = 0 AND rid <> '#'").bind(K.warranty).all()).results;
+  for (const w of wars) if (mine.has(w.job)) warMine.add(w.rid);
+  return { me, mine, open, all, claims, techs, payMine, warMine };
 }
 // "full" | "mask" | false
 function techSees(k, rid, V) {
@@ -319,7 +329,8 @@ function techSees(k, rid, V) {
     case BK: return V.mine.has(rid) ? "full" : V.open.has(rid) ? "mask" : false;
     case K.claims: return V.mine.has(rid) ? "full" : false;
     case K.assign: return V.mine.has(rid) || V.open.has(rid) ? "full" : false;
-    case K.inspect: case K.handover: case RATE: case K.warranty: case K.notify:
+    case K.warranty: return V.warMine.has(rid) ? "full" : false;
+    case K.inspect: case K.handover: case RATE: case K.notify:
       if (V.all.has(job)) return V.mine.has(job) ? "full" : false;
       return otherTech(job) || otherTech(top) ? false : "full";
     case K.pub: return top === "techs" ? (child === V.me ? "full" : false) : "full";
@@ -469,4 +480,53 @@ async function publicApply(req, env, b) {
   await upsert(env, K.tech, "inst" + SEP_A + id, rec, await nextV(env));
   await env.DB.prepare("INSERT INTO login_fail (phone, count, locked_until) VALUES (?, 1, ?) ON CONFLICT(phone) DO UPDATE SET count = CASE WHEN locked_until > ? THEN count + 1 ELSE 1 END, locked_until = CASE WHEN locked_until > ? THEN locked_until ELSE ? END").bind(key, now + 36e5, now, now, now + 36e5).run();
   return json({ ok: true, id });
+}
+
+// ---------- warranty: customer claim + public verification
+const CLAIM_TYPES = ["ฟิล์มลอก/หลุดล่อน", "ฟองอากาศ", "ฟิล์มเปลี่ยนสี/ซีด", "อื่น ๆ"];
+async function handoverOf(env, id) { return getRec(env, "filmpro_handover_v1", "ho" + SEP_O + id); }
+function expiryOf(ho) {
+  const w = (ho && ho.warranty) || {};
+  if (w.expiry) return w.expiry;
+  const y = +w.years || 0, t = ho && (ho.acceptedAt || ho.installedAt);
+  if (!y || !t) return null;
+  const d = new Date(t); d.setFullYear(d.getFullYear() + y);
+  return d.toISOString().slice(0, 10);
+}
+async function publicClaim(env, b) {
+  const id = String(b.id || "");
+  const bk = id ? await getRec(env, BK, id) : null;
+  if (!bk || normPhone(bk.phone) !== normPhone(b.phone)) return json({ error: "not_found" }, 404);
+  const ho = await handoverOf(env, id);
+  if (!ho || ho.status !== "ส่งมอบแล้ว") return json({ error: "not_delivered" }, 409);
+  const exp = expiryOf(ho);
+  if (exp && new Date(exp + "T23:59:59+07:00") < new Date()) return json({ error: "expired" }, 409);
+  const open = (await env.DB.prepare("SELECT data FROM records WHERE k = ? AND deleted = 0 AND rid LIKE ? AND json_extract(data, '$.bid') = ?").bind(SUITE, "wclaims" + SEP_A + "%", id).all()).results
+    .map((r) => JSON.parse(r.data)).filter((c) => !/^ปิด/.test(c.status || ""));
+  if (open.length >= 2) return json({ error: "too_many_open" }, 429);
+  const problem = CLAIM_TYPES.includes(b.problem) ? b.problem : "อื่น ๆ";
+  const detail = String(b.detail || "").trim().slice(0, 1000);
+  if (!detail) return json({ error: "invalid" }, 400);
+  const photos = (Array.isArray(b.photos) ? b.photos : []).slice(0, 3).filter((x) => typeof x === "string" && /^data:image\/(jpeg|png|webp);base64,/.test(x) && x.length < 600000);
+  const now = Date.now(), cid = "CLW" + now.toString(36).toUpperCase();
+  const rec = { id: cid, bid: id, status: "ใหม่", at: now, problem, detail, photos, src: "web", log: [{ at: now, m: "ลูกค้าแจ้งเคลมผ่านเว็บ" }] };
+  await upsert(env, SUITE, "wclaims" + SEP_A + cid, rec, await nextV(env));
+  return json({ ok: true, id: cid });
+}
+// Anyone holding the code (or the QR on the card) can check it is genuine; personal data stays hidden.
+async function publicWarranty(env, code) {
+  code = String(code || "").trim().toUpperCase();
+  if (!/^W-[A-Z0-9]{4,20}$/.test(code)) return json({ error: "not_found" }, 404);
+  const w = await getRec(env, "filmpro_warranty_v1", code);
+  if (!w) return json({ error: "not_found" }, 404);
+  const ho = await handoverOf(env, w.job), bk = await getRec(env, BK, w.job);
+  const exp = w.expiry || expiryOf(ho);
+  const claims = (await env.DB.prepare("SELECT data FROM records WHERE k = ? AND deleted = 0 AND rid LIKE ? AND json_extract(data, '$.bid') = ?").bind(SUITE, "wclaims" + SEP_A + "%", w.job).all()).results.map((r) => JSON.parse(r.data));
+  const plate = bk && bk.car && bk.car.plate ? String(bk.car.plate).replace(/\d(?=\d{2})/g, "•") : "";
+  return json({
+    code, film: w.film || null, car: bk && bk.car ? [bk.car.brand, bk.car.model].filter(Boolean).join(" ") : w.car || null, plate,
+    installedAt: (ho && (ho.acceptedAt || ho.installedAt)) || w.issuedAt || null, years: w.years || null, expiry: exp,
+    valid: !exp || new Date(exp + "T23:59:59+07:00") >= new Date(), coverage: w.coverage || null,
+    openClaims: claims.filter((c) => !/^ปิด/.test(c.status || "")).length,
+  });
 }

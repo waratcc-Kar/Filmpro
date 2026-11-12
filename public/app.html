@@ -332,7 +332,8 @@ function viewJob(D) {
   const tel = String(b.phone || "").replace(/[^\d+]/g, "");
   const mapUrl = b.geo && b.geo.lat != null ? `https://www.google.com/maps/dir/?api=1&destination=${b.geo.lat},${b.geo.lng}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(b.location || "")}`;
   const vlt = b.vlt || {};
-  const rows = Object.keys(WINDOW_TH).filter((k) => vlt[k]).map((k) => `<dt>${WINDOW_TH[k]}</dt><dd>${esc(vlt[k])}</dd>`).join("");
+  const sh = b.shades || {};
+  const rows = Object.keys(WINDOW_TH).filter((k) => vlt[k] || sh[k]).map((k) => `<dt>${WINDOW_TH[k]}</dt><dd>${esc(sh[k] || "")}${typeof vlt[k] === "number" ? ` <span style="color:var(--muted);font-weight:400">แสงผ่าน ${vlt[k]}%</span>` : esc(vlt[k] || "")}</dd>`).join("");
   const i = D.ins[b.id], h = D.ho[b.id];
   const s1 = st.step > 1 || (i && i.status === "ตรวจแล้ว") ? "done" : "now";
   const s2 = st.k === "done" ? "done" : s1 === "done" ? "now" : "";

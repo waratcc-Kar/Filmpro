@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ตรวจสอบใบรับประกัน · FilmPro</title>
+<meta name="description" content="ตรวจสอบว่าใบรับประกันงานติดฟิล์มออกโดย FilmPro จริง และยังคุ้มครองอยู่หรือไม่">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root { --paper: #F4F6F8; --surface: #fff; --ink: #0F1B2D; --ink-2: #33445A; --muted: #56677A; --line: #DDE3EA; --line-2: #C9D2DC; --blue: #1E4FD8; --blue-deep: #173FB0; --ok: #0E7A54; --ok-wash: #E6F5EE; --bad: #C0262D; --bad-wash: #FDECEC; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 16px/1.55 Prompt, system-ui, sans-serif; }
+.top { display: flex; align-items: center; gap: .55rem; padding: 1rem 1.25rem; font-weight: 700; font-size: 1.15rem; background: #fff; border-bottom: 1px solid var(--line); }
+.top a { color: inherit; text-decoration: none; display: flex; align-items: center; gap: .55rem; }
+.strip { width: 30px; height: 14px; border-radius: 3px; background: linear-gradient(90deg, #0F1B2D, #56677A 60%, #DDE3EA); }
+main { max-width: 34rem; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+h1 { font-size: 1.5rem; margin: 0 0 .3rem; line-height: 1.3; }
+.lede { color: var(--muted); margin: 0 0 1.25rem; }
+form { display: flex; gap: .5rem; }
+input { flex: 1; min-width: 0; font: inherit; font-size: 1.1rem; letter-spacing: .04em; padding: .7rem .9rem; border: 1px solid var(--line-2); border-radius: 12px; min-height: 50px; text-transform: uppercase; }
+input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(30,79,216,.18); }
+button { font: 600 1rem Prompt, system-ui, sans-serif; min-height: 50px; padding: 0 1.2rem; border-radius: 12px; border: 1px solid var(--blue); background: var(--blue); color: #fff; cursor: pointer; }
+button:hover { background: var(--blue-deep); }
+:focus-visible { outline: 3px solid rgba(30,79,216,.38); outline-offset: 2px; }
+.res { margin-top: 1.25rem; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 1.1rem; }
+.badge { display: flex; align-items: center; gap: .6rem; font-weight: 600; font-size: 1.05rem; margin-bottom: .9rem; }
+.badge svg { flex: none; }
+.ok .badge { color: var(--ok); } .bad .badge { color: var(--bad); }
+dl { display: grid; grid-template-columns: auto 1fr; gap: .4rem 1rem; margin: 0; font-size: .95rem; }
+dt { color: var(--muted); } dd { margin: 0; text-align: right; font-weight: 500; }
+.note { color: var(--muted); font-size: .85rem; margin: .9rem 0 0; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="top"><a href="/"><span class="strip"></span>FilmPro</a></div>
+<main>
+  <h1>ตรวจสอบใบรับประกัน</h1>
+  <p class="lede">ใส่รหัสรับประกันที่อยู่บนใบรับประกัน หรือสแกน QR บนใบ เพื่อดูว่าออกโดย FilmPro จริงและยังคุ้มครองอยู่</p>
+  <form id="f"><input id="code" placeholder="W-XXXXXXX" aria-label="รหัสรับประกัน" autocomplete="off"><button>ตรวจสอบ</button></form>
+  <div id="out" role="status" aria-live="polite"></div>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const th = (t) => { if (!t) return "-"; const d = new Date(t); return isNaN(d) ? esc(t) : d.toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" }); };
+const OK = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6Z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>';
+const NO = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg>';
+async function check(code) {
+  code = code.trim().toUpperCase(); if (!code) return;
+  $("code").value = code; $("out").innerHTML = '<div class="res">กำลังตรวจสอบ…</div>';
+  try {
+    const r = await fetch("/api/public/warranty?code=" + encodeURIComponent(code)), j = await r.json();
+    if (!r.ok) { $("out").innerHTML = `<div class="res bad"><div class="badge">${NO}ไม่พบรหัสนี้ในระบบ FilmPro</div><p class="note" style="margin:0">ตรวจตัวอักษรอีกครั้ง หรือสอบถามร้าน</p></div>`; return; }
+    const state = j.openClaims ? "อยู่ระหว่างเคลม" : j.valid ? "คุ้มครองอยู่" : "หมดอายุแล้ว";
+    $("out").innerHTML = `<div class="res ${j.valid ? "ok" : "bad"}"><div class="badge">${j.valid ? OK : NO}ใบรับประกันแท้ จาก FilmPro · ${state}</div><dl>
+      <dt>รหัส</dt><dd>${esc(j.code)}</dd><dt>ฟิล์ม</dt><dd>${esc(j.film || "-")}</dd><dt>รถ</dt><dd>${esc(j.car || "-")}${j.plate ? " · " + esc(j.plate) : ""}</dd>
+      <dt>ติดตั้งเมื่อ</dt><dd>${th(j.installedAt)}</dd><dt>คุ้มครองถึง</dt><dd>${th(j.expiry)}${j.years ? ` (${esc(j.years)} ปี)` : ""}</dd></dl>
+      <p class="note">ข้อมูลส่วนตัวของเจ้าของรถไม่แสดงในหน้านี้</p></div>`;
+  } catch { $("out").innerHTML = '<div class="res bad">เชื่อมต่อไม่ได้ ลองอีกครั้ง</div>'; }
+}
+$("f").addEventListener("submit", (e) => { e.preventDefault(); history.replaceState(null, "", "#" + $("code").value.trim().toUpperCase()); check($("code").value); });
+if (location.hash.length > 1) check(decodeURIComponent(location.hash.slice(1)));
+window.addEventListener("hashchange", () => { if (location.hash.length > 1) check(decodeURIComponent(location.hash.slice(1))); });
+</script>
+</body>
+</html>

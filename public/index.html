@@ -574,6 +574,42 @@ footer.wrap.foot { text-align: left; color: var(--muted); font-size: .85rem; pad
 .foot nav a { color: var(--ink-2); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; font-size: .88rem; }
 .foot nav a:hover { color: var(--blue); text-decoration: underline; }
 .foot nav a[hidden] { display: none; }
+/* warranty certificate */
+.wcert { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 1.25rem; box-shadow: var(--sh-1); position: relative; overflow: hidden; }
+.wcert::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 6px; background: linear-gradient(90deg, #0F1B2D, #56677A 60%, #DDE3EA); }
+.wc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: .75rem; margin-top: .25rem; }
+.wc-brand { display: flex; align-items: center; gap: .45rem; font-weight: 700; color: var(--ink); }
+.wc-head h1 { font-size: 1.2rem; margin: .35rem 0 0; line-height: 1.35; }
+.wc-state { flex: none; font-size: .82rem; font-weight: 600; padding: .25rem .7rem; border-radius: 999px; white-space: nowrap; }
+.wc-state.ok { background: var(--ok-wash); color: var(--ok); } .wc-state.warn { background: var(--warn-wash); color: var(--warn); } .wc-state.off { background: #EEF2F6; color: var(--muted); }
+.wc-code { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin: 1rem 0; padding: .9rem 1rem; border: 1px dashed var(--line-2); border-radius: 14px; background: #F9FAFC; }
+.wc-code span { display: block; font-size: .8rem; color: var(--muted); }
+.wc-code b { display: block; font-size: 1.35rem; letter-spacing: .04em; font-variant-numeric: tabular-nums; margin: .1rem 0; }
+.wc-qr svg { width: 96px; height: 96px; display: block; }
+.wc-kv { display: grid; grid-template-columns: auto 1fr; gap: .4rem 1rem; margin: 0 0 1rem; font-size: .95rem; }
+.wc-kv dt { color: var(--muted); } .wc-kv dd { margin: 0; text-align: right; font-weight: 500; }
+.wc-table { width: 100%; border-collapse: collapse; font-size: .92rem; margin-bottom: 1rem; }
+.wc-table th, .wc-table td { text-align: left; padding: .5rem .4rem; border-bottom: 1px solid var(--line); }
+.wc-table thead th { color: var(--muted); font-weight: 500; font-size: .82rem; }
+.wc-table tbody th { font-weight: 500; }
+.wc-two { display: grid; gap: .25rem 1rem; } .wc-two p { margin: 0 0 .75rem; color: var(--ink-2); font-size: .92rem; }
+.wc-care { margin: 0 0 1rem; padding-left: 1.2rem; color: var(--ink-2); font-size: .92rem; } .wc-care li { margin: .2rem 0; }
+.wc-foot { margin: 0; font-size: .8rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: .75rem; }
+.wc-actions { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-top: 1rem; }
+.wc-actions .btn { min-height: 48px; } .wc-actions .btn[hidden] { display: none; }
+.wc-types { border: 0; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: .4rem; }
+.wc-types legend { font-size: .92rem; font-weight: 500; margin-bottom: .4rem; padding: 0; }
+.wc-types label { display: flex; align-items: center; gap: .5rem; min-height: 44px; padding: 0 .75rem; border: 1px solid var(--line-2); border-radius: 12px; font-size: .92rem; }
+.wc-types input { width: 18px; height: 18px; accent-color: var(--blue); flex: none; margin: 0; }
+.wc-types label:has(input:checked) { border-color: var(--blue); background: var(--wash); }
+.wc-cl { display: flex; justify-content: space-between; gap: .75rem; padding: .6rem 0; border-top: 1px solid var(--line); } .wc-cl:first-of-type { border-top: 0; }
+@media (min-width: 640px) { .wc-two { grid-template-columns: 1fr 1fr; } }
+@media print {
+  header.top, .bar, footer, .back, .noprint, .wc-claim, .fp-me { display: none !important; }
+  body { background: #fff !important; } .wrap { max-width: none !important; padding: 0 !important; }
+  .wcert { border: 1px solid #999; box-shadow: none; }
+}
+
 @media (min-width: 700px) { .trust { grid-template-columns: repeat(2, 1fr); } }
 
 /* sticky total: a floating summary that lines up with the content */
@@ -3816,7 +3852,7 @@ function legalHtml() {
 }
 function paint() {
   const app = document.getElementById("app");
-  const steps = { home: ["", homeHtml, 1], path: ["เลือกฟิล์ม", pathHtml, 2], quiz: ["แนะนำฟิล์ม", quizHtml, 2], series: ["เลือกรุ่นฟิล์ม", seriesHtml, 3], shades: ["เลือกความเข้ม", shadesHtml, 4], camera: ["ลองดูฟิล์ม", cameraHtml, 4], book: ["จองคิว", bookHtml, 5], pay: ["ชำระเงิน", payHtml, 6], admin: ["สำหรับทีมร้าน", adminHtml, 0], track: ["ติดตามงาน", trackHtml, 0], receipt: ["ใบเสร็จ", receiptHtml, 0] };
+  const steps = { home: ["", homeHtml, 1], path: ["เลือกฟิล์ม", pathHtml, 2], quiz: ["แนะนำฟิล์ม", quizHtml, 2], series: ["เลือกรุ่นฟิล์ม", seriesHtml, 3], shades: ["เลือกความเข้ม", shadesHtml, 4], camera: ["ลองดูฟิล์ม", cameraHtml, 4], book: ["จองคิว", bookHtml, 5], pay: ["ชำระเงิน", payHtml, 6], admin: ["สำหรับทีมร้าน", adminHtml, 0], track: ["ติดตามงาน", trackHtml, 0], receipt: ["ใบเสร็จ", receiptHtml, 0], warranty: ["ใบรับประกัน", warrantyHtml, 0] };
   const [label, view, n] = steps[S.step] || steps.home;
   document.getElementById("stepLabel").textContent = label;
   const prog = document.getElementById("progress");
@@ -4030,9 +4066,10 @@ function suiteUpsert(row) {
     const ex = FP.bookings.get(row.id);
     const dur = FP.duration(q.size, q.sunroof);
     const vlt = {};
-    (q.lines || []).forEach((l) => { const k = SUITE_VLT[l.window]; if (k && l.vlt) vlt[k] = l.vlt; });
+    const shadeOf = {};
+    (q.lines || []).forEach((l) => { const k = SUITE_VLT[l.window]; if (k && l.vlt) vlt[k] = l.vlt; if (k && l.model && l.model !== "-" && l.model !== "ยังไม่เลือก") shadeOf[k] = l.model; });
     const b = ex || { id: row.id, createdAt: row.at, status: "booked", tech: null, carPhotos: {}, history: [], consent: { pdpa: true, version: st.consentVersion, at: Date.now() } };
-    Object.assign(b, {
+    Object.assign(b, { shades: shadeOf, 
       src: "web", customer: row.customer, phone: normalizeMobile(row.phone) || row.phone, location: row.location + (row.province && !String(row.location).includes(row.province) ? " " + row.province : ""), province: row.province || "", geo: row.geo || null, date: row.date, time: row.time,
       slot: { start: row.time, end: U.toHM(U.toMin(row.time) + dur), durationMin: dur },
       car: { ...(b.car || {}), brand: q.carBrand, model: q.carModel, size: q.size, color: row.color, plate: row.plate, province: row.plateProv, photo: (b.car && b.car.photo) || null },
@@ -4090,8 +4127,97 @@ function stageHtml(id) {
   const st = FP.stage(b), idx = FP.STAGES.findIndex((s) => s[0] === st.key);
   const sub = { paid: b.deposit.paidAt ? "ร้านยืนยันยอดแล้ว" : "รอร้านตรวจสลิป", assigned: b.tech ? "ช่าง " + FP.techName(b.tech) : "ระบบกำลังหาช่างใกล้คุณ", inspected: "ช่างตรวจและถ่ายรูปรถก่อนติดตั้ง", handover: "ติดตั้งเสร็จ ตรวจงานและเซ็นรับ", rated: "ให้คะแนนช่างหลังส่งมอบ", done: "ปิดงาน รับใบรับประกัน" };
   const label = (k, l) => (k === "paid" ? "ชำระเงิน" : l);
-  return `<div class="card" style="padding:1rem;margin:.6rem 0"><h2>สถานะงาน</h2><ol class="next-steps">${FP.STAGES.map(([k, l], i) => `<li class="${i <= idx ? "done" : i === idx + 1 ? "now" : ""}"><span class="n">${i <= idx ? "✓" : i + 1}</span><div><b>${esc(label(k, l))}</b>${sub[k] && i <= idx + 1 ? `<div class="muted">${esc(sub[k])}</div>` : ""}</div></li>`).join("")}</ol>${st.redo ? `<p class="amber">งานนี้มีรายการต้องแก้ไข ช่างจะนัดเข้าแก้ไขอีกครั้ง</p>` : ""}${(() => { const hw = st.ho; if (!hw || hw.status !== "ส่งมอบแล้ว") return ""; const w = hw.warranty || {}; return `<div class="card" style="padding:.8rem;margin-top:.6rem;border-color:#86efac;background:#f0fdf4"><b>ใบรับประกันของคุณ</b><div>รหัสรับประกัน <b>${esc(hw.wcode || "-")}</b></div><div class="muted">ใบส่งมอบ ${esc(hw.certNo || "")} · ${esc(w.years || "")} ปี · หมดประกัน ${esc(w.expiry || "-")}</div><div class="muted">เลขม้วนฟิล์ม ${esc(w.roll || "-")} · บัตรรับประกัน ${esc(w.cardNo || "-")}</div></div>`; })()}${(() => { const p = FP.pay.list(id).find((x) => x.status === "paid"); return p ? `<a class="btn" href="#receipt/${esc(p.id)}" style="display:block;text-align:center;text-decoration:none;padding:.7rem;margin-top:.6rem;background:#fff;color:#1e293b;border:1px solid #e2e8f0">ดูใบเสร็จ ${esc(p.receiptNo || "")}</a>` : ""; })()}</div>`;
+  return `<div class="card" style="padding:1rem;margin:.6rem 0"><h2>สถานะงาน</h2><ol class="next-steps">${FP.STAGES.map(([k, l], i) => `<li class="${i <= idx ? "done" : i === idx + 1 ? "now" : ""}"><span class="n">${i <= idx ? "✓" : i + 1}</span><div><b>${esc(label(k, l))}</b>${sub[k] && i <= idx + 1 ? `<div class="muted">${esc(sub[k])}</div>` : ""}</div></li>`).join("")}</ol>${st.redo ? `<p class="amber">งานนี้มีรายการต้องแก้ไข ช่างจะนัดเข้าแก้ไขอีกครั้ง</p>` : ""}${(() => { const hw = st.ho; if (!hw || hw.status !== "ส่งมอบแล้ว") return ""; const w = hw.warranty || {}; return `<div class="card" style="padding:.8rem;margin-top:.6rem;border-color:#86efac;background:#f0fdf4"><b>ใบรับประกันของคุณ</b><div>รหัสรับประกัน <b>${esc(hw.wcode || "-")}</b></div><div class="muted">ใบส่งมอบ ${esc(hw.certNo || "")} · ${esc(w.years || "")} ปี · หมดประกัน ${esc(w.expiry || "-")}</div><div class="muted">เลขม้วนฟิล์ม ${esc(w.roll || "-")} · บัตรรับประกัน ${esc(w.cardNo || "-")}</div><a class="btn" href="#warranty/${encodeURIComponent(id)}/${encodeURIComponent(S.trackPhone || "")}" style="display:flex;justify-content:center;margin-top:.6rem;text-decoration:none">ดูใบรับประกัน</a></div>`; })()}${(() => { const p = FP.pay.list(id).find((x) => x.status === "paid"); return p ? `<a class="btn" href="#receipt/${esc(p.id)}" style="display:block;text-align:center;text-decoration:none;padding:.7rem;margin-top:.6rem;background:#fff;color:#1e293b;border:1px solid #e2e8f0">ดูใบเสร็จ ${esc(p.receiptNo || "")}</a>` : ""; })()}</div>`;
 }
+/* ===== ใบรับประกัน: issued at handover, opened from the tracking page, verifiable by QR ===== */
+const W_WIN = { front: "บานหน้า", frontSide: "กระจกคู่หน้า", rearSide: "กระจกคู่หลัง", rear: "บานหลัง", sunroof: "ซันรูฟ", sunroof2: "ซันรูฟ ช่องที่ 2", glassRoof: "หลังคาแก้ว" };
+const W_CARE = ["ห้ามเลื่อนกระจกลง 3–7 วันหลังติดตั้ง", "ห้ามทำความสะอาดฟิล์มด้านใน 7 วัน", "ฝ้า ไอน้ำ หรือฟองน้ำเล็ก ๆ เป็นเรื่องปกติใน 7–30 วัน และจะหายไปเอง", "ทำความสะอาดด้วยผ้าไมโครไฟเบอร์กับน้ำสะอาด ห้ามใช้ของมีคมหรือน้ำยาที่มีแอมโมเนีย", "ระวังเส้นไล่ฝ้ากระจกหลัง ห้ามขูดหรือแกะขอบฟิล์ม"];
+const W_TYPES = ["ฟิล์มลอก/หลุดล่อน", "ฟองอากาศ", "ฟิล์มเปลี่ยนสี/ซีด", "อื่น ๆ"];
+const wDate = (t) => { if (!t) return "-"; const d = new Date(t); if (isNaN(d)) return String(t); return d.toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" }); };
+function warrantyData(b) {
+  const st = FP.stage(b), ho = st && st.ho;
+  if (!ho || ho.status !== "ส่งมอบแล้ว") return null;
+  const w = ho.warranty || {}, start = ho.acceptedAt || ho.installedAt;
+  let exp = w.expiry;
+  if (!exp && +w.years && start) { const d = new Date(start); d.setFullYear(d.getFullYear() + (+w.years)); exp = d.toISOString().slice(0, 10); }
+  const claims = (FP.suite().wclaims || []).filter((c) => c.bid === b.id).sort((a, c) => (c.at || 0) - (a.at || 0));
+  const open = claims.filter((c) => !/^ปิด/.test(c.status || ""));
+  const expired = exp ? new Date(exp + "T23:59:59") < new Date() : false;
+  return { ho, w, start, exp, claims, open, expired, code: ho.wcode || "", cert: ho.certNo || "" };
+}
+function warrantyHtml() {
+  const id = (S.trackId || "").toUpperCase();
+  const b = hasSuite() && id ? FP.bookings.find(id, S.trackPhone) : null;
+  const back = `<a class="back" href="#track/${encodeURIComponent(id)}/${encodeURIComponent(S.trackPhone || "")}">← กลับไปติดตามงาน</a>`;
+  if (!b) return `${back}<h1>ใบรับประกัน</h1><p class="muted">กำลังโหลดข้อมูล ถ้านานเกินไป ตรวจรหัสการจองและเบอร์โทรอีกครั้ง</p>`;
+  const W = warrantyData(b);
+  if (!W) return `${back}<h1>ใบรับประกัน</h1><div class="card" style="padding:1rem"><p style="margin:0">ใบรับประกันจะออกให้ทันทีหลังช่างส่งมอบงานและคุณเซ็นรับ</p></div>`;
+  const vlt = b.vlt || {}, film = [b.film && (b.film.brandName || b.film.brand), b.film && b.film.series].filter(Boolean).join(" ");
+  const sh = b.shades || {};
+  const rows = Object.keys(W_WIN).filter((k) => vlt[k] || sh[k]).map((k) => `<tr><th scope="row">${W_WIN[k]}</th><td>${esc(film)}</td><td>${esc(sh[k] || "")}${typeof vlt[k] === "number" ? `<span class="muted"> แสงผ่าน ${vlt[k]}%</span>` : esc(vlt[k] || "")}</td></tr>`).join("");
+  const state = W.open.length ? ["warn", "อยู่ระหว่างเคลม"] : W.expired ? ["off", "หมดอายุแล้ว"] : ["ok", "คุ้มครองอยู่"];
+  const verifyUrl = location.origin + "/verify#" + encodeURIComponent(W.code);
+  const car = b.car || {};
+  const claimForm = S.claimOpen ? `<div class="card wc-claim" style="padding:1rem;margin-top:1rem">
+      <h2 class="fh" style="margin-top:0">แจ้งเคลม</h2>
+      <fieldset class="wc-types"><legend>ปัญหาที่พบ</legend>${W_TYPES.map((t, i) => `<label><input type="radio" name="wcType" value="${esc(t)}" ${i === 0 ? "checked" : ""}>${esc(t)}</label>`).join("")}</fieldset>
+      <label class="fl" style="margin-top:.75rem">รายละเอียด<textarea class="field" id="wcDetail" rows="3" placeholder="เช่น ฟิล์มกระจกคู่หน้าฝั่งคนขับลอกที่มุมบน"></textarea></label>
+      <label class="fl">รูปถ่าย (ไม่เกิน 3 รูป)<input class="field" id="wcPhotos" type="file" accept="image/*" multiple></label>
+      <p class="err" id="wcErr" role="alert" hidden></p>
+      <button class="btn" data-act="wclaim" style="width:100%">ส่งเรื่องเคลม</button>
+      <p class="muted" style="font-size:.85rem;margin:.6rem 0 0">ร้านจะติดต่อกลับเพื่อนัดตรวจหน้างาน</p></div>` : "";
+  return `${back}
+  <article class="wcert" aria-label="ใบรับประกัน">
+    <header class="wc-head"><div><div class="wc-brand"><span class="bm-strip"></span>FilmPro</div><h1>ใบรับประกันงานติดฟิล์มกรองแสง</h1></div><span class="wc-state ${state[0]}">${state[1]}</span></header>
+    <div class="wc-code"><div><span>รหัสรับประกัน</span><b>${esc(W.code || "-")}</b><span>ใบส่งมอบ ${esc(W.cert || "-")}</span></div><div class="wc-qr" aria-label="QR ตรวจสอบใบรับประกัน">${W.code ? FP.qrSVG(verifyUrl, 3) : ""}</div></div>
+    <dl class="wc-kv">
+      <dt>ผู้ถือใบรับประกัน</dt><dd>${esc(b.customer || "-")}</dd>
+      <dt>รถ</dt><dd>${esc([car.brand, car.model].filter(Boolean).join(" ") || "-")}${car.color ? " · " + esc(car.color) : ""}</dd>
+      <dt>ทะเบียน</dt><dd>${esc([car.plate, car.province].filter(Boolean).join(" ") || "-")}</dd>
+      <dt>วันที่ติดตั้ง</dt><dd>${wDate(W.start)}</dd>
+      <dt>ระยะประกัน</dt><dd>${esc(W.w.years || "-")} ปี · ถึง ${wDate(W.exp)}</dd>
+      <dt>ช่างผู้ติดตั้ง</dt><dd>${esc(b.tech ? FP.techName(b.tech) : "-")}</dd>
+      ${W.w.roll ? `<dt>เลขม้วนฟิล์ม</dt><dd>${esc(W.w.roll)}</dd>` : ""}${W.w.cardNo ? `<dt>บัตรรับประกันแบรนด์</dt><dd>${esc(W.w.cardNo)}</dd>` : ""}
+    </dl>
+    <h2 class="fh">ฟิล์มที่ติดตั้ง</h2>
+    <table class="wc-table"><thead><tr><th scope="col">ตำแหน่ง</th><th scope="col">ฟิล์ม</th><th scope="col">เบอร์</th></tr></thead><tbody>${rows || `<tr><td colspan="3">${esc(film)}</td></tr>`}</tbody></table>
+    <div class="wc-two">
+      <section><h2 class="fh">ความคุ้มครอง</h2><p>${esc(W.w.coverage || "ฟิล์มลอก/หลุดล่อน, เกิดฟองอากาศ, ฟิล์มเปลี่ยนสี/ซีด")}</p></section>
+      <section><h2 class="fh">ไม่คุ้มครอง</h2><p>${esc(W.w.excl || "รอยขีดข่วนหรือฉีกขาดจากการใช้งาน, ใช้น้ำยาไม่เหมาะสม, อุบัติเหตุ, การแกะหรือซ่อมโดยผู้อื่น")}</p></section>
+    </div>
+    <h2 class="fh">การดูแลฟิล์มหลังติดตั้ง</h2>
+    <ol class="wc-care">${W_CARE.map((c) => `<li>${esc(c)}</li>`).join("")}</ol>
+    <p class="wc-foot">สแกน QR หรือเปิด film.karnet.org/verify เพื่อตรวจสอบว่าใบรับประกันนี้ออกโดย FilmPro จริง</p>
+  </article>
+  ${W.claims.length ? `<div class="card" style="padding:1rem;margin-top:1rem"><h2 class="fh" style="margin-top:0">ประวัติการเคลม</h2>${W.claims.map((c) => `<div class="wc-cl"><div><b>${esc(c.problem || "เคลม")}</b><span class="muted"> · ${wDate(c.at)}</span><div class="muted">${esc(c.detail || "")}</div></div><span class="pill">${esc(c.status || "ใหม่")}</span></div>`).join("")}</div>` : ""}
+  <div class="wc-actions noprint">
+    <button class="btn alt" data-act="wprint">บันทึกเป็น PDF / พิมพ์</button>
+    ${W.expired ? "" : `<button class="btn" data-act="wclaimopen" ${S.claimOpen ? "hidden" : ""}>แจ้งเคลม</button>`}
+  </div>
+  ${claimForm}`;
+}
+function wShrink(file) {
+  return new Promise((res) => { const url = URL.createObjectURL(file), im = new Image(); im.onload = () => { const k = Math.min(1, 1100 / Math.max(im.width, im.height)), c = document.createElement("canvas"); c.width = im.width * k | 0; c.height = im.height * k | 0; c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(url); res(c.toDataURL("image/jpeg", 0.7)); }; im.onerror = () => res(null); im.src = url; });
+}
+document.addEventListener("click", async (e) => {
+  const a = e.target.closest('[data-act="wprint"],[data-act="wclaimopen"],[data-act="wclaim"]'); if (!a) return;
+  if (a.dataset.act === "wprint") { window.print(); return; }
+  if (a.dataset.act === "wclaimopen") { S.claimOpen = true; paint(); setTimeout(() => { const f = document.querySelector(".wc-claim"); if (f) f.scrollIntoView({ behavior: "smooth", block: "start" }); }, 50); return; }
+  const err = document.getElementById("wcErr"), say = (m) => { err.textContent = m; err.hidden = false; };
+  const detail = (document.getElementById("wcDetail").value || "").trim();
+  if (!detail) return say("เล่าปัญหาสั้น ๆ ว่าเกิดที่กระจกบานไหน");
+  a.disabled = true; a.textContent = "กำลังส่ง…";
+  const files = [...(document.getElementById("wcPhotos").files || [])].slice(0, 3), photos = [];
+  for (const f of files) { const d = await wShrink(f); if (d) photos.push(d); }
+  const problem = (document.querySelector('input[name="wcType"]:checked') || {}).value;
+  try {
+    const r = await fetch("/api/public/claim", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: S.trackId, phone: S.trackPhone, problem, detail, photos }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) { a.disabled = false; a.textContent = "ส่งเรื่องเคลม"; return say({ expired: "ใบรับประกันนี้หมดอายุแล้ว", too_many_open: "มีเรื่องเคลมที่ยังไม่ปิดอยู่แล้ว ร้านกำลังดำเนินการ", not_delivered: "งานนี้ยังไม่ได้ส่งมอบ" }[j.error] || "ส่งไม่สำเร็จ ลองอีกครั้ง"); }
+    S.claimOpen = false; window.dispatchEvent(new HashChangeEvent("hashchange")); paint();
+    setTimeout(() => alert("ส่งเรื่องเคลมแล้ว เลขที่ " + j.id + " ร้านจะติดต่อกลับ"), 50);
+  } catch { a.disabled = false; a.textContent = "ส่งเรื่องเคลม"; say("เชื่อมต่อไม่ได้ ลองอีกครั้ง"); }
+});
 function trackHtml() {
   const id = (S.trackId || "").toUpperCase();
   const row = id ? loadBookings().find((r) => r.id === id) : null;
@@ -4117,10 +4243,11 @@ function routeHash() {
   const h = location.hash; let m;
   if ((m = h.match(/^#track\/([^/]+)\/?(.*)$/))) { S.trackId = decodeURIComponent(m[1]).toUpperCase(); S.trackPhone = decodeURIComponent(m[2] || ""); S.step = "track"; return true; }
   if (h === "#track") { S.trackId = ""; S.step = "track"; return true; }
+  if ((m = h.match(/^#warranty\/([^/]+)\/?(.*)$/))) { S.trackId = decodeURIComponent(m[1]).toUpperCase(); S.trackPhone = decodeURIComponent(m[2] || ""); S.step = "warranty"; S.claimOpen = false; return true; }
   if ((m = h.match(/^#receipt\/(.+)$/))) { S.receiptId = decodeURIComponent(m[1]); S.step = "receipt"; return true; }
   return false;
 }
-window.addEventListener("storage", (e) => { if (e.key && e.key.startsWith("filmpro") && e.key !== "filmpro-bookings") { suitePull(); if (["pay", "track", "receipt"].includes(S.step) && !S.focus) paint(); } });
+window.addEventListener("storage", (e) => { if (e.key && e.key.startsWith("filmpro") && e.key !== "filmpro-bookings") { suitePull(); if (["pay", "track", "receipt", "warranty"].includes(S.step) && !S.focus) paint(); } });
 suitePull(); routeHash();
 paint();
 </script>
