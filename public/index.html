@@ -3432,6 +3432,8 @@ const sunRow = (series, size) => {
   const row = series.sun[size] ?? series.sun.M;
   return Array.isArray(row) ? row : null;
 };
+// what the customer picked, in their words: ซันรูฟ / ซันรูฟ 2 ช่อง / หลังคาแก้ว
+const sunWord = (sun) => (sun === "หลังคาแก้ว" ? "หลังคาแก้ว" : sun === "ซันรูฟ 2 ช่อง" ? "ซันรูฟ 2 ช่อง" : "ซันรูฟ");
 const sunAddon = (series, size, sun) => {
   if (sun === "ไม่มี") return 0;
   const i = ["ซันรูฟ 1 ช่อง", "ซันรูฟ 2 ช่อง", "หลังคาแก้ว"].indexOf(sun);
@@ -3446,7 +3448,7 @@ const caption = (brandId, series, size, sun) => {
   const extra = sunAddon(series, size, sun);
   if (kind === "start" && series.start) return `เริ่มต้น ${money(series.start)} บาท`;
   if (kind === "none" || base == null) return "รอราคา · ติดต่อร้าน";
-  const sunText = extra == null && sun !== "ไม่มี" ? " · ซันรูฟ: รอราคา" : extra ? ` · รวมซันรูฟ +${money(extra)} บาท` : "";
+  const sunText = extra == null && sun !== "ไม่มี" ? ` · ${sunWord(sun)}: รอราคา` : extra ? ` · รวม${sunWord(sun)}แล้ว (${money(extra)} บาท)` : "";
   return `${kind === "approx" ? "ประมาณ " : ""}${money(base + (extra || 0))} บาท${sunText}`;
 };
 const seriesPrice = (brandId, series, size, sun, on) => {
@@ -3454,7 +3456,7 @@ const seriesPrice = (brandId, series, size, sun, on) => {
   const kind = priceKind(brandId, series, size);
   if (kind === "start" && series.start) return `<span class="s-price"><small>เริ่มต้น</small> <b>${money(series.start)}</b> <small>บาท</small></span>`;
   const base = basePrice(brandId, series, size), extra = sunAddon(series, size, sun);
-  const note = extra == null && sun !== "ไม่มี" ? "ซันรูฟ: รอราคา" : extra ? `รวมซันรูฟ +${money(extra)}` : "";
+  const note = extra == null && sun !== "ไม่มี" ? `${sunWord(sun)}: รอราคา` : extra ? `รวม${sunWord(sun)}แล้ว (${money(extra)})` : "";
   return `<span class="s-price">${kind === "approx" ? "<small>ประมาณ</small> " : ""}<b>${money(base + (extra || 0))}</b> <small>บาท</small>${note ? `<span class="s-note">${note}</span>` : ""}</span>`;
 };
 const showsPrice = (brandId, series, size) => {
@@ -3507,7 +3509,7 @@ function buildQuote() {
     exampleData: true, filmId: S.filmId, carBrand: S.brand, carModel: S.model, size, sunroof: sun,
     filmBrandName: brand.name, series: series.name, upgrade: chosen ? chosen.to : null, lines,
     promoPct: promo?.pct || 0, promoSave, coupon: coupon ? { code: coupon.code, amount: couponSave, label: coupon.label } : null, gross,
-    total, totalLabel: total == null ? "รอราคา · ติดต่อร้าน" : `${kind === "approx" ? "ประมาณ " : ""}${money(total)} บาท${ask ? " + ซันรูฟรอราคา" : ""}`,
+    total, totalLabel: total == null ? "รอราคา · ติดต่อร้าน" : `${kind === "approx" ? "ประมาณ " : ""}${money(total)} บาท${ask ? ` + ${sunWord(sun)}รอราคา` : ""}`,
   };
 }
 const isBlueShade = (shade) => {
