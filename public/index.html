@@ -399,6 +399,8 @@ header.top .brandmark { display: inline-flex; align-items: center; gap: .45rem; 
 /* bottom bar: contact by default, sticky total on the shade step */
 .bar { padding: .55rem 1rem calc(.55rem + env(safe-area-inset-bottom)); }
 .bar.has-sum #ctaLabel, .bar.has-sum .icon { display: none; }
+#barSplit { display: block; font-size: .78rem; line-height: 1.3; }
+#barSplit[hidden] { display: none; }
 .bar[hidden], .barsum[hidden] { display: none; }
 .barsum { display: flex; align-items: center; justify-content: space-between; gap: .75rem; width: 100%; }
 .bs-text { display: flex; flex-direction: column; line-height: 1.2; }
@@ -648,7 +650,7 @@ footer.wrap.foot { text-align: left; color: var(--muted); font-size: .85rem; pad
   <span id="ctaLabel" class="muted" hidden>ติดต่อร้าน</span>
   <a class="icon" style="background:#06C755" href="https://line.me/R/ti/p/%40filmpro" target="_blank" rel="noreferrer">LINE</a>
   <a class="icon" style="background:#1D5BE3" href="tel:020000000">โทร</a>
-  <div id="barSum" class="barsum" hidden><div class="bs-text"><span class="muted">ราคาทั้งคัน</span><b id="barTotal"></b></div><button id="barGo" class="btn" type="button" data-act="tobook">ดูสรุปและจองคิว</button></div>
+  <div id="barSum" class="barsum" hidden><div class="bs-text"><span class="muted">ราคาทั้งคัน</span><b id="barTotal"></b><small id="barSplit" class="muted" hidden></small></div><button id="barGo" class="btn" type="button" data-act="tobook">ดูสรุปและจองคิว</button></div>
 </div>
 <footer class="wrap foot">
   <ul class="trust">
@@ -3448,7 +3450,7 @@ const caption = (brandId, series, size, sun) => {
   const extra = sunAddon(series, size, sun);
   if (kind === "start" && series.start) return `เริ่มต้น ${money(series.start)} บาท`;
   if (kind === "none" || base == null) return "รอราคา · ติดต่อร้าน";
-  const sunText = extra == null && sun !== "ไม่มี" ? ` · ${sunWord(sun)}: รอราคา` : extra ? ` · รวม${sunWord(sun)}แล้ว (${money(extra)} บาท)` : "";
+  const sunText = extra == null && sun !== "ไม่มี" ? ` · ${sunWord(sun)}: รอราคา` : extra ? ` · ฟิล์ม ${money(basePrice(brandId, series, size))} + ${sunWord(sun)} ${money(extra)} บาท` : "";
   return `${kind === "approx" ? "ประมาณ " : ""}${money(base + (extra || 0))} บาท${sunText}`;
 };
 const seriesPrice = (brandId, series, size, sun, on) => {
@@ -3456,7 +3458,7 @@ const seriesPrice = (brandId, series, size, sun, on) => {
   const kind = priceKind(brandId, series, size);
   if (kind === "start" && series.start) return `<span class="s-price"><small>เริ่มต้น</small> <b>${money(series.start)}</b> <small>บาท</small></span>`;
   const base = basePrice(brandId, series, size), extra = sunAddon(series, size, sun);
-  const note = extra == null && sun !== "ไม่มี" ? `${sunWord(sun)}: รอราคา` : extra ? `รวม${sunWord(sun)}แล้ว (${money(extra)})` : "";
+  const note = extra == null && sun !== "ไม่มี" ? `${sunWord(sun)}: รอราคา` : extra ? `ฟิล์ม ${money(base)} + ${sunWord(sun)} ${money(extra)}` : "";
   return `<span class="s-price">${kind === "approx" ? "<small>ประมาณ</small> " : ""}<b>${money(base + (extra || 0))}</b> <small>บาท</small>${note ? `<span class="s-note">${note}</span>` : ""}</span>`;
 };
 const showsPrice = (brandId, series, size) => {
@@ -3876,7 +3878,13 @@ function paint() {
   const showSum = !!(sq && sq.total != null);
   barSum.hidden = !showSum;
   bar.classList.toggle("has-sum", showSum);
-  if (showSum) document.getElementById("barTotal").textContent = sq.totalLabel;
+  if (showSum) {
+    document.getElementById("barTotal").textContent = sq.totalLabel;
+    const sp = document.getElementById("barSplit"), sun = S.sunroof || "ไม่มี", ser = seriesOf(), size = sizeOf(S.brand, S.model);
+    const ex = ser ? sunAddon(ser, size, sun) : 0, base = ser ? basePrice(S.filmId, ser, size) : null;
+    sp.hidden = !(ex && base != null);
+    if (!sp.hidden) sp.textContent = `ฟิล์ม ${money(base)} + ${sunWord(sun)} ${money(ex)}`;
+  }
   if (S.step !== "home" && !showSum) bar.hidden = true;
   document.body.classList.toggle("has-bar", !bar.hidden && S.step !== "home");
   if (S.cameraOn && !S.photoUrl && !S.note && S.stream) attachCam();
