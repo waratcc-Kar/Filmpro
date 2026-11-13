@@ -3469,10 +3469,7 @@ const showsPrice = (brandId, series, size) => {
 };
 const frontCaption = (series, size) => {
   size = tierSize(S.filmId, size);
-  const w = series.windshield;
   const parts = [];
-  if (typeof w === "string") parts.push(`ติดเฉพาะบานหน้า ${w} บาท`);
-  else if (w && !Array.isArray(w) && w[size] != null) parts.push(`ติดเฉพาะบานหน้า ${money(w[size])} บาท`);
   if (UPGRADES_ON && series.wsUpgrade) parts.push(`อัปเกรดบานหน้า +${money(series.wsUpgrade)} บาท`);
   return parts.join(" · ");
 };
