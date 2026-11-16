@@ -3483,6 +3483,7 @@ const sunAddon = (series, size, sun) => {
   const i = ["ซันรูฟ 1 ช่อง", "ซันรูฟ 2 ช่อง", "หลังคาแก้ว"].indexOf(sun);
   const row = sunRow(series, size);
   const v = row ? (row[i] ?? null) : null;
+  if (v == null && sun === "ซันรูฟ 2 ช่อง" && row && row[0] != null) return row[0] * 2; // ไม่มีราคา 2 ช่อง = ราคา 1 ช่อง × 2
   if (v == null && sun === "หลังคาแก้ว") { const w = wsPrice(series, size); return w == null ? null : w + 1000; }
   return v;
 };
