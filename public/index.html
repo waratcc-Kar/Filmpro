@@ -3482,7 +3482,19 @@ const sunAddon = (series, size, sun) => {
   if (sun === "ไม่มี") return 0;
   const i = ["ซันรูฟ 1 ช่อง", "ซันรูฟ 2 ช่อง", "หลังคาแก้ว"].indexOf(sun);
   const row = sunRow(series, size);
-  return row ? (row[i] ?? null) : null;
+  const v = row ? (row[i] ?? null) : null;
+  if (v == null && sun === "หลังคาแก้ว") { const w = wsPrice(series, size); return w == null ? null : w + 1000; }
+  return v;
+};
+// ราคาติดบานหน้าอย่างเดียวของรุ่นนั้น (ใช้คิดหลังคาแก้วที่ไม่มีราคา = บานหน้า + 1,000)
+// ถ้าเป็นช่วงราคา เช่น "4,000-5,000" ใช้ตัวสูง
+const wsPrice = (series, size) => {
+  const w = series.windshield;
+  if (w == null || Array.isArray(w)) return null;
+  if (typeof w === "string") { const n = (w.match(/\d[\d,]*/g) || []).map((x) => Number(x.replace(/,/g, ""))).filter(Number.isFinite); return n.length ? Math.max(...n) : null; }
+  if (typeof w === "number") return w;
+  const v = w[size] ?? (size === "?" ? w.M : null);
+  return Number.isFinite(v) ? v : null;
 };
 const UPGRADES_ON = false; // ปิดตัวเลือกอัปเกรดบานหน้าไว้ก่อน
 const upgrades = (brandId, series) => UPGRADES_ON && brandId === "stek" && Array.isArray(series.windshield) ? series.windshield : [];
