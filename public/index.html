@@ -3450,6 +3450,8 @@ function marketFor(brandId, series, size) {
 }
 /* ปิดส่วนลดทั้งหมดไว้ก่อน (โปรแบรนด์ ราคาตามตลาด โค้ดลูกค้าใหม่ โค้ดแนะนำเพื่อน) เปลี่ยนเป็น true เพื่อเปิดกลับ */
 const DISCOUNTS_ON = false;
+// ช่องโค้ดส่วนลดในหน้าจอง เปิดแยกจากโปรอื่น (โค้ดแนะนำเพื่อนยังใช้ไม่ได้จนกว่าจะเปิด DISCOUNTS_ON)
+const COUPONS_ON = true;
 const basePrice = (brandId, series, size) => {
   const list = listBasePrice(brandId, series, size);
   if (list == null) return null;
@@ -3555,7 +3557,7 @@ function buildQuote() {
   const promo = promoOf(S.filmId, series, size);
   const promoSave = base != null && listBase != null && promo ? listBase - base : 0;
   const gross = base == null ? null : base + (extraSun || 0) + upgradePrice;
-  const coupon = DISCOUNTS_ON && gross != null && S.coupon ? S.coupon : null;
+  const coupon = COUPONS_ON && gross != null && S.coupon ? S.coupon : null;
   const couponSave = coupon ? Math.min(coupon.amount, gross) : 0;
   const total = gross == null ? null : gross - couponSave;
   const kind = priceKind(S.filmId, series, size);
@@ -3847,9 +3849,8 @@ function sunCardHtml() {
 }
 function bookHtml() {
   const q = buildQuote();
-  return `<button class="back" data-act="go" data-step="shades">← กลับ</button><h1>จองคิวติดตั้ง</h1>${q ? quoteHtml(q, true) + sunCardHtml() : ""}
+  return `<button class="back" data-act="go" data-step="shades">← กลับ</button><h1>จองคิวติดตั้ง</h1>${COUPONS_ON ? `<div class="card coupon" style="padding:1rem;margin-bottom:1rem"><h2 style="margin-bottom:.5rem">โค้ดส่วนลด</h2>${S.coupon ? `<div class="coupon-on"><div><b>${esc(S.coupon.code)}</b><div class="muted">${esc(S.coupon.label)}</div></div><button type="button" class="back" style="margin:0" data-act="uncoupon">เอาออก</button></div>` : `<div class="coupon-row"><input id="couponInput" class="field" placeholder="พิมพ์โค้ดส่วนลด" value="${esc(S.couponDraft || "")}" autocapitalize="characters"><button type="button" class="btn" data-act="coupon">ใช้โค้ด</button></div>`}${S.couponErr ? `<p class="err" style="margin:.5rem 0 0">${esc(S.couponErr)}</p>` : ""}</div>` : ""}${q ? quoteHtml(q, true) + sunCardHtml() : ""}
   <div class="card form" style="padding:1rem;margin-bottom:1rem"><h2 class="fh">ผู้ติดต่อ</h2><div class="grid2"><label class="fl">ชื่อ<input class="field" data-bind="firstName" value="${esc(S.firstName)}" autocomplete="given-name"></label><label class="fl">นามสกุล<input class="field" data-bind="lastName" value="${esc(S.lastName)}" autocomplete="family-name"></label></div><label class="fl">เบอร์มือถือ<input class="field" data-bind="phone" inputmode="tel" autocomplete="tel" value="${esc(S.phone)}"></label><h2 class="fh">รถของคุณ</h2><div class="grid2"><label class="fl">ทะเบียนรถ<input id="plateNo" class="field" data-bind="plateNo" value="${esc(S.plateNo)}" placeholder="1กข 1234"></label><label class="fl">จังหวัดทะเบียน<select id="plateProv" class="field" data-bind="plateProv"><option value="">เลือก</option>${PROVINCES.map((p) => `<option ${S.plateProv === p ? "selected" : ""}>${esc(p)}</option>`).join("")}</select></label></div><label class="fl">สีรถ<input class="field" data-bind="carColor" value="${esc(S.carColor)}" placeholder="เช่น ขาว ดำ เทา"></label><h2 class="fh">สถานที่ติดตั้ง</h2><p class="muted" style="margin:0 0 .5rem;font-size:.875rem">ช่างไปติดตั้งให้ถึงที่ในกรุงเทพฯ นนทบุรี ปทุมธานี สมุทรปราการ สมุทรสาคร และนครปฐม</p><label class="fl">จังหวัด<select id="areaProv" class="field" data-bind="areaProv"><option value="">เลือกจังหวัด</option>${SERVICE_AREA.map((p) => `<option ${S.areaProv === p ? "selected" : ""}>${esc(p)}</option>`).join("")}</select></label><label class="fl">ที่อยู่หรือจุดนัด<input class="field" data-bind="location" placeholder="คอนโด บ้านเลขที่ ถนน เขต" value="${esc(S.location)}"></label>${S.geo ? `<div class="geo-done"><span>${ICON.pin} ปักหมุดจุดติดตั้งแล้ว</span><span class="geo-acts"><button type="button" class="linkbtn" data-act="mappick">เปลี่ยนจุด</button><a class="linkbtn" href="https://www.google.com/maps/search/?api=1&query=${S.geo.lat},${S.geo.lng}" target="_blank" rel="noopener">ดูใน Google Maps</a></span></div>` : `<button type="button" class="geo-pick" data-act="mappick">${ICON.pin}<span>ปักหมุดจุดติดตั้งบนแผนที่<small>ช่างใช้หมุดนี้นำทางมาถึงหน้ารถคุณ</small></span></button>`}<h2 class="fh">วันและเวลา</h2>${S.bookDate ? `<p class="picked">${esc(thDate(S.bookDate))}${S.bookTime ? ` เวลา ${esc(S.bookTime)} น.` : ""}</p>` : `<p class="muted" style="margin:0 0 .4rem;font-size:.875rem">เลือกวันในปฏิทิน แล้วเลือกเวลาที่สะดวก</p>`}${calendarHtml()}<div style="margin-top:.7rem"><div class="slots" id="timeSlots">${S.bookDate ? TIME_SLOTS.map((slot) => { const past = slotPassed(S.bookDate, slot); return `<button type="button" data-act="slot" data-time="${slot}" class="${S.bookTime === slot && !past ? "on" : ""}" ${past ? "disabled" : ""}>${slot}</button>`; }).join("") : `<span class="muted" style="font-size:.85rem">เลือกวันที่ก่อน</span>`}</div></div></div>
-  ${DISCOUNTS_ON ? `<div class="card coupon" style="padding:1rem;margin-bottom:1rem"><h2 style="margin-bottom:.5rem">โค้ดส่วนลด</h2>${S.coupon ? `<div class="coupon-on"><div><b>${esc(S.coupon.code)}</b><div class="muted">${esc(S.coupon.label)}</div></div><button type="button" class="back" style="margin:0" data-act="uncoupon">เอาออก</button></div>` : `<div class="coupon-row"><input id="couponInput" class="field" placeholder="เช่น NEW500 หรือโค้ดจากเพื่อน" value="${esc(S.couponDraft || "")}" autocapitalize="characters"><button type="button" class="btn" data-act="coupon">ใช้โค้ด</button></div>`}${S.couponErr ? `<p class="err" style="margin:.5rem 0 0">${esc(S.couponErr)}</p>` : ""}</div>` : ""}
   <p class="muted" style="font-size:.875rem">ขั้นต่อไปชำระผ่าน PromptPay แล้วแนบสลิป ร้านจะยืนยันคิวให้ภายในวันเดียวกัน</p>
   <label class="consent"><input id="consent" type="checkbox" ${S.consent ? "checked" : ""}> <span>ยอมรับ <button type="button" class="back" data-act="legal" data-which="privacy">นโยบายความเป็นส่วนตัว</button> และ <button type="button" class="back" data-act="legal" data-which="terms">เงื่อนไขการใช้บริการ</button></span></label>${S.error ? `<p class="err">${esc(S.error)}</p>` : ""}<button id="bookBtn" class="btn" style="width:100%;padding:.85rem" data-act="save" ${S.busy ? "disabled" : ""}>${S.busy ? "กำลังบันทึก…" : "จองคิวและไปชำระเงิน"}</button>`;
 }
@@ -4103,7 +4104,7 @@ function applyCoupon(raw) {
   const code = String(raw || "").trim().toUpperCase().replace(/\s+/g, "");
   S.couponDraft = code;
   if (!code) { S.couponErr = "พิมพ์โค้ดก่อนกดใช้"; return; }
-  const list = CATALOG.coupons || [];
+  const list = (CATALOG.coupons || []).filter((c) => DISCOUNTS_ON || c.kind !== "referral");
   const hit = list.find((c) => c.code && c.code === code) || list.find((c) => c.prefix && code.startsWith(c.prefix) && /^[A-Z0-9]{6}$/.test(code.slice(c.prefix.length)));
   if (!hit) { S.couponErr = "ไม่พบโค้ดนี้ ตรวจตัวสะกดอีกครั้ง"; return; }
   const mine = loadBookings();
