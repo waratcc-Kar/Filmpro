@@ -44,7 +44,7 @@ const DEF_EXIST=['front','fl','fr','rl','rr','rear'];
 const OPTIONAL=['quarter','fixed','sun1','sun2','roof'];
 const ZONES=[['front','บานหน้า',['front']],['side','กระจกข้าง/หูช้าง',['fl','fr','rl','rr','quarter','fixed']],['rear','บานหลัง',['rear']],['sun','ซันรูฟ/หลังคาแก้ว',['sun1','sun2','roof']]];
 const DEFECTS=[['scratch','รอยขีดข่วน'],['chip','กระจกบิ่น/หินกระเด็น'],['crack','กระจกร้าว'],['oldfilm','มีฟิล์มเดิม'],['sealant','ยาง/ซิลิโคนขอบเสื่อม'],['defrost','เส้นไล่ฝ้าชำรุด'],['sticker','สติกเกอร์/คราบกาว'],['body','ตำหนิตัวถัง/สี'],['interior','ตำหนิภายใน/แผงประตู'],['other','อื่น ๆ']];
-const BRANDS=['3M','Lamina','V-KOOL','Hi-Kool','XPEL','LLumar','Huper Optik','Global','อื่น ๆ'];
+const BRANDS=['3M','Lamina','V-KOOL','Hi-Kool','XPEL','LLumar','Global','อื่น ๆ'];
 const SHADES=['5','20','30','40','50','60','70','80'];
 const ST_COLOR={'กำลังตรวจ':'bg-amber-100 text-amber-700','ตรวจแล้ว':'bg-emerald-100 text-emerald-700'};
 const $=id=>document.getElementById(id),now=()=>new Date().toISOString(),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -82,7 +82,7 @@ function syncTech(){// pull assigned jobs from FilmPro Tech (Part 2) store on sa
  try{const T=JSON.parse(localStorage.getItem('filmpro_tech_v1'));if(!T)return;(T.inst||[]).forEach(i=>{if(!D.inst[i.id])D.inst[i.id]={name:i.name};});let n=0;(T.jobs||[]).forEach(j=>{if(!job(j.id)){D.jobs.push(mkJob(j));n++;}});if(n)save();return n;}catch(e){return 0;}}
 // ---- FilmPro Match (shared, identical in Inspect & Tech): eligibility + hybrid matching phases
 const FPM=(()=>{const UP=s=>String(s||'').trim().toUpperCase(),J=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d;}catch(e){return d;}};
- const DEF={premium:['3M','STEK','XPEL','LLUMAR','HUPER OPTIK','V-KOOL'],premiumLevel:3,wsSunLevel:3,radius:{1:15,2:25,3:40,4:60},
+ const DEF={premium:['3M','STEK','XPEL','LLUMAR','V-KOOL'],premiumLevel:3,wsSunLevel:3,radius:{1:15,2:25,3:40,4:60},
   hiPrice:20000,assign:{confirmMin:30},match:{p1Min:15,topN:3,p3Min:60,w:{rating:45,level:15,dist:20,brand:10,load:10},maxLoad:5}};
  const T=()=>Date.now();
  function hav(a,b,c,d){const r=x=>x*Math.PI/180,dl=r(c-a),dg=r(d-b),h=Math.sin(dl/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(dg/2)**2;return 12742*Math.asin(Math.sqrt(h));}

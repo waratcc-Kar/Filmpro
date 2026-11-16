@@ -112,7 +112,7 @@ input:focus, textarea:focus { outline: 3px solid rgba(29,91,227,.22); border-col
 <script>
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const BRANDS = ["3M", "Lamina", "LLumar", "Hi-Kool", "V-Kool", "Solar Gard", "Xtra-Cole", "Avery", "Blaupunkt", "Wincos", "STEK", "XPEL", "Hüper Optik", "Smarttec", "Midas", "Spectre"];
+const BRANDS = ["3M", "Lamina", "LLumar", "Hi-Kool", "V-Kool", "Solar Gard", "Avery", "Blaupunkt", "Wincos", "STEK", "XPEL", "Spectre"];
 const st = { photo: null, history: [{ shop: "", pos: "", from: "", to: "", evidence: null }], brands: [] };
 function readFile(file) {
   return new Promise((res, rej) => {

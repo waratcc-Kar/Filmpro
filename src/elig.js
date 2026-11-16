@@ -1,5 +1,5 @@
 // Same hard rules as the auto-offer (FPM.elig in inspect/tech): a tech may only take jobs they qualify for.
-const ELIG_DEF = { premium: ["3M", "STEK", "XPEL", "LLUMAR", "HUPER OPTIK", "V-KOOL"], premiumLevel: 3, wsSunLevel: 3, radius: { 1: 15, 2: 25, 3: 40, 4: 60 }, hiPrice: 20000 };
+const ELIG_DEF = { premium: ["3M", "STEK", "XPEL", "LLUMAR", "V-KOOL"], premiumLevel: 3, wsSunLevel: 3, radius: { 1: 15, 2: 25, 3: 40, 4: 60 }, hiPrice: 20000 };
 function eligNo(t, b, rules) {
   const R = { ...ELIG_DEF, ...(rules || {}) }, UP = (s) => String(s || "").trim().toUpperCase(), no = [];
   if (!t) return ["ยังไม่มีข้อมูลช่างในระบบ"];
