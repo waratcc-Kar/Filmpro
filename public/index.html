@@ -500,6 +500,35 @@ h2.sect { margin: 0 0 .7rem; }
 .fl .field { display: block; margin-top: .25rem; color: var(--ink); }
 .geo-row { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin: .1rem 0 .3rem; font-size: .85rem; }
 .linkbtn { display: inline-flex; align-items: center; gap: .3rem; background: none; border: 0; color: var(--blue); font-weight: 600; font-size: .9rem; padding: .4rem 0; min-height: 44px; cursor: pointer; }
+.geo-pick { display: flex; align-items: center; gap: .5rem; width: 100%; min-height: 48px; padding: .6rem .8rem; border: 1px dashed var(--line-2, #C9D2DC); border-radius: 12px; background: var(--surface, #fff); color: var(--blue); font: inherit; font-weight: 600; cursor: pointer; text-align: left; }
+.geo-pick small { display: block; font-weight: 400; color: var(--muted, #56677A); font-size: .8rem; }
+.geo-done { display: flex; align-items: center; gap: .1rem .9rem; flex-wrap: wrap; padding: .55rem .8rem; border: 1px solid #BFE3D2; background: #E6F5EE; border-radius: 12px; color: #0E7A54; font-weight: 600; font-size: .9rem; }
+.geo-done > span { display: inline-flex; align-items: center; gap: .4rem; margin-right: auto; }
+.geo-done .geo-acts { display: inline-flex; gap: 1rem; margin: 0; }
+.geo-done .linkbtn { min-height: 40px; padding: 0; font-size: .875rem; }
+.mapsheet { position: fixed; inset: 0; z-index: 200; background: var(--paper, #F4F6F8); display: flex; flex-direction: column; }
+.mapsheet[hidden] { display: none; }
+.ms-top { display: flex; align-items: center; gap: .5rem; padding: .6rem .75rem; background: #fff; border-bottom: 1px solid var(--line, #DDE3EA); }
+.ms-top b { font-size: 1.05rem; flex: 1; }
+.ms-x { width: 44px; height: 44px; border: 0; background: none; font-size: 1.6rem; line-height: 1; color: var(--ink, #0F1B2D); cursor: pointer; border-radius: 10px; }
+.ms-search { display: flex; gap: .4rem; padding: .6rem .75rem; background: #fff; }
+.ms-search input { flex: 1; min-width: 0; min-height: 44px; border: 1px solid var(--line-2, #C9D2DC); border-radius: 10px; padding: 0 .75rem; font: inherit; font-size: 16px; }
+.ms-search button { min-height: 44px; padding: 0 1rem; border: 1px solid var(--line-2, #C9D2DC); background: #fff; border-radius: 10px; font: inherit; font-weight: 600; cursor: pointer; }
+.ms-results { background: #fff; border-top: 1px solid var(--line, #DDE3EA); max-height: 40vh; overflow: auto; }
+.ms-results button { display: block; width: 100%; text-align: left; padding: .7rem .9rem; border: 0; border-bottom: 1px solid var(--line, #DDE3EA); background: none; font: inherit; font-size: .9rem; cursor: pointer; }
+.ms-results p { margin: 0; padding: .7rem .9rem; color: var(--muted, #56677A); font-size: .9rem; }
+.ms-map { position: relative; flex: 1; min-height: 200px; }
+#msMap { position: absolute; inset: 0; }
+.ms-pin { position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; margin: -40px 0 0 -20px; z-index: 500; pointer-events: none; color: #C0262D; filter: drop-shadow(0 2px 2px rgba(0,0,0,.3)); }
+.ms-pin::after { content: ""; position: absolute; left: 50%; bottom: -3px; width: 8px; height: 4px; margin-left: -4px; border-radius: 50%; background: rgba(15,27,45,.35); }
+.ms-note[hidden] { display: none; }
+.ms-note { position: absolute; inset: 0; display: grid; place-items: center; padding: 1.5rem; text-align: center; color: var(--muted, #56677A); z-index: 400; background: var(--paper, #F4F6F8); }
+.ms-bottom { padding: .7rem .75rem calc(.7rem + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid var(--line, #DDE3EA); display: grid; gap: .5rem; }
+.ms-row { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.ms-hint { margin: 0; font-size: .85rem; color: var(--muted, #56677A); }
+.ms-err { margin: 0; font-size: .875rem; color: #C0262D; min-height: 0; }
+.ms-err:empty { display: none; }
+.ms-ok { width: 100%; }
 .picked { margin: 0 0 .5rem; font-weight: 600; color: var(--blue); }
 .cal-head button { border-color: var(--line); color: var(--ink); }
 .cal-grid button { background: #F1F5F9; border-radius: var(--r-sm); font-size: .95rem; }
@@ -3786,7 +3815,7 @@ function cameraHtml() {
 function bookHtml() {
   const q = buildQuote();
   return `<button class="back" data-act="go" data-step="shades">← กลับ</button><h1>จองคิวติดตั้ง</h1>${q ? quoteHtml(q, true) : ""}
-  <div class="card form" style="padding:1rem;margin-bottom:1rem"><h2 class="fh">ผู้ติดต่อ</h2><div class="grid2"><label class="fl">ชื่อ<input class="field" data-bind="firstName" value="${esc(S.firstName)}" autocomplete="given-name"></label><label class="fl">นามสกุล<input class="field" data-bind="lastName" value="${esc(S.lastName)}" autocomplete="family-name"></label></div><label class="fl">เบอร์มือถือ<input class="field" data-bind="phone" inputmode="tel" autocomplete="tel" value="${esc(S.phone)}"></label><h2 class="fh">รถของคุณ</h2><div class="grid2"><label class="fl">ทะเบียนรถ<input id="plateNo" class="field" data-bind="plateNo" value="${esc(S.plateNo)}" placeholder="1กข 1234"></label><label class="fl">จังหวัดทะเบียน<select id="plateProv" class="field" data-bind="plateProv"><option value="">เลือก</option>${PROVINCES.map((p) => `<option ${S.plateProv === p ? "selected" : ""}>${esc(p)}</option>`).join("")}</select></label></div><label class="fl">สีรถ<input class="field" data-bind="carColor" value="${esc(S.carColor)}" placeholder="เช่น ขาว ดำ เทา"></label><h2 class="fh">สถานที่ติดตั้ง</h2><p class="muted" style="margin:0 0 .5rem;font-size:.875rem">ช่างไปติดตั้งให้ถึงที่ในกรุงเทพฯ นนทบุรี ปทุมธานี สมุทรปราการ สมุทรสาคร และนครปฐม</p><label class="fl">จังหวัด<select id="areaProv" class="field" data-bind="areaProv"><option value="">เลือกจังหวัด</option>${SERVICE_AREA.map((p) => `<option ${S.areaProv === p ? "selected" : ""}>${esc(p)}</option>`).join("")}</select></label><label class="fl">ที่อยู่หรือจุดนัด<input class="field" data-bind="location" placeholder="คอนโด บ้านเลขที่ ถนน เขต" value="${esc(S.location)}"></label><div class="geo-row"><button type="button" class="linkbtn" data-act="geo">${ICON.pin} ปักตำแหน่งปัจจุบัน</button><span class="muted">${esc(S.geoText)}</span></div><h2 class="fh">วันและเวลา</h2>${S.bookDate ? `<p class="picked">${esc(thDate(S.bookDate))}${S.bookTime ? ` เวลา ${esc(S.bookTime)} น.` : ""}</p>` : `<p class="muted" style="margin:0 0 .4rem;font-size:.875rem">เลือกวันในปฏิทิน แล้วเลือกเวลาที่สะดวก</p>`}${calendarHtml()}<div style="margin-top:.7rem"><div class="slots" id="timeSlots">${S.bookDate ? TIME_SLOTS.map((slot) => { const past = slotPassed(S.bookDate, slot); return `<button type="button" data-act="slot" data-time="${slot}" class="${S.bookTime === slot && !past ? "on" : ""}" ${past ? "disabled" : ""}>${slot}</button>`; }).join("") : `<span class="muted" style="font-size:.85rem">เลือกวันที่ก่อน</span>`}</div></div></div>
+  <div class="card form" style="padding:1rem;margin-bottom:1rem"><h2 class="fh">ผู้ติดต่อ</h2><div class="grid2"><label class="fl">ชื่อ<input class="field" data-bind="firstName" value="${esc(S.firstName)}" autocomplete="given-name"></label><label class="fl">นามสกุล<input class="field" data-bind="lastName" value="${esc(S.lastName)}" autocomplete="family-name"></label></div><label class="fl">เบอร์มือถือ<input class="field" data-bind="phone" inputmode="tel" autocomplete="tel" value="${esc(S.phone)}"></label><h2 class="fh">รถของคุณ</h2><div class="grid2"><label class="fl">ทะเบียนรถ<input id="plateNo" class="field" data-bind="plateNo" value="${esc(S.plateNo)}" placeholder="1กข 1234"></label><label class="fl">จังหวัดทะเบียน<select id="plateProv" class="field" data-bind="plateProv"><option value="">เลือก</option>${PROVINCES.map((p) => `<option ${S.plateProv === p ? "selected" : ""}>${esc(p)}</option>`).join("")}</select></label></div><label class="fl">สีรถ<input class="field" data-bind="carColor" value="${esc(S.carColor)}" placeholder="เช่น ขาว ดำ เทา"></label><h2 class="fh">สถานที่ติดตั้ง</h2><p class="muted" style="margin:0 0 .5rem;font-size:.875rem">ช่างไปติดตั้งให้ถึงที่ในกรุงเทพฯ นนทบุรี ปทุมธานี สมุทรปราการ สมุทรสาคร และนครปฐม</p><label class="fl">จังหวัด<select id="areaProv" class="field" data-bind="areaProv"><option value="">เลือกจังหวัด</option>${SERVICE_AREA.map((p) => `<option ${S.areaProv === p ? "selected" : ""}>${esc(p)}</option>`).join("")}</select></label><label class="fl">ที่อยู่หรือจุดนัด<input class="field" data-bind="location" placeholder="คอนโด บ้านเลขที่ ถนน เขต" value="${esc(S.location)}"></label>${S.geo ? `<div class="geo-done"><span>${ICON.pin} ปักหมุดจุดติดตั้งแล้ว</span><span class="geo-acts"><button type="button" class="linkbtn" data-act="mappick">เปลี่ยนจุด</button><a class="linkbtn" href="https://www.google.com/maps/search/?api=1&query=${S.geo.lat},${S.geo.lng}" target="_blank" rel="noopener">ดูใน Google Maps</a></span></div>` : `<button type="button" class="geo-pick" data-act="mappick">${ICON.pin}<span>ปักหมุดจุดติดตั้งบนแผนที่<small>ช่างใช้หมุดนี้นำทางมาถึงหน้ารถคุณ</small></span></button>`}<h2 class="fh">วันและเวลา</h2>${S.bookDate ? `<p class="picked">${esc(thDate(S.bookDate))}${S.bookTime ? ` เวลา ${esc(S.bookTime)} น.` : ""}</p>` : `<p class="muted" style="margin:0 0 .4rem;font-size:.875rem">เลือกวันในปฏิทิน แล้วเลือกเวลาที่สะดวก</p>`}${calendarHtml()}<div style="margin-top:.7rem"><div class="slots" id="timeSlots">${S.bookDate ? TIME_SLOTS.map((slot) => { const past = slotPassed(S.bookDate, slot); return `<button type="button" data-act="slot" data-time="${slot}" class="${S.bookTime === slot && !past ? "on" : ""}" ${past ? "disabled" : ""}>${slot}</button>`; }).join("") : `<span class="muted" style="font-size:.85rem">เลือกวันที่ก่อน</span>`}</div></div></div>
   ${DISCOUNTS_ON ? `<div class="card coupon" style="padding:1rem;margin-bottom:1rem"><h2 style="margin-bottom:.5rem">โค้ดส่วนลด</h2>${S.coupon ? `<div class="coupon-on"><div><b>${esc(S.coupon.code)}</b><div class="muted">${esc(S.coupon.label)}</div></div><button type="button" class="back" style="margin:0" data-act="uncoupon">เอาออก</button></div>` : `<div class="coupon-row"><input id="couponInput" class="field" placeholder="เช่น NEW500 หรือโค้ดจากเพื่อน" value="${esc(S.couponDraft || "")}" autocapitalize="characters"><button type="button" class="btn" data-act="coupon">ใช้โค้ด</button></div>`}${S.couponErr ? `<p class="err" style="margin:.5rem 0 0">${esc(S.couponErr)}</p>` : ""}</div>` : ""}
   <p class="muted" style="font-size:.875rem">ขั้นต่อไปชำระผ่าน PromptPay แล้วแนบสลิป ร้านจะยืนยันคิวให้ภายในวันเดียวกัน</p>
   <label class="consent"><input id="consent" type="checkbox" ${S.consent ? "checked" : ""}> <span>ยอมรับ <button type="button" class="back" data-act="legal" data-which="privacy">นโยบายความเป็นส่วนตัว</button> และ <button type="button" class="back" data-act="legal" data-which="terms">เงื่อนไขการใช้บริการ</button></span></label>${S.error ? `<p class="err">${esc(S.error)}</p>` : ""}<button id="bookBtn" class="btn" style="width:100%;padding:.85rem" data-act="save" ${S.busy ? "disabled" : ""}>${S.busy ? "กำลังบันทึก…" : "จองคิวและไปชำระเงิน"}</button>`;
@@ -3947,6 +3976,7 @@ document.addEventListener("click", (event) => {
   if (act === "close-disc") { S.disclaimer = false; paint(); }
   if (act === "legal") { S.legal = btn.dataset.which; paint(); }
   if (act === "close-legal") { S.legal = null; paint(); }
+  if (act === "mappick") openMapPicker();
   if (act === "geo") {
     if (!navigator.geolocation) { S.geoText = "เครื่องนี้ไม่เปิดตำแหน่ง"; paint(); return; }
     navigator.geolocation.getCurrentPosition((pos) => { S.geo = { lat: pos.coords.latitude, lng: pos.coords.longitude }; S.geoText = inServiceBox(S.geo) ? "ปักตำแหน่งแล้ว" : "ตำแหน่งนี้อยู่นอกพื้นที่ให้บริการ"; paint(); }, () => { S.geoText = "ไม่ได้รับตำแหน่ง"; paint(); });
@@ -4046,12 +4076,103 @@ function applyCoupon(raw) {
   if (hit.kind === "new" && mine.some((r) => r.quote?.coupon?.code === code)) { S.couponErr = "โค้ดลูกค้าใหม่ใช้ได้ครั้งเดียว"; return; }
   S.coupon = { code, amount: hit.amount, label: hit.label, kind: hit.kind }; S.couponErr = "";
 }
+const PROV_CENTER = { "กรุงเทพมหานคร": [13.7563, 100.5018], "นนทบุรี": [13.8621, 100.5144], "ปทุมธานี": [14.0208, 100.525], "สมุทรปราการ": [13.5991, 100.5998], "สมุทรสาคร": [13.5475, 100.2744], "นครปฐม": [13.8199, 100.0621] };
+let leafletP = null, msMap = null;
+function loadLeaflet() {
+  if (window.L) return Promise.resolve(window.L);
+  if (leafletP) return leafletP;
+  leafletP = new Promise((ok, no) => {
+    const css = document.createElement("link"); css.rel = "stylesheet"; css.href = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"; document.head.appendChild(css);
+    const js = document.createElement("script"); js.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+    js.onload = () => (window.L ? ok(window.L) : no(new Error("no L")));
+    js.onerror = () => { leafletP = null; no(new Error("load")); };
+    document.head.appendChild(js);
+    setTimeout(() => no(new Error("timeout")), 15000);
+  });
+  return leafletP;
+}
+function msEl() {
+  let el = document.getElementById("mapSheet");
+  if (el) return el;
+  el = document.createElement("div");
+  el.id = "mapSheet"; el.className = "mapsheet"; el.hidden = true;
+  el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-label", "เลือกจุดติดตั้งบนแผนที่");
+  el.innerHTML = `<div class="ms-top"><button type="button" class="ms-x" data-ms="close" aria-label="ปิดแผนที่">&times;</button><b>ปักหมุดจุดติดตั้ง</b></div>
+<form class="ms-search" data-ms="search"><input type="search" name="q" placeholder="ค้นหา เช่น ชื่อคอนโด หมู่บ้าน ถนน" enterkeyhint="search" aria-label="ค้นหาสถานที่"><button type="submit">ค้นหา</button></form>
+<div class="ms-results" hidden></div>
+<div class="ms-map"><div id="msMap"></div><svg class="ms-pin" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><div class="ms-note">กำลังโหลดแผนที่…</div></div>
+<div class="ms-bottom"><div class="ms-row"><p class="ms-hint">เลื่อนแผนที่ให้หมุดแดงอยู่ตรงจุดที่จอดรถ</p><button type="button" class="linkbtn" data-ms="here">${ICON.pin} ตำแหน่งปัจจุบัน</button></div><p class="ms-err" role="status"></p><button type="button" class="btn ms-ok" data-ms="ok">ใช้จุดนี้</button></div>`;
+  document.body.appendChild(el);
+  const err = (t) => { el.querySelector(".ms-err").textContent = t || ""; };
+  const res = el.querySelector(".ms-results");
+  el.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-ms],[data-lat]"); if (!b) return;
+    if (b.dataset.lat) { msMap && msMap.setView([+b.dataset.lat, +b.dataset.lng], 17); res.hidden = true; err(""); return; }
+    const a = b.dataset.ms;
+    if (a === "close") closeMapPicker();
+    if (a === "here") {
+      if (!navigator.geolocation) { err("เครื่องนี้ไม่เปิดให้ใช้ตำแหน่ง"); return; }
+      err(""); b.disabled = true;
+      navigator.geolocation.getCurrentPosition((pos) => { b.disabled = false; msMap && msMap.setView([pos.coords.latitude, pos.coords.longitude], 18); }, () => { b.disabled = false; err("ไม่ได้รับตำแหน่ง ลองค้นหาหรือเลื่อนแผนที่แทน"); }, { enableHighAccuracy: true, timeout: 10000 });
+    }
+    if (a === "ok") {
+      if (!msMap) return;
+      const c = msMap.getCenter(), g = { lat: +c.lat.toFixed(6), lng: +c.lng.toFixed(6) };
+      if (!inServiceBox(g)) { err("จุดนี้อยู่นอกพื้นที่ให้บริการ (กรุงเทพฯ และปริมณฑล)"); return; }
+      S.geo = g; S.geoText = "ปักหมุดแล้ว"; S.error = "";
+      closeMapPicker(); paint();
+      if (!S.location.trim()) {
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=th&zoom=18&lat=${g.lat}&lon=${g.lng}`).then((r) => r.json()).then((j) => {
+          const t = String(j.display_name || "").split(",").map((x) => x.trim()).filter((x) => x && !/^\d{5}$/.test(x) && x !== "ประเทศไทย").slice(0, 4).join(" ");
+          if (t && !S.location.trim() && S.geo === g) { S.location = t; paint(); }
+        }).catch(() => {});
+      }
+    }
+  });
+  el.querySelector("form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const q = e.target.q.value.trim(); if (!q) return;
+    res.hidden = false; res.innerHTML = "<p>กำลังค้นหา…</p>";
+    fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&accept-language=th&countrycodes=th&limit=6&bounded=1&viewbox=99.85,14.30,100.98,13.40&q=${encodeURIComponent(q)}`).then((r) => r.json()).then((rows) => {
+      res.innerHTML = rows.length ? rows.map((r) => `<button type="button" data-lat="${esc(r.lat)}" data-lng="${esc(r.lon)}">${esc(String(r.display_name).split(",").slice(0, 3).join(","))}</button>`).join("") : "<p>ไม่พบสถานที่นี้ ลองพิมพ์ชื่ออื่น หรือเลื่อนแผนที่หาเอง</p>";
+    }).catch(() => { res.innerHTML = "<p>ค้นหาไม่ได้ตอนนี้ ลองเลื่อนแผนที่หาเอง</p>"; });
+  });
+  return el;
+}
+function onMapKey(e) { if (e.key === "Escape") closeMapPicker(); }
+function closeMapPicker() {
+  const el = document.getElementById("mapSheet"); if (!el) return;
+  el.hidden = true; document.body.style.overflow = ""; document.removeEventListener("keydown", onMapKey);
+  const b = document.querySelector('[data-act="mappick"]'); if (b) b.focus();
+}
+async function openMapPicker() {
+  const el = msEl();
+  el.hidden = false; document.body.style.overflow = "hidden"; document.addEventListener("keydown", onMapKey);
+  el.querySelector(".ms-err").textContent = ""; el.querySelector(".ms-results").hidden = true;
+  el.querySelector(".ms-x").focus();
+  const note = el.querySelector(".ms-note");
+  const start = S.geo ? [S.geo.lat, S.geo.lng] : PROV_CENTER[S.areaProv] || PROV_CENTER["กรุงเทพมหานคร"];
+  const zoom = S.geo ? 17 : S.areaProv ? 12 : 11;
+  let L;
+  try { L = await loadLeaflet(); } catch (e) {
+    S.mapFail = true;
+    note.hidden = false; note.textContent = "โหลดแผนที่ไม่ได้ตอนนี้ ปิดหน้านี้แล้วพิมพ์ที่อยู่ให้ละเอียดแทนได้ ช่างจะโทรยืนยันจุดก่อนเข้าไป";
+    el.querySelector(".ms-ok").disabled = true; return;
+  }
+  note.hidden = true; el.querySelector(".ms-ok").disabled = false;
+  if (!msMap) {
+    msMap = L.map("msMap", { zoomControl: true, attributionControl: true }).setView(start, zoom);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "&copy; OpenStreetMap" }).addTo(msMap);
+  } else msMap.setView(start, zoom);
+  setTimeout(() => msMap.invalidateSize(), 60);
+}
 function saveBooking() {
   const q = buildQuote();
   if (!q) return;
   if (!S.plateNo.trim() || !S.plateProv || !S.firstName.trim() || !S.lastName.trim() || !S.phone.trim() || !S.carColor.trim() || !S.location.trim()) { S.error = "กรอกทะเบียน จังหวัด ชื่อ สกุล เบอร์ สีรถ และสถานที่ติดตั้ง"; paint(); return; }
   if (!normalizeMobile(S.phone)) { S.error = "กรอกเบอร์มือถือ 10 หลักให้ถูกต้อง"; paint(); return; }
   if (!SERVICE_AREA.includes(S.areaProv)) { S.error = "เลือกจังหวัดที่ติดตั้ง (ให้บริการเฉพาะกรุงเทพฯ และปริมณฑล)"; paint(); return; }
+  if (!S.geo && !S.mapFail) { S.error = "ปักหมุดจุดติดตั้งบนแผนที่ เพื่อให้ช่างนำทางมาถึงถูกที่"; paint(); return; }
   if (!inServiceBox(S.geo)) { S.error = "ตำแหน่งที่ปักอยู่นอกพื้นที่ให้บริการ (กรุงเทพฯ และปริมณฑล) กรุณาตรวจสอบตำแหน่ง"; paint(); return; }
   if (S.bookDate && S.bookDate < todayStr()) { S.error = "เลือกวันที่ตั้งแต่วันนี้เป็นต้นไป"; paint(); return; }
   if (S.bookDate && S.bookTime && slotPassed(S.bookDate, S.bookTime)) { S.error = "เวลานี้ผ่านไปแล้วหรือใกล้เกินไป กรุณาเลือกเวลาใหม่"; S.bookTime = ""; paint(); return; }
