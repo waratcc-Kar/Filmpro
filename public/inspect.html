@@ -283,7 +283,7 @@ load();syncTech();syncBookings();render();addEventListener('storage',e=>{if(e.ke
 var cur='/'+(location.pathname.split('/').pop()||'').replace(/\.html$/,'');
 function go(){if(document.getElementById('fpSuiteNav'))return;var n=document.createElement('nav');n.id='fpSuiteNav';
 n.style.cssText='display:flex;gap:6px;overflow-x:auto;padding:6px 10px;background:#0E1B2A;font:13px Prompt,system-ui,sans-serif;position:relative;z-index:60;-webkit-overflow-scrolling:touch';
-n.innerHTML='<b style="color:#fff;white-space:nowrap;padding:4px 6px 4px 0">FilmPro</b>'+P.map(function(p){var on=p[0]===cur||(p[0]==='/'&&cur==='/index');return '<a href="'+p[0]+'"'+(on?' aria-current="page"':'')+' style="white-space:nowrap;text-decoration:none;padding:4px 10px;border-radius:999px;'+(on?'background:#1E4FD8;color:#fff':'color:#C9D3DD;border:1px solid #33445A')+'">'+p[1]+'</a>';}).join('');
+n.innerHTML='<b style="color:#fff;white-space:nowrap;padding:4px 6px 4px 0">FilmPro</b>'+P.map(function(p){var on=p[0]===cur||(p[0]==='/'&&cur==='/index');return '<a href="'+p[0]+'"'+(on?' aria-current="page"':'')+' style="white-space:nowrap;text-decoration:none;padding:4px 10px;border-radius:999px;'+(on?'background:#1E4FD8;color:#fff':'color:#C9D3DD;border:1px solid #3E4C59')+'">'+p[1]+'</a>';}).join('');
 document.body.insertBefore(n,document.body.firstChild);}
 if(document.body)go();else document.addEventListener('DOMContentLoaded',go);})();
 </script>

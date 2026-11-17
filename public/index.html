@@ -368,7 +368,7 @@ h1 { line-height: 1.35; }
 
 /* ===== FilmPro UI v3 — "แผ่นฟิล์ม": one dark glass hero, quiet surfaces, swatch as the signature ===== */
 :root {
-  --paper: #F3F6F9; --surface: #FFFFFF; --ink: #121A24; --muted: #5B6B7B; --line: #DCE3EA;
+  --paper: #F5F7FA; --surface: #FFFFFF; --ink: #121A24; --muted: #5B6B7B; --line: #DCE3EA;
   --blue: #1D5BE3; --blue-deep: #1546B8; --wash: #EAF1FD; --film: #121A24; --film2: #243242;
   --r-lg: 16px; --r-md: 12px; --r-sm: 8px;
 }
@@ -508,18 +508,18 @@ h2.sect { margin: 0 0 .7rem; }
 .sun-opt input { width: 22px; height: 22px; flex: none; accent-color: var(--blue); margin: 0; }
 .sun-opt span { flex: 1; min-width: 0; }
 .sun-opt small { display: block; color: var(--muted, #56677A); font-size: .8rem; }
-.sun-opt em { font-style: normal; font-weight: 600; white-space: nowrap; color: var(--ink, #0F1B2D); }
+.sun-opt em { font-style: normal; font-weight: 600; white-space: nowrap; color: var(--ink, #1F2933); }
 .geo-pick { display: flex; align-items: center; gap: .5rem; width: 100%; min-height: 48px; padding: .6rem .8rem; border: 1px dashed var(--line-2, #C9D2DC); border-radius: 12px; background: var(--surface, #fff); color: var(--blue); font: inherit; font-weight: 600; cursor: pointer; text-align: left; }
 .geo-pick small { display: block; font-weight: 400; color: var(--muted, #56677A); font-size: .8rem; }
 .geo-done { display: flex; align-items: center; gap: .1rem .9rem; flex-wrap: wrap; padding: .55rem .8rem; border: 1px solid #BFE3D2; background: #E6F5EE; border-radius: 12px; color: #0E7A54; font-weight: 600; font-size: .9rem; }
 .geo-done > span { display: inline-flex; align-items: center; gap: .4rem; margin-right: auto; }
 .geo-done .geo-acts { display: inline-flex; gap: 1rem; margin: 0; }
 .geo-done .linkbtn { min-height: 40px; padding: 0; font-size: .875rem; }
-.mapsheet { position: fixed; inset: 0; z-index: 200; background: var(--paper, #F4F6F8); display: flex; flex-direction: column; }
+.mapsheet { position: fixed; inset: 0; z-index: 200; background: var(--paper, #F5F7FA); display: flex; flex-direction: column; }
 .mapsheet[hidden] { display: none; }
 .ms-top { display: flex; align-items: center; gap: .5rem; padding: .6rem .75rem; background: #fff; border-bottom: 1px solid var(--line, #DDE3EA); }
 .ms-top b { font-size: 1.05rem; flex: 1; }
-.ms-x { width: 44px; height: 44px; border: 0; background: none; font-size: 1.6rem; line-height: 1; color: var(--ink, #0F1B2D); cursor: pointer; border-radius: 10px; }
+.ms-x { width: 44px; height: 44px; border: 0; background: none; font-size: 1.6rem; line-height: 1; color: var(--ink, #1F2933); cursor: pointer; border-radius: 10px; }
 .ms-search { display: flex; gap: .4rem; padding: .6rem .75rem; background: #fff; }
 .ms-search input { flex: 1; min-width: 0; min-height: 44px; border: 1px solid var(--line-2, #C9D2DC); border-radius: 10px; padding: 0 .75rem; font: inherit; font-size: 16px; }
 .ms-search button { min-height: 44px; padding: 0 1rem; border: 1px solid var(--line-2, #C9D2DC); background: #fff; border-radius: 10px; font: inherit; font-weight: 600; cursor: pointer; }
@@ -531,7 +531,7 @@ h2.sect { margin: 0 0 .7rem; }
 .ms-pin { position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; margin: -40px 0 0 -20px; z-index: 500; pointer-events: none; color: #C0262D; filter: drop-shadow(0 2px 2px rgba(0,0,0,.3)); }
 .ms-pin::after { content: ""; position: absolute; left: 50%; bottom: -3px; width: 8px; height: 4px; margin-left: -4px; border-radius: 50%; background: rgba(15,27,45,.35); }
 .ms-note[hidden] { display: none; }
-.ms-note { position: absolute; inset: 0; display: grid; place-items: center; padding: 1.5rem; text-align: center; color: var(--muted, #56677A); z-index: 400; background: var(--paper, #F4F6F8); }
+.ms-note { position: absolute; inset: 0; display: grid; place-items: center; padding: 1.5rem; text-align: center; color: var(--muted, #56677A); z-index: 400; background: var(--paper, #F5F7FA); }
 .ms-bottom { padding: .7rem .75rem calc(.7rem + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid var(--line, #DDE3EA); display: grid; gap: .5rem; }
 .ms-row { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
 .ms-hint { margin: 0; font-size: .85rem; color: var(--muted, #56677A); }
@@ -564,9 +564,9 @@ footer.wrap a { color: var(--muted); }
 
 /* ===== FilmPro UI v4 — design system: trust navy + one blue for action, tinted-glass hero, line icons only ===== */
 :root {
-  --paper: #F4F6F8; --surface: #FFFFFF; --ink: #0F1B2D; --ink-2: #33445A; --muted: #56677A; --line: #DDE3EA; --line-2: #C9D2DC;
+  --paper: #F5F7FA; --surface: #FFFFFF; --ink: #1F2933; --ink-2: #3E4C59; --muted: #56677A; --line: #DDE3EA; --line-2: #C9D2DC;
   --blue: #1E4FD8; --blue-deep: #173FB0; --wash: #EBF1FD; --ok: #0E7A54; --ok-wash: #E6F5EE; --warn: #9A5B00; --warn-wash: #FFF5E0;
-  --film: #0F1B2D; --film2: #22344A;
+  --film: #1F2933; --film2: #323F4B;
   --r-lg: 16px; --r-md: 12px; --r-sm: 8px;
   --sh-1: 0 1px 2px rgba(15,27,45,.06); --sh-2: 0 18px 40px -22px rgba(15,27,45,.45);
   --t: 150ms ease;
@@ -616,7 +616,7 @@ footer.wrap.foot { text-align: left; color: var(--muted); font-size: .85rem; pad
 .foot nav a[hidden] { display: none; }
 /* warranty certificate */
 .wcert { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 1.25rem; box-shadow: var(--sh-1); position: relative; overflow: hidden; }
-.wcert::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 6px; background: linear-gradient(90deg, #0F1B2D, #56677A 60%, #DDE3EA); }
+.wcert::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 6px; background: linear-gradient(90deg, #1F2933, #56677A 60%, #DDE3EA); }
 .wc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: .75rem; margin-top: .25rem; }
 .wc-brand { display: flex; align-items: center; gap: .45rem; font-weight: 700; color: var(--ink); }
 .wc-head h1 { font-size: 1.2rem; margin: .35rem 0 0; line-height: 1.35; }

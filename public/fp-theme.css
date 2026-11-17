@@ -1,7 +1,7 @@
 /* FilmPro design system v4 for the staff pages (admin, tech roster, inspection, handover, notifications).
    Same tokens as the customer site and the tech app. Loaded last in <head> so it wins over each page's old styles. */
 :root {
-  --paper: #F4F6F8; --surface: #FFFFFF; --ink: #0F1B2D; --ink-2: #33445A; --muted: #56677A; --faint: #6B7A8C;
+  --paper: #F5F7FA; --surface: #FFFFFF; --ink: #1F2933; --ink-2: #3E4C59; --muted: #56677A; --faint: #6B7A8C;
   --line: #DDE3EA; --line-2: #C9D2DC; --blue: #1E4FD8; --blue-deep: #173FB0; --wash: #EBF1FD;
   --ok: #0E7A54; --ok-wash: #E6F5EE; --warn: #9A5B00; --warn-wash: #FFF5E0; --bad: #C0262D; --bad-wash: #FDECEC;
   --r-lg: 16px; --r-md: 12px; --sh-1: 0 1px 2px rgba(15,27,45,.06); --t: 150ms ease;
@@ -57,10 +57,10 @@ input[type=checkbox], input[type=radio] { accent-color: var(--blue); width: 18px
 ::placeholder { color: #8695A6 !important; }
 
 /* suite navigation (admins only) */
-#fpSuiteNav { background: #0F1B2D !important; font-family: Prompt, system-ui, sans-serif !important; padding: 8px 12px !important; gap: 6px !important; align-items: center; scrollbar-width: none; }
+#fpSuiteNav { background: #1F2933 !important; font-family: Prompt, system-ui, sans-serif !important; padding: 8px 12px !important; gap: 6px !important; align-items: center; scrollbar-width: none; }
 #fpSuiteNav::-webkit-scrollbar { display: none; }
 #fpSuiteNav b { font-weight: 700; letter-spacing: -.01em; display: inline-flex; align-items: center; gap: 8px; }
-#fpSuiteNav b::before { content: ""; width: 22px; height: 10px; border-radius: 3px; background: linear-gradient(90deg, #fff 0%, #8EA0B4 55%, #33445A 100%); }
+#fpSuiteNav b::before { content: ""; width: 22px; height: 10px; border-radius: 3px; background: linear-gradient(90deg, #fff 0%, #8EA0B4 55%, #3E4C59 100%); }
 #fpSuiteNav a { min-height: 34px; display: inline-flex; align-items: center; font-size: 13.5px; transition: background-color var(--t), color var(--t); }
 #fpSuiteNav a:not([aria-current]):hover { background: rgba(255,255,255,.08); color: #fff !important; }
 
