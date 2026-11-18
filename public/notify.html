@@ -59,7 +59,7 @@
   const DAY = 864e5, now = () => Date.now();
   const DEF = {
     settings: { shop: 'FilmPro', phone: '02-000-0000', promptpay: '0812345678', promptpayName: 'FilmPro', depositPct: 30, depositMin: 500, depositAsk: 1000,
-      open: '09:00', close: '18:00', slotStep: 60, travelMin: 60, crews: 2, cancelHours: 24, lowStockM: 15, consentVersion: 'v1-2026-10',
+      open: '08:00', close: '18:00', slotStep: 60, travelMin: 60, crews: 2, cancelHours: 24, lowStockM: 15, consentVersion: 'v1-2026-10',
       pins: { admin: '1234', finance: '5678', installer: '0000' }, lineId: '@filmpro', email: 'contact@filmpro.example', hours: 'ทุกวัน 09:00–18:00', area: 'กรุงเทพฯ และปริมณฑล (ช่างไปติดตั้งถึงที่)', showFloat: true },
     duration: { 'C': 180, 'S|4D': 180, 'M': 210, 'L': 240, 'XL': 270, 'XXL': 300, 'GIGA': 330, sunroof: 60 },
     usageM: { 'C': 7, 'S|4D': 8, 'M': 9, 'L': 11, 'XL': 13, 'XXL': 15, 'GIGA': 17 },
@@ -153,7 +153,7 @@
       const old = b.date + ' ' + b.time; b.date = date; b.time = time; b.slot = { start: time, end: toHM(toMin(time) + dur), durationMin: dur };
       bookings.hist(b, 'เลื่อนนัด', old + ' → ' + date + ' ' + time); bookings.save(b); audit('booking.reschedule', id, old + '→' + date + ' ' + time); notify('rescheduled', id); return { ok: true }; }
   };
-  function depositFor(total, S) { S = S || suite().settings; if (total == null) return S.depositAsk; return Math.min(total, Math.max(S.depositMin, Math.round(total * S.depositPct / 100))); }
+  function depositFor(total, S) { const D = 2000; if (total == null) return D; return Math.min(total, D); }
 
   // ---------- installers (published by FilmPro Tech) ----------
   function techs() { const p = get(K.techpub, { techs: [] }); return (p.techs || []).filter(t => t.status !== 'suspended'); }

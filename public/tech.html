@@ -2364,7 +2364,7 @@ var qrcode = function() {
   const DAY = 864e5, now = () => Date.now();
   const DEF = {
     settings: { shop: 'FilmPro', phone: '02-000-0000', promptpay: '0812345678', promptpayName: 'FilmPro', depositPct: 30, depositMin: 500, depositAsk: 1000,
-      open: '09:00', close: '18:00', slotStep: 60, travelMin: 60, crews: 2, cancelHours: 24, lowStockM: 15, consentVersion: 'v1-2026-10',
+      open: '08:00', close: '18:00', slotStep: 60, travelMin: 60, crews: 2, cancelHours: 24, lowStockM: 15, consentVersion: 'v1-2026-10',
       pins: { admin: '1234', finance: '5678', installer: '0000' }, lineId: '@filmpro', email: 'contact@filmpro.example', hours: 'ทุกวัน 09:00–18:00', area: 'กรุงเทพฯ และปริมณฑล (ช่างไปติดตั้งถึงที่)', showFloat: true },
     duration: { 'C': 180, 'S|4D': 180, 'M': 210, 'L': 240, 'XL': 270, 'XXL': 300, 'GIGA': 330, sunroof: 60 },
     usageM: { 'C': 7, 'S|4D': 8, 'M': 9, 'L': 11, 'XL': 13, 'XXL': 15, 'GIGA': 17 },
@@ -2458,7 +2458,7 @@ var qrcode = function() {
       const old = b.date + ' ' + b.time; b.date = date; b.time = time; b.slot = { start: time, end: toHM(toMin(time) + dur), durationMin: dur };
       bookings.hist(b, 'เลื่อนนัด', old + ' → ' + date + ' ' + time); bookings.save(b); audit('booking.reschedule', id, old + '→' + date + ' ' + time); notify('rescheduled', id); return { ok: true }; }
   };
-  function depositFor(total, S) { S = S || suite().settings; if (total == null) return S.depositAsk; return Math.min(total, Math.max(S.depositMin, Math.round(total * S.depositPct / 100))); }
+  function depositFor(total, S) { const D = 2000; if (total == null) return D; return Math.min(total, D); }
 
   // ---------- installers (published by FilmPro Tech) ----------
   function techs() { const p = get(K.techpub, { techs: [] }); return (p.techs || []).filter(t => t.status !== 'suspended'); }
@@ -2665,7 +2665,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const TIER={gen:'ช่างทั่วไป',pro:'ช่างมืออาชีพ',exp:'ช่างชำนาญการ'},TORD=['gen','pro','exp'];
 const CATS=[['clean','ความสะอาดและความสุภาพ'],['install','ความเรียบร้อยของการติดฟิล์ม (ไม่มีเม็ดฝุ่น ตัดเบี้ยว รอยคัตเตอร์) — น้ำหนัก x2'],['overall','ความพึงพอใจของลูกค้า']];
 const DEFECTS=[['dust','มีเม็ดฝุ่น'],['crooked','ตัดเบี้ยว'],['cutter','รอยคัตเตอร์']];
-const BRANDS=['3M','Lamina','LLumar','Hi-Kool','V-Kool','Solar Gard','Avery','Blaupunkt','Wincos','STEK','XPEL','Spectre'];
+const BRANDS=['3M','Lamina','LLumar','Hi-Kool','V-Kool','Solar Gard','Avery','Blaupunkt','Wincos','STEK','Spectre'];
 const STATUS=['มอบหมาย','ตรวจรถแล้ว','ติดตั้งเสร็จ','ลูกค้ายืนยัน','จ่ายแล้ว'];
 const DEF_S={fees:{gen:500,pro:1000,exp:1500},promo:{pro:{jobs:50,avg:4.5,redo:3},exp:{jobs:150,avg:4.7,redo:2}},demoteAvg30:4.0,firstPct:90,retainPct:10,retainDays:30,autoHours:48,bonus:100,redoCostDefault:3000,
  w:{rating:70,redo:10,photo:10,cancel:5,claim:5},clockOffset:0};
@@ -2922,7 +2922,7 @@ function vSetX(){const X=XS(),n=(path,l,step=1)=>`<label class="flex justify-bet
 function setX(path,v){const k=path.split('.'),o=k.slice(0,-1).reduce((o,x)=>o[x],XS());o[k[k.length-1]]=v;save();render();}
 function demoX(){D=blank();XD();XS();const t0=now(),M0=new Date(t0);M0.setDate(1);M0.setHours(9,0,0,0);const ms=M0.getTime();
  const mk=(name,base,ext)=>{const id=nid('T');D.inst.push({id,example:true,name:name+' (ตัวอย่าง)',idCard:'',address:'กรุงเทพฯ',phone:'08x-xxx-xxxx',line:'',years:'',history:[],brands:['3M'],photo:null,bank:{bank:'กสิกรไทย',acct:'000-0-00000-0',acctName:name},status:'อนุมัติ',adminNote:'ข้อมูลตัวอย่าง',tier:'gen',premiumTest:false,suspended:false,createdAt:t0,base:{jobs:base.jobs,avg:base.avg,redo:0,photo:95,cancel:0,claim:base.claim||0},log:[[t0,'ข้อมูลตัวอย่าง']]});Object.assign(XT(id),ext);return id;};
- const A=mk('ช่าง A',{jobs:520,avg:4.7,claim:3},{ws:true,sun:true,rate:1800,lat:13.7563,lng:100.5018,area:'กรุงเทพ',cert:['3M','STEK','XPEL','Lamina']}),B=mk('ช่าง B',{jobs:230,avg:4.45,claim:2},{ws:true,sun:true,rate:1200,lat:13.69,lng:100.75,area:'บางนา, สมุทรปราการ',cert:['3M','Lamina']}),C=mk('ช่าง C',{jobs:80,avg:4.1},{rate:700,lat:13.86,lng:100.52,area:'นนทบุรี',cert:['Lamina','Hi-Kool']}),Dd=mk('ช่าง D',{jobs:20,avg:4.2},{lat:14.35,lng:100.57,area:'อยุธยา',cert:['Hi-Kool']});
+ const A=mk('ช่าง A',{jobs:520,avg:4.7,claim:3},{ws:true,sun:true,rate:1800,lat:13.7563,lng:100.5018,area:'กรุงเทพ',cert:['3M','STEK','Lamina']}),B=mk('ช่าง B',{jobs:230,avg:4.45,claim:2},{ws:true,sun:true,rate:1200,lat:13.69,lng:100.75,area:'บางนา, สมุทรปราการ',cert:['3M','Lamina']}),C=mk('ช่าง C',{jobs:80,avg:4.1},{rate:700,lat:13.86,lng:100.52,area:'นนทบุรี',cert:['Lamina','Hi-Kool']}),Dd=mk('ช่าง D',{jobs:20,avg:4.2},{lat:14.35,lng:100.57,area:'อยุธยา',cert:['Hi-Kool']});
  const E=mk('ช่าง E (เชิญโดย A)',{jobs:0,avg:0},{invitedBy:A,endorsed:3,joinAt:ms-1,prob:{state:'ทดลองงาน'}}),F=mk('ช่าง F (เชิญโดย B)',{jobs:0,avg:0},{invitedBy:B,endorsed:2,joinAt:ms-1,prob:{state:'ทดลองงาน'}});
  const G=mk('ช่าง G (เชิญโดย E)',{jobs:0,avg:0},{invitedBy:E,endorsed:2,joinAt:ms-1,prob:{state:'ทดลองงาน'}});
  [[A,4,1],[B,3,1],[C,2,0],[Dd,1,0],[E,3,0],[F,1,0],[G,2,0]].forEach(([id,l,bd])=>XT(id).ver={state:'active',level:l,badge:!!bd,at:t0});mk('ช่าง N (สมัครใหม่)',{jobs:60,avg:4.2},{lat:13.75,lng:100.55,area:'กรุงเทพ'});
@@ -2934,7 +2934,7 @@ function demoX(){D=blank();XD();XS();const t0=now(),M0=new Date(t0);M0.setDate(1
 
 // ---- FilmPro Match (shared, identical in Inspect & Tech): eligibility + hybrid matching phases
 const FPM=(()=>{const UP=s=>String(s||'').trim().toUpperCase(),J=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d;}catch(e){return d;}};
- const DEF={premium:['3M','STEK','XPEL','LLUMAR','V-KOOL'],premiumLevel:3,wsSunLevel:3,radius:{1:15,2:25,3:40,4:60},
+ const DEF={premium:['3M','STEK','LLUMAR','V-KOOL'],premiumLevel:3,wsSunLevel:3,radius:{1:15,2:25,3:40,4:60},
   hiPrice:20000,assign:{confirmMin:30},match:{p1Min:15,topN:3,p3Min:60,w:{rating:45,level:15,dist:20,brand:10,load:10},maxLoad:5}};
  const T=()=>Date.now();
  function hav(a,b,c,d){const r=x=>x*Math.PI/180,dl=r(c-a),dg=r(d-b),h=Math.sin(dl/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(dg/2)**2;return 12742*Math.asin(Math.sqrt(h));}
@@ -3009,7 +3009,7 @@ const FPA=(()=>{const AK='filmpro_assign_v1',CK='filmpro_claims_v1',BK='filmpro_
 
 // ---------- job claiming: publish tech profiles/rules for FilmPro Inspect job board; admin claims view
 const PUB_KEY='filmpro_techpub_v1',CL_KEY='filmpro_claims_v1',BK_KEY='filmpro_bookings_v1';
-const DEF_CLAIM={premium:'3M, STEK, XPEL, LLumar, V-Kool',premiumLevel:3,wsSunLevel:3,hiPrice:20000,confirmMin:30,shipDays:3,warnDays:1,radius:{1:15,2:25,3:40,4:60},match:JSON.parse(JSON.stringify(FPM.DEF.match))};
+const DEF_CLAIM={premium:'3M, STEK, LLumar, V-Kool',premiumLevel:3,wsSunLevel:3,hiPrice:20000,confirmMin:30,shipDays:3,warnDays:1,radius:{1:15,2:25,3:40,4:60},match:JSON.parse(JSON.stringify(FPM.DEF.match))};
 function XC(){const X=XS();X.claim=Object.assign(JSON.parse(JSON.stringify(DEF_CLAIM)),X.claim||{});X.claim.match={...DEF_CLAIM.match,...X.claim.match,w:{...DEF_CLAIM.match.w,...(X.claim.match||{}).w}};return X.claim;}
 function publish(){try{const C=XC(),techs=D.inst.filter(i=>i.status==='อนุมัติ'&&!i.suspended).map(i=>{const t=XT(i.id),vs=(t.ver&&t.ver.state)||'pending';const mm=xm(i);return {id:i.id,name:i.name,level:level(i),avg:+mm.avg.toFixed(3),lat:t.lat===''?null:t.lat??null,lng:t.lng===''?null:t.lng??null,area:t.area||'',brands:t.cert||i.brands||[],ws:!!t.ws,sun:!!t.sun,status:vs,verified:vs==='active'&&!!(t.ver&&t.ver.badge),off:String(t.off||'').split(',').map(x=>x.trim()).filter(Boolean)};});
  localStorage.setItem(PUB_KEY,JSON.stringify({at:Date.now(),techs,rules:{premium:C.premium.split(',').map(s=>s.trim()).filter(Boolean),premiumLevel:+C.premiumLevel,wsSunLevel:+C.wsSunLevel,radius:C.radius,match:C.match,hiPrice:+C.hiPrice,assign:{confirmMin:+C.confirmMin}}}));FPA.tick();}catch(e){}}
@@ -3235,14 +3235,14 @@ function glImport(inp){const f=inp.files[0];if(!f)return;const rd=new FileReader
 function demoBkk(){D=blank();XD();XS();const t0=now();
  const mk=(name,base,ext,lv,badge)=>{const id=nid('T');D.inst.push({id,example:true,name:name+' (ตัวอย่าง)',idCard:'',address:ext.area,phone:'08x-xxx-'+String(1000+D.inst.length),line:'',years:String(base.yrs||3),history:[],brands:ext.cert,photo:null,bank:{bank:'กสิกรไทย',acct:'000-0-00000-0',acctName:name},status:'อนุมัติ',adminNote:'ช่างตัวอย่าง กทม.+ปริมณฑล',tier:lv>=3?'pro':'gen',premiumTest:false,suspended:false,createdAt:t0,base:{jobs:base.jobs,avg:base.avg,redo:0,photo:95,cancel:0,claim:0},log:[[t0,'ช่างตัวอย่าง']]});
   Object.assign(XT(id),ext);XT(id).ver={state:'active',level:lv,badge:!!badge,at:t0};return id;};
- mk('ช่างเอก สาทร',{jobs:520,avg:4.85,yrs:10},{ws:true,sun:true,rate:1800,lat:13.7246,lng:100.5293,area:'กรุงเทพ สาทร สีลม บางรัก ปทุมวัน',cert:['3M','LLumar','STEK','XPEL','V-KOOL','Lamina','Hi-Kool']},4,1);
- mk('ช่างกอล์ฟ ลาดพร้าว',{jobs:260,avg:4.7,yrs:7},{ws:true,sun:true,rate:1400,lat:13.8062,lng:100.6070,area:'กรุงเทพ ลาดพร้าว บางกะปิ จตุจักร',cert:['3M','XPEL','STEK','LLumar','Avery Dennison']},3,1);
+ mk('ช่างเอก สาทร',{jobs:520,avg:4.85,yrs:10},{ws:true,sun:true,rate:1800,lat:13.7246,lng:100.5293,area:'กรุงเทพ สาทร สีลม บางรัก ปทุมวัน',cert:['3M','LLumar','STEK','V-KOOL','Lamina','Hi-Kool']},4,1);
+ mk('ช่างกอล์ฟ ลาดพร้าว',{jobs:260,avg:4.7,yrs:7},{ws:true,sun:true,rate:1400,lat:13.8062,lng:100.6070,area:'กรุงเทพ ลาดพร้าว บางกะปิ จตุจักร',cert:['3M','STEK','LLumar','Avery Dennison']},3,1);
  mk('ช่างบอย บางนา',{jobs:230,avg:4.6,yrs:6},{ws:true,sun:true,rate:1200,lat:13.6683,lng:100.6339,area:'บางนา สมุทรปราการ',cert:['3M','V-KOOL','Lamina','Hi-Kool','Solar Gard']},3,1);
  mk('ช่างต้น นนทบุรี',{jobs:140,avg:4.5,yrs:5},{ws:false,sun:true,rate:900,lat:13.8621,lng:100.5144,area:'นนทบุรี',cert:['LLumar','Lamina','Hi-Kool','Avery Dennison','WINCOS']},3,0);
  mk('ช่างนิค รังสิต',{jobs:70,avg:4.4,yrs:3},{rate:700,lat:13.9850,lng:100.6170,area:'ปทุมธานี รังสิต',cert:['Lamina','Hi-Kool','Blaupunkt']},2,0);
  mk('ช่างโอ๊ต มหาชัย',{jobs:60,avg:4.3,yrs:3},{rate:700,lat:13.5475,lng:100.2744,area:'สมุทรสาคร มหาชัย',cert:['Hi-Kool','Lamina','WINCOS']},2,0);
  mk('ช่างแบงค์ นครปฐม',{jobs:55,avg:4.3,yrs:2},{rate:700,lat:13.8199,lng:100.0621,area:'นครปฐม',cert:['Lamina','Spectre','Hi-Kool','Solar Gard']},2,0);
- [['3M-0001','3M','Crystalline'],['3M-0002','3M','Ceramic Absolute'],['LM-0001','Lamina','Digital Ceramatrix Boost'],['LM-0002','Lamina','CM ICON Boost'],['HK-0001','Hi-Kool','Ceramic Black Edition'],['LL-0001','LLumar','Prime'],['VK-0001','V-KOOL','VK40'],['XP-0001','XPEL','Prime XR Plus'],['ST-0001','STEK','Lunaray']].forEach(([roll,brand,series])=>{try{FP.stock.add({roll,brand,series,lengthM:30});}catch(e){}});
+ [['3M-0001','3M','Crystalline'],['3M-0002','3M','Ceramic Absolute'],['LM-0001','Lamina','Digital Ceramatrix Boost'],['LM-0002','Lamina','CM ICON Boost'],['HK-0001','Hi-Kool','Ceramic Black Edition'],['LL-0001','LLumar','Prime'],['VK-0001','V-KOOL','VK40'],['ST-0001','STEK','Lunaray']].forEach(([roll,brand,series])=>{try{FP.stock.add({roll,brand,series,lengthM:30});}catch(e){}});
  save();publish();go('list');}
 if(location.hash==='#demo'){try{if(!D.inst.length)demoBkk();publish();}catch(e){console.warn(e)}}
 if(location.hash==='#demo-bkk'){try{demoBkk();history.replaceState(null,'',location.pathname);}catch(e){console.warn(e)}}
