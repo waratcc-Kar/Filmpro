@@ -828,17 +828,9 @@ body[data-step="series"] .segs .chip { min-height: 40px; }
 .h5-foot { margin: 14px 0 0; font-size: 13px; }
 
 /* ---------- shades ---------- */
-.h5-prev { margin: 16px 0 0; border-radius: 18px; background: #fff; border: 1px solid var(--line); overflow: hidden; }
-.pv-img { position: relative; height: 190px; background: linear-gradient(180deg, #EEF2F6 0%, #E3E8EE 100%); display: grid; place-items: center; }
-.pv-img svg { width: 86%; max-width: 360px; height: auto; margin-top: 18px; }
-.pv-car { position: absolute; left: 12px; top: 12px; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--ink); color: #fff; }
-.pv-note { position: absolute; right: 12px; top: 12px; font-size: 12px; color: var(--muted); }
-.pv-chips { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; padding: 12px; }
-.pv-chips > div { text-align: center; }
-.pv-chips i { display: block; height: 28px; border-radius: 8px; border: 1px solid #DDE3EA; }
-.pv-chips span { display: block; font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.35; }
 .h5-cam { width: calc(100% - 24px); margin: 0 12px 12px; min-height: 50px; display: flex; align-items: center; justify-content: center; gap: 10px; border-radius: 12px; border: 0; background: var(--ink); color: #fff; font: 600 15px var(--font); }
 .h5-cam:hover { background: #2B3743; }
+.h5-cam-solo { width: 100%; margin: 16px 0 0; min-height: 52px; }
 .h5-cam .ico { width: 20px; height: 20px; }
 .h5-gh { margin: 18px 0 0; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
 .h5-gh h1 { margin: 0; font-size: 17px; font-weight: 600; }
@@ -4106,10 +4098,6 @@ function seriesHtml() {
   <div class="segs"><button type="button" class="chip ${S.pricedOnly ? "off" : "on"}" data-act="priced" data-on="0">ทุกรุ่น</button><button type="button" class="chip ${S.pricedOnly ? "on" : "off"}" data-act="priced" data-on="1">เฉพาะที่มีราคา</button></div>
   <div class="h5-slist">${rows.map((s, i) => { const on = showsPrice(S.filmId, s, size); const front = frontCaption(s, size); return `<article class="h5-scard"><div class="st"><div class="sn">${s.tech ? `<span class="stag">${esc(s.tech)}</span>` : ""}<h2>${esc(s.name)}</h2></div><div class="sp"><span>ทั้งคัน</span>${seriesPrice(S.filmId, s, size, sun, on)}</div></div>${front ? `<p class="front">${esc(front)}</p>` : ""}${rings3(s)}${s.shades.length ? `<div class="h5-vlt"><span>ความเข้มที่มี (ตัวเลข = แสงผ่าน %)</span><div>${s.shades.slice().sort((a, b) => a.vlt - b.vlt).map((d) => `<i style="${vltChip(d.vlt)}" title="${esc(d.model)}">${esc(d.vlt)}</i>`).join("")}</div></div>` : ""}<button class="h5-pick${i === 0 && on ? " pri" : ""}" data-act="series" data-name="${esc(s.name)}">เลือกรุ่นนี้</button></article>`; }).join("")}</div>${empty}<p class="muted h5-foot">ราคารวมบานหน้าแล้ว · ข้อมูลสเปกจากผู้ผลิต</p>`;
 }
-function carSideSvg(front, rear) {
-  const f = tintA(front), r = tintA(rear);
-  return `<svg viewBox="0 0 360 170" aria-hidden="true"><path d="M22 128c10-30 40-44 70-50l52-30c18-10 34-12 54-12h52c24 0 44 10 62 28l24 22c14 4 22 14 22 30v12H22z" fill="#C9D2DC"/><path d="M150 58c12-7 24-9 40-9h18v44h-82z" fill="#9FB5C8"/><path d="M150 58c12-7 24-9 40-9h18v44h-82z" fill="#1F2933" fill-opacity="${f.toFixed(2)}"/><path d="M216 49h34c16 0 30 7 42 20l18 24h-94z" fill="#9FB5C8"/><path d="M216 49h34c16 0 30 7 42 20l18 24h-94z" fill="#1F2933" fill-opacity="${r.toFixed(2)}"/><circle cx="92" cy="138" r="22" fill="#1F2933"/><circle cx="92" cy="138" r="9" fill="#C9D2DC"/><circle cx="276" cy="138" r="22" fill="#1F2933"/><circle cx="276" cy="138" r="9" fill="#C9D2DC"/></svg>`;
-}
 function shadesHtml() {
   const series = seriesOf();
   const q = buildQuote();
@@ -4118,7 +4106,7 @@ function shadesHtml() {
   const vOf = (g) => sh(S.shades[g])?.vlt;
   const rec = S.rec && S.rec.id === S.filmId && S.rec.name === series.name && S.rec.side ? S.rec : null;
   const opts = series.shades.slice().sort((a, b) => a.vlt - b.vlt);
-  const preview = `<section class="h5-prev"><div class="pv-img" role="img" aria-label="ภาพจำลองรถ ${esc(S.brand)} ${esc(S.model)} ตามความเข้มที่เลือก">${carSideSvg(vOf("front") ?? 70, vOf("rearSide") ?? vOf("rear") ?? 70)}<span class="pv-car">${esc(S.brand)} ${esc(S.model)}</span><span class="pv-note">ภาพจำลอง</span></div><div class="pv-chips">${groups.map((g) => { const v = vOf(g); return `<div><i style="${v == null ? "background:#fff;border-style:dashed" : vltChip(v)}"></i><span>${esc(groupLabel(g))}<br>${v == null ? "ยังไม่เลือก" : v + "%"}</span></div>`; }).join("")}</div><button class="h5-cam" data-act="cam">${ICON.cam} เปิดกล้อง ดูความเข้มจริง</button></section>`;
+  const preview = `<button class="h5-cam h5-cam-solo" data-act="cam">${ICON.cam} เปิดกล้อง ดูความเข้มจริง</button>`;
   const pick = series.shades.length ? `<div class="h5-gh"><h1>เลือกความเข้มแต่ละบาน</h1>${S.shades.rear ? `<button type="button" class="chipbtn" data-act="sameall">ใช้เท่ากับบานหลังทั้งคัน</button>` : ""}</div><p class="muted h5-note">ตัวเลข = แสงผ่าน % ยิ่งน้อยยิ่งเข้ม · ${esc(film(S.filmId).name)} ${esc(series.name)} ราคาเท่ากันทุกเฉด</p>
   <div id="pickcard" class="h5-groups">${groups.map((g) => { const cur = sh(S.shades[g]); return `<fieldset class="h5-grp${!cur && S.shadeErr ? " miss" : ""}"><legend class="sr">${esc(groupLabel(g))}</legend><div class="gt"><b>${esc(groupLabel(g))}</b><span>${cur ? `${esc(cur.model)} · แสงผ่าน ${esc(cur.vlt)}%` : "ยังไม่เลือก"}</span></div><div class="go">${opts.map((d) => `<button type="button" data-act="gshade" data-g="${g}" data-m="${esc(d.model)}" aria-pressed="${S.shades[g] === d.model}" class="${S.shades[g] === d.model ? "on" : ""}" style="${vltChip(d.vlt)}" aria-label="${esc(groupLabel(g))} ${esc(d.model)} แสงผ่าน ${esc(d.vlt)}%"><b>${esc(d.vlt)}%</b><small>${esc(d.model)}</small></button>`).join("")}</div></fieldset>`; }).join("")}</div>` : `<p class="muted">ซีรีส์นี้ไม่มีตารางเฉดในข้อมูลตัวอย่าง</p>`;
   const specs = series.shades.length ? `<details class="h5-specs"><summary>สเปกแต่ละเฉด (กันร้อน กันอินฟราเรด กัน UV)</summary>${ringLegend}<div class="shlist">${series.shades.map((d) => `<article class="shade"><div class="sh-head"><div class="sh-name"><b>${esc(d.model)}</b><span class="sh-dark">${darkPct(d.vlt) === "ใส" ? "ฟิล์มใส" : "เข้ม " + darkPct(d.vlt) + "%"}${d.color ? ` · โทน ${esc(d.color)}` : ""}</span></div>${swatchHtml(d, film(S.filmId).name)}</div>${ringRow(d)}<button class="series sh-use${Object.values(S.shades || {}).length && Object.values(S.shades).every((m) => m === d.model) ? " on" : ""}" data-act="allshade" data-m="${esc(d.model)}">ใช้เบอร์นี้ทุกบาน</button></article>`).join("")}</div></details>` : "";
