@@ -823,6 +823,7 @@ body[data-step="series"] .segs .chip { min-height: 40px; }
 .h5-vlt i { font-style: normal; min-width: 44px; height: 32px; padding: 0 8px; box-sizing: border-box; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; border: 1px solid #DDE3EA; }
 .h5-pick { width: 100%; margin-top: 14px; min-height: 48px; border-radius: 12px; font: 600 15px var(--font); background: #fff; color: var(--blue); border: 1px solid var(--blue); }
 .h5-pick:hover { background: var(--wash); }
+.pick .r3row { margin: 12px 0 0; }
 .h5-pick.pri { background: var(--blue); color: #fff; }
 .h5-pick.pri:hover { background: var(--blue-deep); }
 .h5-foot { margin: 14px 0 0; font-size: 13px; }
@@ -3884,9 +3885,10 @@ function recShades(series, quiz) {
   const pool = match.length ? match : sh;
   const target = { dark: 8, natural: 30, clear: 60, blue: 60 }[quiz.tone] ?? 30;
   const side = [...pool].sort((a, b) => Math.abs(a.vlt - target) - Math.abs(b.vlt - target) || (heatOf(b, series) || 0) - (heatOf(a, series) || 0))[0];
-  const lightEnough = sh.filter((d) => d.vlt >= (quiz.night ? 40 : 30));
-  const front = lightEnough.length ? [...lightEnough].sort((a, b) => quiz.night ? (heatOf(b, series) || 0) - (heatOf(a, series) || 0) || a.vlt - b.vlt : Math.abs(a.vlt - 40) - Math.abs(b.vlt - 40))[0] : null;
-  return { side, front: front && front.model !== side.model ? front : (quiz.night ? front : null) };
+  // บานหน้า: ขยับอ่อนลงแค่ 1 เบอร์จากรอบคัน (โทนเดียวกันก่อน ถ้าไม่มีค่อยดูทุกโทน)
+  const nextUp = (list) => list.filter((d) => d.vlt > side.vlt).sort((a, b) => a.vlt - b.vlt)[0];
+  const front = nextUp(pool) || nextUp(sh) || null;
+  return { side, front };
 }
 function recommend() {
   const size = sizeOf(S.brand, S.model);
@@ -3900,7 +3902,7 @@ function recommend() {
     const { side, front } = recShades(series, Q);
     const heat = heatOf(side, series);
     return { brand, series, price, best: side, front, heat,
-      toneFit: !!side && toneOk(side, Q.tone), nightFit: !Q.night || !!front, signalFit: !(Q.signal && series.metal),
+      toneFit: !!side && toneOk(side, Q.tone), nightFit: !Q.night || (front || side).vlt >= 35, signalFit: !(Q.signal && series.metal),
       inBudget: !range || (price != null && price >= range[0] && price <= range[1]),
       nearBudget: !range || (price != null && price >= range[0] * 0.8 && price <= range[1] * 1.25) };
   })).filter((x) => x.best);
@@ -3941,12 +3943,11 @@ function recommend() {
 }
 function reasonChips(p, first) {
   const Q = S.quiz, out = [];
-  if (p.heat != null) out.push(`ลดความร้อนรวม ${p.heat}%`);
   if (p.kind === "cheaper" && first.price != null && p.price != null) out.push(`ถูกกว่า ${money(first.price - p.price)} บาท`);
   if (p.kind === "cooler" && first.heat != null && p.heat != null) out.push(`เย็นกว่า +${p.heat - first.heat}%`);
   if (Q.budget && Q.budget !== "any") out.push(p.inBudget ? "อยู่ในงบ" : p.nearBudget ? "ใกล้เคียงงบ" : "นอกงบที่เลือก");
   if (Q.priority === "famous" && p.brand.origin === "intl") out.push("แบรนด์ต่างประเทศ");
-  if (Q.night && p.front) out.push(`บานหน้า VLT ${p.front.vlt}% มองกลางคืนชัด`);
+  if (Q.night && p.front && p.front.vlt >= 35) out.push(`บานหน้า VLT ${p.front.vlt}% มองกลางคืนชัด`);
   if (Q.signal && !p.series.metal) out.push("ไม่มีโลหะ ไม่กวนสัญญาณ");
   return out;
 }
@@ -4077,13 +4078,13 @@ function pathHtml() {
   <div class="h5-head" id="brands"><h1>ยี่ห้อฟิล์ม</h1><span>เรียง A–Z · ราคาเริ่มต้นทั้งคัน</span></div>${DISCOUNTS_ON && Object.keys(CATALOG.promos || {}).length ? `<p class="promo-strip"><b>ราคาหลังโปรเท่ากับหรือถูกกว่าร้านทั่วไป</b></p>` : ""}
   <div class="h5-bgrid">${list.map((b) => { const from = brandFrom(b, size), promo = brandMaxPromo(b, size); return `<button class="h5-brand" data-act="brand" data-id="${esc(b.id)}">${promo ? `<span class="tag pricetag promo">ลดสูงสุด ${promo}%</span>` : ""}<span class="lg">${b.logo ? `<img alt="" src="${b.logo}">` : `<b>${esc(b.name)}</b>`}</span><span class="nm"><span>${esc(b.name)}</span><span>${b.series.length} รุ่น</span></span><b class="fr">${from == null ? `<span class="muted">รอราคา</span>` : `เริ่ม ${money(from)}`}</b></button>`; }).join("")}</div>`;
 }
-function ring3(label, value, color, aria) {
+function ring3(label, value, color, aria, one) {
   const n = ringNums(value), r = 30, C = 2 * Math.PI * r;
   const top = n ? n.hi : null;
-  const sub = !n ? "ไม่ระบุ" : n.lo === n.hi ? "ทุกเฉด" : `ช่วง ${n.lo}–${n.hi}%`;
+  const sub = !n ? "ไม่ระบุ" : n.lo === n.hi ? one || "ทุกเฉด" : `ช่วง ${n.lo}–${n.hi}%`;
   return `<div class="r3"><svg viewBox="0 0 76 76" role="img" aria-label="${esc(aria)} ${n ? "สูงสุด " + top + "%" : "ไม่ระบุ"}"><circle cx="38" cy="38" r="${r}" fill="none" stroke="#E3E8EE" stroke-width="8"${n ? "" : ' stroke-dasharray="3 4"'}/>${n ? `<circle cx="38" cy="38" r="${r}" fill="none" stroke="${color}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${(C * top / 100).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 38 38)"/>` : ""}<text x="38" y="43" text-anchor="middle" font-size="${top != null && String(top).length > 3 ? 13 : 16}" font-weight="700" fill="${n ? "#1F2933" : "#5B6878"}">${n ? top + "%" : "–"}</text></svg><b>${label}</b><span>${sub}</span></div>`;
 }
-const rings3 = (o) => `<div class="r3row">${ring3("กันร้อนรวม", o.tser, "#EA580C", "กันความร้อนรวม")}${ring3("กันอินฟราเรด", o.irr, "#DC2626", "กันรังสีอินฟราเรด")}${ring3("กัน UV", o.uv, "#7C3AED", "กันรังสียูวี")}</div>`;
+const rings3 = (o, one) => `<div class="r3row">${ring3("กันร้อนรวม", o.tser, "#EA580C", "กันความร้อนรวม", one)}${ring3("กันอินฟราเรด", o.irr, "#DC2626", "กันรังสีอินฟราเรด", one)}${ring3("กัน UV", o.uv, "#7C3AED", "กันรังสียูวี", one)}</div>`;
 const tintA = (vlt) => Math.max(0.12, Math.min(0.92, 1 - (Number(vlt) || 0) / 100));
 const vltChip = (vlt) => { const a = tintA(vlt); return `background:rgba(31,41,51,${a.toFixed(2)});color:${a > 0.5 ? "#fff" : "#1F2933"}`; };
 function seriesHtml() {
@@ -4131,7 +4132,8 @@ function quizHtml() {
     return `<button class="pick ${i === 0 ? "main" : ""}" data-act="pick" data-id="${esc(brand.id)}" data-name="${esc(p.series.name)}">
       <div class="pick-top"><span class="pick-label pk-${p.kind}">${esc(p.label)}</span>${p.price == null ? `<span class="pick-price muted">รอราคา</span>` : `<span class="pick-price">${money(p.price)} บาท</span>`}</div>
       <div class="pick-name">${brand.logo ? `<img alt="" src="${brand.logo}">` : ""}<div><b>${esc(brand.name)}</b><div>${esc(p.series.name)}</div></div></div>
-      <div class="pick-shades">รอบคัน <b>${esc(p.best.model)}</b> ${esc(darkLabel(p.best.vlt))}${p.front ? `<br>บานหน้า <b>${esc(p.front.model)}</b> ${esc(darkLabel(p.front.vlt))}` : ""}</div>
+      <div class="pick-shades">รอบคัน <b>${esc(p.best.model)}</b> ${esc(darkLabel(p.best.vlt))}${p.front ? `<br>บานหน้า <b>${esc(p.front.model)}</b> ${esc(darkLabel(p.front.vlt))}` : `<br>บานหน้า ใช้เบอร์เดียวกับรอบคัน`}</div>
+      ${rings3({ tser: p.best.tser ?? p.series.tser, irr: p.best.irr ?? p.series.irr, uv: p.best.uv ?? p.series.uv }, `รอบคัน ${p.best.model}`)}
       ${chips ? `<div class="why">${chips}</div>` : ""}
       <div class="pick-go">ดูรายละเอียดและเลือกเฉด</div></button>`;
   };
