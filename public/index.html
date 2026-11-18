@@ -4051,7 +4051,6 @@ const ICON = {
 };
 function homeHtml() {
   const opts = (list, placeholder, cur) => `<option value="">${placeholder}</option>` + list.map((n) => `<option ${cur === n ? "selected" : ""}>${esc(n)}</option>`).join("");
-  const fb = CATALOG.filmBrands.map((b) => b.name);
   const steps = [["เลือกรถ", "ยี่ห้อ รุ่น และซันรูฟ ระบบรู้ไซส์รถให้เอง"], ["เลือกฟิล์มและความเข้ม", "เทียบราคาทุกยี่ห้อ หรือให้ระบบช่วยเลือก"], ["จองวันเวลา ปักหมุดจุดติดตั้ง", "โอนมัดจำ 2,000 บาทผ่าน PromptPay แนบสลิปในเว็บ"], ["ช่างไปติดถึงที่", "ตรวจรับงาน ให้คะแนนช่าง รับใบรับประกัน"]];
   const why = [[ICON.tag, "ราคาตามใบราคาแบรนด์", "เห็นราคาทั้งคันตามรุ่นรถทันที รวมบานหน้า"], [ICON.van, "ช่างไปติดถึงที่", "ตรวจสภาพรถพร้อมถ่ายรูปก่อนเริ่มงาน และให้คุณตรวจรับทีละบาน"], [ICON.shield, "มีใบรับประกัน", "ได้ใบรับประกันหลังส่งมอบ เช็คออนไลน์ได้ทุกเมื่อ"]];
   return `<section class="h5-hero"><p class="h5-where">${ICON.pin}ติดตั้งถึงที่ กรุงเทพฯ และปริมณฑล</p><h1>เช็คราคาฟิล์มกรองแสง<br>ทุกยี่ห้อ ทั้งคัน</h1><p class="h5-sub">รู้ราคาก่อนจอง ไม่ต้องรอใบเสนอราคา</p>
@@ -4059,7 +4058,6 @@ function homeHtml() {
   <fieldset class="h5-sun"><legend class="h5-lb">ซันรูฟ / หลังคาแก้ว</legend><div class="h5-seg">${SUNS.map((s) => `<button type="button" data-act="homesun" data-v="${esc(s)}" aria-pressed="${S.sunroof === s}" class="${S.sunroof === s ? "on" : ""}">${esc(s)}</button>`).join("")}</div></fieldset>
   <button id="goDesk" class="home-go" data-act="next">ดูราคาทั้งคัน</button>${S.error ? `<p class="err">${esc(S.error)}</p>` : ""}</div></section>
   <section class="h5-why" aria-label="ทำไมต้อง FilmPro">${why.map(([ic, t, d]) => `<div class="h5-row">${ic}<div><b>${t}</b><p>${d}</p></div></div>`).join("")}</section>
-  <section class="h5-sec"><h2>ฟิล์ม ${fb.length} ยี่ห้อ ในที่เดียว</h2><ul class="h5-chips">${fb.map((n) => `<li>${esc(n)}</li>`).join("")}</ul></section>
   <section class="h5-sec"><h2>จองง่ายใน 4 ขั้น</h2><ol class="h5-steps">${steps.map(([t, d], i) => `<li><b class="n">${i + 1}</b><div><b>${t}</b><p>${d}</p></div></li>`).join("")}</ol></section>
   <section class="h5-area"><b>พื้นที่ให้บริการ</b><p>${SERVICE_AREA.map(esc).join(" · ")}</p></section>`;
 }
