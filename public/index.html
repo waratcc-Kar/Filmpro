@@ -678,17 +678,294 @@ footer.wrap.foot { text-align: left; color: var(--muted); font-size: .85rem; pad
   body.is-home .home-sub { grid-column: 1; grid-row: 2; align-self: start; font-size: 1.35rem; margin-top: .6rem; }
   body.is-home .home-card .pill { grid-column: 2; grid-row: 1 / span 2; align-self: center; margin-top: 0; padding: 1.4rem; }
 }
+/* ===== FilmPro UI v5 — แบบใหม่จากหน้าออกแบบ: ขาว + กราไฟต์ + ฟ้า, header มีปุ่มย้อนกลับ, แถบ 4 ขั้น ===== */
+:root { --muted: #5B6878; --line: #E3E8EE; --line-2: #C9D2DC; --font: Prompt, "Noto Sans Thai", Thonburi, "Leelawadee UI", sans-serif; }
+body, body.is-home { font-family: var(--font); }
+.sr { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; padding: 0; }
+.wrap { max-width: 40rem; }
+#app > .hdr-dup { display: none; }
+/* header */
+header.top { height: auto; min-height: 60px; padding: 8px 12px; gap: 6px; display: flex; align-items: center; background: #fff; backdrop-filter: none; -webkit-backdrop-filter: none; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 40; }
+header.top .brandmark { font-size: 18px; font-weight: 700; padding-left: 4px; }
+.hd-sp { flex: 1; }
+.hd-link { min-height: 44px; display: inline-flex; align-items: center; padding: 0 10px; font-size: 14px; font-weight: 500; color: var(--ink); text-decoration: none; }
+.hd-link:hover { color: var(--blue); }
+.hd-line { min-height: 40px; display: inline-flex; align-items: center; padding: 0 14px; border-radius: 999px; background: #06C755; color: #fff !important; font-weight: 600; font-size: 14px; text-decoration: none; flex: none; }
+.hd-back { width: 44px; height: 44px; flex: none; display: grid; place-items: center; border: 0; background: none; color: var(--ink); border-radius: 12px; padding: 0; }
+.hd-back:hover { background: #F1F4F7; }
+.hd-back svg { width: 22px; height: 22px; }
+.hd-t { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+header.top .hd-t b { font-size: 17px; font-weight: 600; color: var(--ink); }
+header.top .hd-t span { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* step bar */
+.stepbar { padding: 12px 0 0; }
+.stepbar ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.stepbar li { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 500; color: var(--muted); }
+.stepbar li i { height: 4px; border-radius: 2px; background: #DDE3EA; }
+.stepbar li.done i, .stepbar li.now i { background: var(--blue); }
+.stepbar li.now { color: var(--ink); font-weight: 600; }
+/* bottom bar */
+.bar { background: #fff; backdrop-filter: none; border-top: 1px solid var(--line); padding: 12px 16px calc(14px + env(safe-area-inset-bottom)); }
+.barsum .bs-text .muted { font-size: 12px; }
+.barsum #barTotal { font-size: 1.3rem; font-weight: 700; color: var(--ink); }
+.barsum .btn { min-height: 52px; height: auto; padding: 0 22px; border-radius: 12px; font-size: 1rem; font-weight: 600; }
+/* buttons */
+.btn, .home-go, #bookBtn { border-radius: 12px; font-weight: 600; min-height: 48px; }
+.btn.ghost { background: #fff; color: var(--ink); border: 1px solid var(--line-2); }
+.chipbtn { min-height: 40px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line-2); background: #fff; font: 500 13px var(--font); color: var(--ink); }
+.chipbtn:hover { border-color: #AEB9C6; }
+.card { border-radius: 18px; border: 1px solid var(--line); box-shadow: none; }
+.h5-card { padding: 16px; margin: 0 0 12px; }
+h1 { font-size: 1.35rem; }
+
+/* ---------- home ---------- */
+body.is-home header.top { display: flex; }
+body.is-home footer { display: block; }
+body.is-home .wrap { max-width: 40rem; padding: 0 1rem 1rem; }
+.h5-hero { margin: 16px 0 0; border-radius: 20px; padding: 24px 20px 20px; background: linear-gradient(165deg, #2B3743 0%, #1F2933 60%, #161E26 100%); color: #fff; }
+.h5-where { margin: 0 0 10px; font-size: 13px; color: #C9D2DC; display: inline-flex; align-items: center; gap: 6px; }
+.h5-where .ico { width: 15px; height: 15px; }
+.h5-hero h1 { margin: 0; font-size: 28px; line-height: 1.25; font-weight: 700; color: #fff; letter-spacing: 0; }
+.h5-sub { margin: 8px 0 0; color: #DDE3EA; font-size: 15px; }
+.h5-form { margin-top: 20px; padding: 16px; border-radius: 16px; background: #fff; color: var(--ink); display: grid; gap: 12px; }
+.h5-form .grid2 { gap: 10px; }
+.h5-lb { display: block; font-size: 13px; font-weight: 500; color: var(--ink-2); }
+.h5-lb .home-field { display: block; width: 100%; margin-top: 6px; border-radius: 10px; border: 1px solid var(--line-2); min-height: 48px; }
+.h5-sun { border: 0; margin: 0; padding: 0; min-width: 0; }
+.h5-sun legend { margin-bottom: 6px; padding: 0; }
+.h5-seg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.h5-seg button { min-height: 44px; border-radius: 10px; font: 500 14px var(--font); background: #fff; color: var(--ink); border: 1px solid var(--line-2); }
+.h5-seg button:hover { border-color: #8695A6; }
+.h5-seg button.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+.h5-form .home-go { margin: 0; min-height: 52px; border-radius: 12px; font-size: 16px; }
+.h5-form .err { margin: 0; }
+.h5-why { margin: 12px 0 0; display: grid; gap: 10px; }
+.h5-row { display: flex; gap: 12px; align-items: flex-start; padding: 14px; background: #fff; border: 1px solid var(--line); border-radius: 14px; }
+.h5-row > svg { width: 24px; height: 24px; flex: none; color: var(--blue); margin-top: 2px; }
+.h5-row b { font-weight: 600; }
+.h5-row p { margin: 2px 0 0; font-size: 14px; color: var(--muted); }
+.h5-sec { margin: 28px 0 0; }
+.h5-sec h2 { margin: 0 0 12px; font-size: 18px; font-weight: 600; }
+.h5-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.h5-chips li { padding: 6px 12px; border-radius: 999px; background: #fff; border: 1px solid var(--line); font-size: 14px; font-weight: 500; }
+.h5-steps { list-style: none; margin: 0; padding: 0; background: #fff; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.h5-steps li { display: flex; gap: 14px; padding: 14px 16px; border-top: 1px solid #EEF1F4; }
+.h5-steps li:first-child { border-top: 0; }
+.h5-steps .n { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: #fff; font-size: 14px; font-weight: 600; }
+.h5-steps p { margin: 2px 0 0; font-size: 14px; color: var(--muted); }
+.h5-area { margin: 28px 0 0; padding: 16px; border-radius: 16px; background: var(--wash); }
+.h5-area p { margin: 4px 0 0; font-size: 14px; color: var(--ink-2); }
+/* footer */
+footer.wrap.foot { max-width: none; margin-top: 28px; background: var(--ink); color: #C9D2DC; padding: 20px 16px calc(28px + env(safe-area-inset-bottom)); }
+body.has-bar footer.wrap.foot { padding-bottom: 7rem; }
+footer.wrap.foot > * { max-width: 40rem; margin-left: auto; margin-right: auto; }
+.foot .trust { display: none; }
+.foot nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 12px; }
+.foot nav a { color: #fff; }
+.foot nav a:hover { color: #fff; }
+.foot .fine { color: #C9D2DC; margin-bottom: .75rem; }
+body:not(.is-home) footer.wrap.foot { margin-top: 2rem; }
+
+/* ---------- brands ---------- */
+.h5-car { margin: 14px 0 0; padding: 12px 14px; border-radius: 14px; background: #fff; border: 1px solid var(--line); display: flex; align-items: center; gap: 12px; }
+.h5-car > svg { width: 24px; height: 24px; flex: none; color: var(--ink-2); }
+.h5-car > div { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.h5-car b { font-weight: 600; }
+.h5-car span { font-size: 13px; color: var(--muted); }
+.h5-help { width: 100%; margin: 12px 0 0; padding: 16px; border-radius: 16px; border: 0; background: var(--ink); color: #fff; display: flex; align-items: center; gap: 14px; text-align: left; font: inherit; }
+.h5-help:hover { background: #2B3743; }
+.h5-help > svg { width: 26px; height: 26px; flex: none; }
+.h5-help .chev { width: 20px; height: 20px; }
+.h5-help span { flex: 1; display: flex; flex-direction: column; }
+.h5-help b { font-weight: 600; font-size: 16px; }
+.h5-help small { font-size: 13px; color: #C9D2DC; }
+.h5-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 24px 0 10px; flex-wrap: wrap; }
+.h5-head h1 { margin: 0; font-size: 18px; font-weight: 600; }
+.h5-head span { font-size: 13px; color: var(--muted); }
+.h5-bgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.h5-brand { position: relative; display: flex; flex-direction: column; gap: 2px; padding: 12px; border-radius: 14px; background: #fff; border: 1px solid var(--line); color: var(--ink); text-align: left; font: inherit; }
+.h5-brand:hover { border-color: #AEB9C6; }
+.h5-brand .lg { height: 60px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+.h5-brand .lg img { max-width: 100%; max-height: 52px; object-fit: contain; }
+.h5-brand .lg b { font-size: 1.1rem; font-weight: 700; }
+.h5-brand .nm { display: flex; justify-content: space-between; gap: 6px; font-size: 13px; color: var(--muted); }
+.h5-brand .fr { font-size: 15px; font-weight: 600; }
+.h5-brand .fr .muted { font-weight: 500; }
+.h5-brand .pricetag { position: absolute; top: 8px; right: 8px; }
+
+/* ---------- series ---------- */
+.h5-btabs { display: flex; gap: 8px; padding: 12px 0 4px; overflow-x: auto; scrollbar-width: none; margin: 0 -1rem; padding-left: 1rem; padding-right: 1rem; }
+.h5-btabs::-webkit-scrollbar { display: none; }
+.h5-btabs button { flex: none; min-height: 40px; padding: 0 14px; border-radius: 999px; font: 500 14px var(--font); background: #fff; color: var(--ink); border: 1px solid #DDE3EA; }
+.h5-btabs button.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+body[data-step="series"] .bhead { margin-top: 12px; }
+body[data-step="series"] .segs .chip { min-height: 40px; }
+.h5-slist { display: grid; gap: 12px; }
+.h5-scard { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 16px; }
+.h5-scard .st { display: flex; align-items: flex-start; gap: 12px; }
+.h5-scard .sn { flex: 1; min-width: 0; }
+.h5-scard .stag { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 999px; background: var(--wash); color: var(--blue-deep); }
+.h5-scard h2 { margin: 6px 0 0; font-size: 19px; font-weight: 600; line-height: 1.25; }
+.h5-scard .sp { text-align: right; flex: none; max-width: 52%; }
+.h5-scard .sp > span:first-child { display: block; font-size: 12px; color: var(--muted); }
+.h5-scard .s-price { margin: 0; justify-content: flex-end; }
+.h5-scard .s-price b { font-size: 22px; font-weight: 700; white-space: nowrap; }
+.h5-scard .s-price .s-note { flex-basis: 100%; text-align: right; background: none; padding: 0; }
+.h5-scard .front { margin: 8px 0 0; font-size: 13px; color: var(--muted); }
+.r3row { margin: 14px 0 0; padding: 12px 6px 10px; border-radius: 14px; background: #F7F9FB; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.r3 { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.r3 svg { width: 76px; height: 76px; font-family: var(--font); }
+.r3 b { margin-top: 4px; font-size: 13px; font-weight: 600; }
+.r3 span { font-size: 12px; color: var(--muted); }
+.h5-vlt { margin-top: 14px; }
+.h5-vlt > span { font-size: 12px; color: var(--muted); }
+.h5-vlt > div { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.h5-vlt i { font-style: normal; min-width: 44px; height: 32px; padding: 0 8px; box-sizing: border-box; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; border: 1px solid #DDE3EA; }
+.h5-pick { width: 100%; margin-top: 14px; min-height: 48px; border-radius: 12px; font: 600 15px var(--font); background: #fff; color: var(--blue); border: 1px solid var(--blue); }
+.h5-pick:hover { background: var(--wash); }
+.h5-pick.pri { background: var(--blue); color: #fff; }
+.h5-pick.pri:hover { background: var(--blue-deep); }
+.h5-foot { margin: 14px 0 0; font-size: 13px; }
+
+/* ---------- shades ---------- */
+.h5-prev { margin: 16px 0 0; border-radius: 18px; background: #fff; border: 1px solid var(--line); overflow: hidden; }
+.pv-img { position: relative; height: 190px; background: linear-gradient(180deg, #EEF2F6 0%, #E3E8EE 100%); display: grid; place-items: center; }
+.pv-img svg { width: 86%; max-width: 360px; height: auto; margin-top: 18px; }
+.pv-car { position: absolute; left: 12px; top: 12px; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--ink); color: #fff; }
+.pv-note { position: absolute; right: 12px; top: 12px; font-size: 12px; color: var(--muted); }
+.pv-chips { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; padding: 12px; }
+.pv-chips > div { text-align: center; }
+.pv-chips i { display: block; height: 28px; border-radius: 8px; border: 1px solid #DDE3EA; }
+.pv-chips span { display: block; font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.35; }
+.h5-cam { width: calc(100% - 24px); margin: 0 12px 12px; min-height: 50px; display: flex; align-items: center; justify-content: center; gap: 10px; border-radius: 12px; border: 0; background: var(--ink); color: #fff; font: 600 15px var(--font); }
+.h5-cam:hover { background: #2B3743; }
+.h5-cam .ico { width: 20px; height: 20px; }
+.h5-gh { margin: 18px 0 0; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.h5-gh h1 { margin: 0; font-size: 17px; font-weight: 600; }
+.h5-note { margin: 4px 0 10px; font-size: 13px; }
+.h5-groups { display: grid; gap: 10px; }
+.h5-grp { margin: 0; padding: 14px; border-radius: 16px; background: #fff; border: 1px solid var(--line); min-width: 0; }
+.h5-grp.miss { border-color: #F59E0B; }
+.h5-grp .gt { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 10px; }
+.h5-grp .gt b { font-weight: 600; }
+.h5-grp .gt span { font-size: 13px; color: var(--muted); text-align: right; }
+.h5-grp .go { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.h5-grp .go button { min-height: 52px; border-radius: 10px; font: inherit; border: 1px solid #DDE3EA; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px 2px; line-height: 1.2; }
+.h5-grp .go button b { font-size: 14px; font-weight: 600; }
+.h5-grp .go button small { font-size: 10px; opacity: .85; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.h5-grp .go button.on { outline: 3px solid var(--blue); outline-offset: 1px; border-color: #fff; }
+.h5-specs { margin: 14px 0 0; background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 0 14px; }
+.h5-specs summary { min-height: 52px; display: flex; align-items: center; font-weight: 600; cursor: pointer; }
+.h5-specs[open] { padding-bottom: 14px; }
+.h5-specs .shlist { margin-top: .5rem; }
+.h5-wide { width: 100%; margin-top: 14px; min-height: 52px; }
+
+/* ---------- book ---------- */
+body[data-step="book"] .stepbar { margin-bottom: 14px; }
+.h5-coupon { padding: 14px 16px; margin: 0 0 12px; }
+.h5-coupon .fl { margin-bottom: .4rem; color: var(--ink-2); font-weight: 500; }
+.h5-coupon .coupon-row .btn { min-height: 48px; }
+.h5-sum { padding: 16px; margin: 0 0 12px; }
+.h5-sum .sum-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.h5-sum .sum-top > div { display: flex; flex-direction: column; min-width: 0; }
+.h5-sum .sum-top b { font-weight: 600; }
+.h5-sum .sum-top span { font-size: 13px; color: var(--muted); }
+.h5-sum .sum-top .linkbtn { padding: 0; min-height: 40px; }
+.sum-rows { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); display: grid; gap: 6px; font-size: 14px; }
+.sum-rows > div { display: flex; justify-content: space-between; gap: 12px; }
+.sum-rows > div > span:first-child { color: var(--ink-2); }
+.sum-rows .save span:last-child { color: var(--ok); }
+.sum-rows .tot { margin-top: 4px; font-size: 16px; }
+.sum-rows .tot b { font-weight: 700; }
+.sum-rows .dep span { font-size: 13px; color: var(--muted) !important; }
+.sun-card { padding: 4px 16px 8px; margin: 0 0 12px; border-radius: 18px; }
+fieldset.sun-card { min-width: 0; }
+.sun-opt { min-height: 52px; }
+.sun-opt em { color: var(--ink-2); font-weight: 500; }
+.sun-opt.on em { color: var(--ink); font-weight: 600; }
+.h5-card .fh:first-child { margin-top: 0; }
+.fh { font-size: 17px; font-weight: 600; margin: 18px 0 10px; }
+.fl { color: var(--ink-2); font-size: 13px; font-weight: 500; }
+.field { border-radius: 10px; }
+.cal { border: 0; padding: 0; margin: 0; }
+.cal-grid button { background: #F1F4F7; border-radius: 10px; font-weight: 500; }
+.cal-grid button.on { background: var(--blue); color: #fff; }
+.cal-grid button:disabled { background: transparent; color: #AEB9C6; }
+.slots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 0; }
+.slots button { min-height: 48px; border-radius: 10px; font: 500 15px var(--font); padding: 0; background: #fff; border: 1px solid var(--line-2); }
+.slots button.on { background: var(--blue); border-color: var(--blue); color: #fff; }
+.slots .muted { grid-column: 1 / -1; }
+.geo-pick { border-radius: 12px; }
+body[data-step="book"] #bookBtn { min-height: 52px; }
+
+/* ---------- pay ---------- */
+.h5-ok { margin: 14px 0 12px; padding: 14px 16px; border-radius: 16px; background: var(--ok-wash); color: var(--ok); display: flex; gap: 12px; align-items: flex-start; }
+.h5-ok svg { width: 24px; height: 24px; flex: none; }
+.h5-ok div { display: flex; flex-direction: column; }
+.h5-ok b { font-weight: 600; }
+.h5-ok span { font-size: 13px; color: var(--ink-2); }
+.h5-pay { padding: 20px 16px; text-align: center; margin: 0 0 12px; }
+.h5-pay .amount { font-size: 2.4rem; }
+.pay-rest { font-size: 13px; margin: 0 0 .6rem; }
+.h5-slip { display: flex; align-items: center; gap: 12px; padding: 16px; border: 1.5px dashed var(--line-2); border-radius: 14px; cursor: pointer; margin-top: .6rem; }
+.h5-slip:hover { border-color: var(--blue); background: var(--wash); }
+.h5-slip .ico { width: 24px; height: 24px; color: var(--blue); flex: none; }
+.h5-slip span { display: flex; flex-direction: column; font-weight: 600; }
+.h5-slip small { font-weight: 400; font-size: 13px; color: var(--muted); }
+
+/* ---------- track ---------- */
+.h5-status { margin: 16px 0 12px; padding: 18px 16px; border-radius: 18px; background: var(--ink); color: #DDE3EA; display: flex; flex-direction: column; gap: 2px; font-size: 14px; }
+.h5-status .st-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; color: #C9D2DC; }
+.h5-status em { font-style: normal; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: #fff; color: var(--ink); }
+.h5-status .st-when { margin-top: 8px; font-size: 22px; font-weight: 600; line-height: 1.3; color: #fff; }
+.h5-status .st-total { margin-top: 6px; font-weight: 600; color: #fff; }
+.h5-money { display: grid; gap: 6px; font-size: 14px; }
+.h5-money > div { display: flex; justify-content: space-between; gap: 12px; }
+.h5-money .ok { color: var(--ok); }
+.h5-money .tot { margin-top: 4px; }
+.next-steps { gap: 0; margin-top: .6rem; }
+.next-steps li { position: relative; gap: 12px; padding-bottom: 14px; min-height: 48px; }
+.next-steps li:not(:last-child)::before { content: ""; position: absolute; left: calc(.8rem - 1px); top: 1.8rem; bottom: 2px; width: 2px; background: #DDE3EA; }
+.next-steps li.done:not(:last-child)::before { background: var(--ok); }
+.next-steps li span.n { width: 1.6rem; height: 1.6rem; font-size: .75rem; background: #fff; color: var(--muted); box-shadow: inset 0 0 0 2px #C9D2DC; }
+.next-steps li.done span.n { background: var(--ok); color: #fff; box-shadow: none; }
+.next-steps li.now span.n { background: #fff; color: var(--blue); box-shadow: inset 0 0 0 4px var(--blue); }
+.next-steps li.now b { color: var(--blue); }
+
+/* ---------- warranty ---------- */
+.wcert { padding: 0 1.25rem 1.25rem; border-radius: 18px; }
+.wcert::before { display: none; }
+.wc-head { margin: 0 -1.25rem 1rem; padding: 1.1rem 1.25rem; background: var(--ink); color: #fff; }
+.wc-brand { color: #fff; }
+.wc-head h1 { color: #fff; }
+.wc-state.ok { background: #fff; color: var(--ok); }
+
+@media (min-width: 700px) {
+  .h5-bgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .h5-why { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 960px) {
+  body[data-step="path"] .wrap { max-width: 52rem; }
+  body[data-step="path"] .h5-bgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  body.is-home .wrap { max-width: 64rem; }
+  .h5-hero { display: grid; grid-template-columns: 1fr 26rem; column-gap: 3rem; align-items: center; padding: 3rem; }
+  .h5-hero .h5-form { grid-column: 2; grid-row: 1 / span 3; margin-top: 0; }
+  .h5-hero h1 { font-size: 2.6rem; }
+  .h5-hero .h5-where, .h5-hero h1, .h5-hero .h5-sub { grid-column: 1; }
+  .h5-hero .h5-where { align-self: end; } .h5-hero .h5-sub { align-self: start; }
+  body[data-step="shades"] .wrap { max-width: 40rem; }
+}
 </style>
 </head>
 <body>
-<header class="top"><a class="brandmark" href="#" data-act="go" data-step="home" aria-label="FilmPro หน้าแรก"><span class="bm-strip" aria-hidden="true"></span>FilmPro</a><div class="progress" id="progress" aria-hidden="true"></div><span id="stepLabel" class="steplabel">ขั้นตอนที่ 1</span><span class="hd-contact"><a class="hicon" href="https://line.me/R/ti/p/%40filmpro" target="_blank" rel="noreferrer" aria-label="แชต LINE">LINE</a><a class="hicon" href="tel:020000000" aria-label="โทรหาร้าน">โทร</a></span></header>
+<header class="top"><a class="brandmark" href="#" data-act="go" data-step="home" aria-label="FilmPro หน้าแรก"><span class="bm-strip" aria-hidden="true"></span>FilmPro</a></header>
 <main id="app" class="wrap"></main>
 <div id="bar" class="bar">
   <button id="cta" class="btn" type="button">เริ่มประเมินราคา</button>
   <span id="ctaLabel" class="muted" hidden>ติดต่อร้าน</span>
   <a class="icon" style="background:#06C755" href="https://line.me/R/ti/p/%40filmpro" target="_blank" rel="noreferrer">LINE</a>
   <a class="icon" style="background:#1D5BE3" href="tel:020000000">โทร</a>
-  <div id="barSum" class="barsum" hidden><div class="bs-text"><span class="muted">ราคาทั้งคัน</span><b id="barTotal"></b><small id="barSplit" class="muted" hidden></small></div><button id="barGo" class="btn" type="button" data-act="tobook">ดูสรุปและจองคิว</button></div>
+  <div id="barSum" class="barsum" hidden><div class="bs-text"><span class="muted" id="barLbl">ทั้งคัน รวมบานหน้า</span><b id="barTotal"></b><small id="barSplit" class="muted" hidden></small></div><button id="barGo" class="btn" type="button" data-act="tobook">ดูสรุปและจองคิว</button></div>
 </div>
 <footer class="wrap foot">
   <ul class="trust">
@@ -3339,9 +3616,11 @@ function promptPayPayload(mobile, amount) {
   const body = tlv("00", "01") + tlv("01", "12") + tlv("29", tlv("00", "A000000677010111") + account) + tlv("58", "TH") + tlv("53", "764") + tlv("54", Number(amount).toFixed(2)) + "6304";
   return body + crc16(body);
 }
+const DEPOSIT = 2000; // มัดจำตอนจอง ส่วนที่เหลือชำระช่างหลังตรวจรับงาน
+const depositAmt = (total) => (total == null ? DEPOSIT : Math.min(total, DEPOSIT));
 function paymentFor(total) {
   const settings = loadSettings();
-  const amount = typeof total === "number" && total > 0 ? Math.round(total * 100) / 100 : null;
+  const amount = typeof total === "number" && total > 0 ? depositAmt(Math.round(total * 100) / 100) : null;
   return { amount, payload: amount == null || settings.placeholder ? "" : promptPayPayload(settings.promptpayMobile, amount), promptpayMobile: settings.promptpayMobile, placeholder: settings.placeholder, slipDataUrl: "", method: "" };
 }
 function qrMarkup(payload) {
@@ -3680,9 +3959,9 @@ function reasonChips(p, first) {
   return out;
 }
 const RING = {
-  UV: ["#38bdf8", "กันยูวี", "#0369A1"],
-  IRR: ["#f97316", "กันอินฟราเรด", "#C2410C"],
-  TSER: ["#ef4444", "ลดร้อนรวม", "#B91C1C"],
+  UV: ["#7C3AED", "กันยูวี", "#5B21B6"],
+  IRR: ["#DC2626", "กันอินฟราเรด", "#B91C1C"],
+  TSER: ["#EA580C", "ลดร้อนรวม", "#C2410C"],
   VLT: ["#64748b", "แสงผ่าน", "#475569"],
 };
 function ringNums(v) {
@@ -3778,25 +4057,72 @@ const ICON = {
   eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/></svg>',
 };
 function homeHtml() {
-  const opts = (list, placeholder) => `<option value="">${placeholder}</option>` + list.map((n) => `<option ${S.brand === n || S.model === n ? "selected" : ""}>${esc(n)}</option>`).join("");
-  return `<section class="home"><div class="hero-glass" aria-hidden="true"></div><div class="home-card"><h1>เช็คราคาฟิล์ม<br>ทุกรุ่น ทุกยี่ห้อ</h1><p class="home-sub">และติดตั้งถึงที่</p><div class="pill" id="quote"><div class="grid2"><select id="brand" class="home-field" aria-label="ยี่ห้อ">${opts(brands(), "ยี่ห้อ")}</select><select id="model" class="home-field" aria-label="รุ่น">${opts(models(S.brand), "รุ่น")}</select></div><div style="height:.6rem"></div><select id="sunroof" class="home-field" aria-label="ซันรูฟ"><option value="">ซันรูฟ</option>${SUNS.map((s) => `<option ${S.sunroof === s ? "selected" : ""}>${esc(s)}</option>`).join("")}</select><button id="goDesk" class="home-go" data-act="next">ดูราคาฟิล์ม</button>${S.error ? `<p class="err">${esc(S.error)}</p>` : ""}</div></div></section>`;
+  const opts = (list, placeholder, cur) => `<option value="">${placeholder}</option>` + list.map((n) => `<option ${cur === n ? "selected" : ""}>${esc(n)}</option>`).join("");
+  const fb = CATALOG.filmBrands.map((b) => b.name);
+  const steps = [["เลือกรถ", "ยี่ห้อ รุ่น และซันรูฟ ระบบรู้ไซส์รถให้เอง"], ["เลือกฟิล์มและความเข้ม", "เทียบราคาทุกยี่ห้อ หรือให้ระบบช่วยเลือก"], ["จองวันเวลา ปักหมุดจุดติดตั้ง", "โอนมัดจำ 2,000 บาทผ่าน PromptPay แนบสลิปในเว็บ"], ["ช่างไปติดถึงที่", "ตรวจรับงาน ให้คะแนนช่าง รับใบรับประกัน"]];
+  const why = [[ICON.tag, "ราคาตามใบราคาแบรนด์", "เห็นราคาทั้งคันตามรุ่นรถทันที รวมบานหน้า"], [ICON.van, "ช่างไปติดถึงที่", "ตรวจสภาพรถพร้อมถ่ายรูปก่อนเริ่มงาน และให้คุณตรวจรับทีละบาน"], [ICON.shield, "มีใบรับประกัน", "ได้ใบรับประกันหลังส่งมอบ เช็คออนไลน์ได้ทุกเมื่อ"]];
+  return `<section class="h5-hero"><p class="h5-where">${ICON.pin}ติดตั้งถึงที่ กรุงเทพฯ และปริมณฑล</p><h1>เช็คราคาฟิล์มกรองแสง<br>ทุกยี่ห้อ ทั้งคัน</h1><p class="h5-sub">รู้ราคาก่อนจอง ไม่ต้องรอใบเสนอราคา</p>
+  <div class="h5-form" id="quote"><div class="grid2"><label class="h5-lb">ยี่ห้อรถ<select id="brand" class="home-field">${opts(brands(), "เลือกยี่ห้อ", S.brand)}</select></label><label class="h5-lb">รุ่น<select id="model" class="home-field">${opts(models(S.brand), S.brand ? "เลือกรุ่น" : "เลือกยี่ห้อก่อน", S.model)}</select></label></div>
+  <fieldset class="h5-sun"><legend class="h5-lb">ซันรูฟ / หลังคาแก้ว</legend><div class="h5-seg">${SUNS.map((s) => `<button type="button" data-act="homesun" data-v="${esc(s)}" aria-pressed="${S.sunroof === s}" class="${S.sunroof === s ? "on" : ""}">${esc(s)}</button>`).join("")}</div></fieldset>
+  <button id="goDesk" class="home-go" data-act="next">ดูราคาทั้งคัน</button>${S.error ? `<p class="err">${esc(S.error)}</p>` : ""}</div></section>
+  <section class="h5-why" aria-label="ทำไมต้อง FilmPro">${why.map(([ic, t, d]) => `<div class="h5-row">${ic}<div><b>${t}</b><p>${d}</p></div></div>`).join("")}</section>
+  <section class="h5-sec"><h2>ฟิล์ม ${fb.length} ยี่ห้อ ในที่เดียว</h2><ul class="h5-chips">${fb.map((n) => `<li>${esc(n)}</li>`).join("")}</ul></section>
+  <section class="h5-sec"><h2>จองง่ายใน 4 ขั้น</h2><ol class="h5-steps">${steps.map(([t, d], i) => `<li><b class="n">${i + 1}</b><div><b>${t}</b><p>${d}</p></div></li>`).join("")}</ol></section>
+  <section class="h5-area"><b>พื้นที่ให้บริการ</b><p>${SERVICE_AREA.map(esc).join(" · ")}</p></section>`;
+}
+function brandFrom(b, size) {
+  const v = b.series.filter((s) => showsPrice(b.id, s, size)).map((s) => priceKind(b.id, s, size) === "start" && s.start ? s.start : basePrice(b.id, s, size)).filter((x) => x != null);
+  return v.length ? Math.min(...v) : null;
+}
+function carCardHtml() {
+  const size = sizeOf(S.brand, S.model), sun = effSun();
+  return `<div class="h5-car"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 17H3v-5l2-5h11l3 5h2v5h-2"/><circle cx="7.5" cy="17" r="2"/><circle cx="16.5" cy="17" r="2"/></svg><div><b>${esc(S.brand)} ${esc(S.model)}</b><span>ไซส์ ${esc(sizeLabel(size))} · ${sun === "ไม่มี" ? "ไม่มีซันรูฟ" : esc(sun)}</span></div><button type="button" class="linkbtn" data-act="go" data-step="home">เปลี่ยนรถ</button></div>`;
 }
 function pathHtml() {
   const size = sizeOf(S.brand, S.model);
-  return `<h1>เลือกวิธีค้นหาฟิล์ม</h1><p class="muted lede">เลือกแบบที่เหมาะกับคุณ</p><div class="ways"><button class="way" data-act="quiz"><span class="way-ic">${ICON.compass}</span><b>ช่วยเลือกให้</b><span>ตอบ 5 ข้อ ได้ 3 ตัวเลือกพร้อมเหตุผล</span></button><button class="way" data-act="brands"><span class="way-ic">${ICON.grid}</span><b>เลือกเอง</b><span>ดูราคาทุกยี่ห้อสำหรับ ${esc(S.brand)} ${esc(S.model)}</span></button></div><h2 id="brands" class="sect">ยี่ห้อฟิล์มทั้งหมด</h2>${DISCOUNTS_ON && Object.keys(CATALOG.promos || {}).length ? `<p class="promo-strip"><b>ราคาหลังโปรเท่ากับหรือถูกกว่าร้านทั่วไป</b><br>ราคาที่แสดงหักโปรแล้ว ลูกค้าใหม่ใช้โค้ด NEW500 ลดเพิ่ม 500 บาท หรือใช้โค้ดจากเพื่อนลดเพิ่ม 1,000 บาท</p>` : ""}<div class="chips" style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">${CATALOG.filmBrands.map((b) => `<button class="card brandcard" data-act="brand" data-id="${esc(b.id)}">${brandMaxPromo(b, size) ? `<span class="tag pricetag promo">ลดสูงสุด ${brandMaxPromo(b, size)}%</span>` : b.series.some((s) => showsPrice(b.id, s, size)) ? "" : `<span class="ex pricetag">รอราคา</span>`}${b.logo ? `<span class="logo-tile"><img alt="" src="${b.logo}"></span>` : `<span class="logo-tile"><b>${esc(b.name)}</b></span>`}<div>${esc(b.name)}</div></button>`).join("")}</div>`;
+  const list = CATALOG.filmBrands.slice().sort((a, b) => a.name.localeCompare(b.name, "en", { sensitivity: "base" }));
+  return `<button class="back" data-act="go" data-step="home">← กลับ</button>${carCardHtml()}<button class="h5-help" data-act="quiz">${ICON.compass}<span><b>ไม่แน่ใจ? ให้ช่วยเลือก</b><small>ตอบ 5 ข้อ ได้ 3 รุ่นที่เหมาะ พร้อมเหตุผล</small></span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
+  <div class="h5-head" id="brands"><h1>ยี่ห้อฟิล์ม</h1><span>เรียง A–Z · ราคาเริ่มต้นทั้งคัน</span></div>${DISCOUNTS_ON && Object.keys(CATALOG.promos || {}).length ? `<p class="promo-strip"><b>ราคาหลังโปรเท่ากับหรือถูกกว่าร้านทั่วไป</b></p>` : ""}
+  <div class="h5-bgrid">${list.map((b) => { const from = brandFrom(b, size), promo = brandMaxPromo(b, size); return `<button class="h5-brand" data-act="brand" data-id="${esc(b.id)}">${promo ? `<span class="tag pricetag promo">ลดสูงสุด ${promo}%</span>` : ""}<span class="lg">${b.logo ? `<img alt="" src="${b.logo}">` : `<b>${esc(b.name)}</b>`}</span><span class="nm"><span>${esc(b.name)}</span><span>${b.series.length} รุ่น</span></span><b class="fr">${from == null ? `<span class="muted">รอราคา</span>` : `เริ่ม ${money(from)}`}</b></button>`; }).join("")}</div>`;
 }
+function ring3(label, value, color, aria) {
+  const n = ringNums(value), r = 30, C = 2 * Math.PI * r;
+  const top = n ? n.hi : null;
+  const sub = !n ? "ไม่ระบุ" : n.lo === n.hi ? "ทุกเฉด" : `ช่วง ${n.lo}–${n.hi}%`;
+  return `<div class="r3"><svg viewBox="0 0 76 76" role="img" aria-label="${esc(aria)} ${n ? "สูงสุด " + top + "%" : "ไม่ระบุ"}"><circle cx="38" cy="38" r="${r}" fill="none" stroke="#E3E8EE" stroke-width="8"${n ? "" : ' stroke-dasharray="3 4"'}/>${n ? `<circle cx="38" cy="38" r="${r}" fill="none" stroke="${color}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${(C * top / 100).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 38 38)"/>` : ""}<text x="38" y="43" text-anchor="middle" font-size="${top != null && String(top).length > 3 ? 13 : 16}" font-weight="700" fill="${n ? "#1F2933" : "#5B6878"}">${n ? top + "%" : "–"}</text></svg><b>${label}</b><span>${sub}</span></div>`;
+}
+const rings3 = (o) => `<div class="r3row">${ring3("กันร้อนรวม", o.tser, "#EA580C", "กันความร้อนรวม")}${ring3("กันอินฟราเรด", o.irr, "#DC2626", "กันรังสีอินฟราเรด")}${ring3("กัน UV", o.uv, "#7C3AED", "กันรังสียูวี")}</div>`;
+const tintA = (vlt) => Math.max(0.12, Math.min(0.92, 1 - (Number(vlt) || 0) / 100));
+const vltChip = (vlt) => { const a = tintA(vlt); return `background:rgba(31,41,51,${a.toFixed(2)});color:${a > 0.5 ? "#fff" : "#1F2933"}`; };
 function seriesHtml() {
   const brand = film(S.filmId);
   const size = sizeOf(S.brand, S.model);
   const sun = effSun();
   const rows = brand.series.filter((s) => !S.pricedOnly || showsPrice(S.filmId, s, size)).slice().sort((a, b) => Number(showsPrice(S.filmId, b, size)) - Number(showsPrice(S.filmId, a, size)));
   const empty = S.pricedOnly && !rows.length ? `<p class="muted lede">ไซส์ ${esc(sizeLabel(size))} ยังไม่มีราคาที่เผยแพร่ของแบรนด์นี้</p>` : "";
-  return `<button class="back" data-act="go" data-step="path">← กลับ</button><div class="bhead">${brand.logo ? `<span class="logo-tile bh-logo"><img alt="" src="${brand.logo}"></span>` : ""}<div><h1>${esc(brand.name)}</h1><p class="muted">ราคาติดทั้งคันสำหรับ ${esc(S.brand)} ${esc(S.model)} ไซส์ ${esc(sizeLabel(size))}${tierSize(brand.id, size) !== size ? ` (${esc(brand.name)} จัดเป็นไซส์ ${esc(sizeLabel(tierSize(brand.id, size)))})` : ""}</p></div></div>${ringLegend}<div class="segs"><button type="button" class="chip ${S.pricedOnly ? "off" : "on"}" data-act="priced" data-on="0">ทุกรุ่น</button><button type="button" class="chip ${S.pricedOnly ? "on" : "off"}" data-act="priced" data-on="1">เฉพาะที่มีราคา</button></div><div class="slist">${rows.map((s) => { const on = showsPrice(S.filmId, s, size); const front = frontCaption(s, size); return `<button class="series" data-act="series" data-name="${esc(s.name)}"><span class="s-top"><b class="sname">${esc(s.name)}</b>${s.tech ? `<span class="stech">${esc(s.tech)}</span>` : ""}</span>${seriesPrice(S.filmId, s, size, sun, on)}${front ? `<p class="front">${esc(front)}</p>` : ""}${ringRow(s)}</button>`; }).join("")}</div>${empty}`;
+  const tabs = CATALOG.filmBrands.slice().sort((a, b) => a.name.localeCompare(b.name, "en", { sensitivity: "base" }));
+  return `<button class="back" data-act="go" data-step="path">← กลับ</button><div class="h5-btabs" id="btabs">${tabs.map((b) => `<button type="button" data-act="brand" data-id="${esc(b.id)}" class="${b.id === S.filmId ? "on" : ""}" aria-pressed="${b.id === S.filmId}">${esc(b.name)}</button>`).join("")}</div>
+  <div class="bhead">${brand.logo ? `<span class="logo-tile bh-logo"><img alt="" src="${brand.logo}"></span>` : ""}<div><h1>${esc(brand.name)}</h1><p class="muted">ราคาติดทั้งคัน ${esc(S.brand)} ${esc(S.model)} ไซส์ ${esc(sizeLabel(size))}${tierSize(brand.id, size) !== size ? ` (${esc(brand.name)} จัดเป็นไซส์ ${esc(sizeLabel(tierSize(brand.id, size)))})` : ""}</p></div></div>
+  <div class="segs"><button type="button" class="chip ${S.pricedOnly ? "off" : "on"}" data-act="priced" data-on="0">ทุกรุ่น</button><button type="button" class="chip ${S.pricedOnly ? "on" : "off"}" data-act="priced" data-on="1">เฉพาะที่มีราคา</button></div>
+  <div class="h5-slist">${rows.map((s, i) => { const on = showsPrice(S.filmId, s, size); const front = frontCaption(s, size); return `<article class="h5-scard"><div class="st"><div class="sn">${s.tech ? `<span class="stag">${esc(s.tech)}</span>` : ""}<h2>${esc(s.name)}</h2></div><div class="sp"><span>ทั้งคัน</span>${seriesPrice(S.filmId, s, size, sun, on)}</div></div>${front ? `<p class="front">${esc(front)}</p>` : ""}${rings3(s)}${s.shades.length ? `<div class="h5-vlt"><span>ความเข้มที่มี (ตัวเลข = แสงผ่าน %)</span><div>${s.shades.slice().sort((a, b) => a.vlt - b.vlt).map((d) => `<i style="${vltChip(d.vlt)}" title="${esc(d.model)}">${esc(d.vlt)}</i>`).join("")}</div></div>` : ""}<button class="h5-pick${i === 0 && on ? " pri" : ""}" data-act="series" data-name="${esc(s.name)}">เลือกรุ่นนี้</button></article>`; }).join("")}</div>${empty}<p class="muted h5-foot">ราคารวมบานหน้าแล้ว · ข้อมูลสเปกจากผู้ผลิต</p>`;
+}
+function carSideSvg(front, rear) {
+  const f = tintA(front), r = tintA(rear);
+  return `<svg viewBox="0 0 360 170" aria-hidden="true"><path d="M22 128c10-30 40-44 70-50l52-30c18-10 34-12 54-12h52c24 0 44 10 62 28l24 22c14 4 22 14 22 30v12H22z" fill="#C9D2DC"/><path d="M150 58c12-7 24-9 40-9h18v44h-82z" fill="#9FB5C8"/><path d="M150 58c12-7 24-9 40-9h18v44h-82z" fill="#1F2933" fill-opacity="${f.toFixed(2)}"/><path d="M216 49h34c16 0 30 7 42 20l18 24h-94z" fill="#9FB5C8"/><path d="M216 49h34c16 0 30 7 42 20l18 24h-94z" fill="#1F2933" fill-opacity="${r.toFixed(2)}"/><circle cx="92" cy="138" r="22" fill="#1F2933"/><circle cx="92" cy="138" r="9" fill="#C9D2DC"/><circle cx="276" cy="138" r="22" fill="#1F2933"/><circle cx="276" cy="138" r="9" fill="#C9D2DC"/></svg>`;
 }
 function shadesHtml() {
   const series = seriesOf();
   const q = buildQuote();
-  return `<button class="back" data-act="go" data-step="series">← กลับ</button><h1>เลือกความเข้มฟิล์ม</h1><p class="muted lede">${esc(film(S.filmId).name)} ${esc(series.name)} ราคาเท่ากันทุกเฉด</p><button class="camcta" data-act="cam">${ICON.cam} ส่องกล้องดูผ่านฟิล์มจริง</button>${S.rec && S.rec.id === S.filmId && S.rec.name === series.name && S.rec.side ? `<div class="recbar"><div><b>แนะนำจากคำตอบของคุณ</b><div>รอบคัน ${esc(S.rec.side)}${S.rec.front ? ` · บานหน้า ${esc(S.rec.front)}` : ""}</div></div><button class="btn" data-act="userec">ใช้ตามที่แนะนำ</button></div>` : ""}${ringLegend}<div class="shlist">${series.shades.map((d) => `<article class="shade"><div class="sh-head"><div class="sh-name"><b>${esc(d.model)}</b><span class="sh-dark">${darkPct(d.vlt) === "ใส" ? "ฟิล์มใส" : "เข้ม " + darkPct(d.vlt) + "%"}${d.color ? ` · โทน ${esc(d.color)}` : ""}</span></div>${swatchHtml(d, film(S.filmId).name)}</div>${ringRow(d)}<button class="series sh-use${Object.values(S.shades || {}).length && Object.values(S.shades).every((m) => m === d.model) ? " on" : ""}" data-act="allshade" data-m="${esc(d.model)}">ใช้เบอร์นี้ทุกบาน</button></article>`).join("") || `<p class="muted">ซีรีส์นี้ไม่มีตารางเฉดในข้อมูลตัวอย่าง</p>`}</div><div class="card" id="pickcard" style="padding:1rem"><h2 style="margin-bottom:.3rem">เบอร์ฟิล์มแต่ละบาน</h2><p class="muted" style="margin:0 0 .8rem;font-size:.875rem">ปรับแยกบานได้ เช่น บานหน้าอ่อนกว่ารอบคัน</p>${groupsFor(effSun()).map((id) => `<label style="display:block;margin-bottom:.7rem">${groupLabel(id)}<select class="field" data-shade="${id}" style="${series.shades.length && !S.shades[id] ? "border-color:#f59e0b;color:#94a3b8" : ""}"><option value="" ${!S.shades[id] ? "selected" : ""} disabled>— เลือกเบอร์ฟิล์ม —</option>${series.shades.map((d) => `<option value="${esc(d.model)}" ${S.shades[id] === d.model ? "selected" : ""}>${esc(d.model)} · ${esc(darkLabel(d.vlt))}</option>`).join("")}</select></label>`).join("")}${upgrades(S.filmId, series).length ? `<label>อัปเกรดกระจกบานหน้า (เฉพาะ Lunaray)<select id="upgrade" class="field"><option value="">ไม่อัปเกรด</option>${upgrades(S.filmId, series).map((u) => `<option value="${esc(u.to)}" ${S.upgrade === u.to ? "selected" : ""}>อัปเกรดเป็น ${esc(u.to)} (+${money(u.price)} บาท)</option>`).join("")}</select></label>` : ""}${S.shadeErr ? `<p class="err">${esc(S.shadeErr)}</p>` : ""}<button class="btn" style="width:100%;padding:.8rem;margin-top:.5rem" data-act="tobook">ดูสรุปและจองคิว</button></div>${q ? `<p style="text-align:center;font-weight:700;color:#1d4ed8">รวมทั้งคัน ${esc(q.totalLabel)}</p>` : ""}`;
+  const groups = groupsFor(effSun());
+  const sh = (m) => series.shades.find((d) => d.model === m);
+  const vOf = (g) => sh(S.shades[g])?.vlt;
+  const rec = S.rec && S.rec.id === S.filmId && S.rec.name === series.name && S.rec.side ? S.rec : null;
+  const opts = series.shades.slice().sort((a, b) => a.vlt - b.vlt);
+  const preview = `<section class="h5-prev"><div class="pv-img" role="img" aria-label="ภาพจำลองรถ ${esc(S.brand)} ${esc(S.model)} ตามความเข้มที่เลือก">${carSideSvg(vOf("front") ?? 70, vOf("rearSide") ?? vOf("rear") ?? 70)}<span class="pv-car">${esc(S.brand)} ${esc(S.model)}</span><span class="pv-note">ภาพจำลอง</span></div><div class="pv-chips">${groups.map((g) => { const v = vOf(g); return `<div><i style="${v == null ? "background:#fff;border-style:dashed" : vltChip(v)}"></i><span>${esc(groupLabel(g))}<br>${v == null ? "ยังไม่เลือก" : v + "%"}</span></div>`; }).join("")}</div><button class="h5-cam" data-act="cam">${ICON.cam} เปิดกล้อง ดูความเข้มจริง</button></section>`;
+  const pick = series.shades.length ? `<div class="h5-gh"><h1>เลือกความเข้มแต่ละบาน</h1>${S.shades.rear ? `<button type="button" class="chipbtn" data-act="sameall">ใช้เท่ากับบานหลังทั้งคัน</button>` : ""}</div><p class="muted h5-note">ตัวเลข = แสงผ่าน % ยิ่งน้อยยิ่งเข้ม · ${esc(film(S.filmId).name)} ${esc(series.name)} ราคาเท่ากันทุกเฉด</p>
+  <div id="pickcard" class="h5-groups">${groups.map((g) => { const cur = sh(S.shades[g]); return `<fieldset class="h5-grp${!cur && S.shadeErr ? " miss" : ""}"><legend class="sr">${esc(groupLabel(g))}</legend><div class="gt"><b>${esc(groupLabel(g))}</b><span>${cur ? `${esc(cur.model)} · แสงผ่าน ${esc(cur.vlt)}%` : "ยังไม่เลือก"}</span></div><div class="go">${opts.map((d) => `<button type="button" data-act="gshade" data-g="${g}" data-m="${esc(d.model)}" aria-pressed="${S.shades[g] === d.model}" class="${S.shades[g] === d.model ? "on" : ""}" style="${vltChip(d.vlt)}" aria-label="${esc(groupLabel(g))} ${esc(d.model)} แสงผ่าน ${esc(d.vlt)}%"><b>${esc(d.vlt)}%</b><small>${esc(d.model)}</small></button>`).join("")}</div></fieldset>`; }).join("")}</div>` : `<p class="muted">ซีรีส์นี้ไม่มีตารางเฉดในข้อมูลตัวอย่าง</p>`;
+  const specs = series.shades.length ? `<details class="h5-specs"><summary>สเปกแต่ละเฉด (กันร้อน กันอินฟราเรด กัน UV)</summary>${ringLegend}<div class="shlist">${series.shades.map((d) => `<article class="shade"><div class="sh-head"><div class="sh-name"><b>${esc(d.model)}</b><span class="sh-dark">${darkPct(d.vlt) === "ใส" ? "ฟิล์มใส" : "เข้ม " + darkPct(d.vlt) + "%"}${d.color ? ` · โทน ${esc(d.color)}` : ""}</span></div>${swatchHtml(d, film(S.filmId).name)}</div>${ringRow(d)}<button class="series sh-use${Object.values(S.shades || {}).length && Object.values(S.shades).every((m) => m === d.model) ? " on" : ""}" data-act="allshade" data-m="${esc(d.model)}">ใช้เบอร์นี้ทุกบาน</button></article>`).join("")}</div></details>` : "";
+  return `<button class="back" data-act="go" data-step="series">← กลับ</button>${preview}${rec ? `<div class="recbar"><div><b>แนะนำจากคำตอบของคุณ</b><div>รอบคัน ${esc(rec.side)}${rec.front ? ` · บานหน้า ${esc(rec.front)}` : ""}</div></div><button class="btn" data-act="userec">ใช้ตามที่แนะนำ</button></div>` : ""}${pick}${upgrades(S.filmId, series).length ? `<label class="fl">อัปเกรดกระจกบานหน้า<select id="upgrade" class="field"><option value="">ไม่อัปเกรด</option>${upgrades(S.filmId, series).map((u) => `<option value="${esc(u.to)}" ${S.upgrade === u.to ? "selected" : ""}>อัปเกรดเป็น ${esc(u.to)} (+${money(u.price)} บาท)</option>`).join("")}</select></label>` : ""}${S.shadeErr ? `<p class="err">${esc(S.shadeErr)}</p>` : ""}${specs}${!q || q.total == null ? `<button class="btn h5-wide" data-act="tobook">ไปจองคิว</button>` : ""}`;
 }
 function quizHtml() {
   const total = QUIZ.length;
@@ -3842,17 +4168,27 @@ function cameraHtml() {
 function sunCardHtml() {
   const ser = seriesOf(); if (!ser) return "";
   const size = sizeOf(S.brand, S.model);
-  const price = (t) => { const v = sunAddon(ser, size, t); return v == null ? "รอราคา" : `+${money(v)} บาท`; };
-  const has = S.sunroof && S.sunroof !== "ไม่มี";
-  if (has) return `<div class="card sun-card"><label class="sun-opt"><input type="checkbox" data-sun="toggle" ${S.sunOff ? "" : "checked"}><span><b>ติดฟิล์ม${esc(sunWord(S.sunroof))}ด้วย</b>${S.sunOff ? "<small>ไม่รวมในราคา</small>" : S.sunAdded ? "<small>เอาติ๊กออกเพื่อเปลี่ยนแบบ</small>" : ""}</span><em>${esc(price(S.sunroof))}</em></label></div>`;
-  return `<div class="card sun-card"><b class="sun-h">รถมีซันรูฟหรือหลังคาแก้วไหม</b><p class="muted sun-sub">เลือกเพิ่มได้ ถ้าอยากติดฟิล์มด้วย</p>${SUN_TYPES.map((t) => `<label class="sun-opt"><input type="radio" name="sunadd" data-sun="add" value="${esc(t)}"><span><b>${esc(t)}</b></span><em>${esc(price(t))}</em></label>`).join("")}</div>`;
+  const price = (t) => { const v = sunAddon(ser, size, t); return v == null ? "รอราคา" : `+${money(v)}`; };
+  const has = S.sunroof && S.sunroof !== "ไม่มี" && !S.sunAdded;
+  const cur = effSun();
+  const opt = (v, label, p) => `<label class="sun-opt${cur === v ? " on" : ""}"><input type="radio" name="sunpick" data-sun="pick" value="${esc(v)}" ${cur === v ? "checked" : ""}><span><b>${esc(label)}</b></span><em>${esc(p)}</em></label>`;
+  return `<fieldset class="card sun-card"><legend class="sr">ซันรูฟ หรือหลังคาแก้ว</legend><b class="sun-h">ซันรูฟ / หลังคาแก้ว</b><p class="muted sun-sub">${has ? `รถคันนี้มี${esc(sunWord(S.sunroof))} ติดฟิล์มด้วยอยู่แล้ว เอาออกได้ถ้าไม่ต้องการ` : "ลืมเลือกตอนแรก เลือกเพิ่มตรงนี้ได้"}</p>${opt("ไม่มี", has ? `ไม่ติดฟิล์ม${sunWord(S.sunroof)}` : "ไม่มี", "")}${SUN_TYPES.map((t) => opt(t, t, price(t))).join("")}</fieldset>`;
+}
+function bookSumHtml(q) {
+  const size = sizeOf(S.brand, S.model), ser = seriesOf();
+  const ex = ser ? sunAddon(ser, size, q.sunroof) : 0;
+  const filmOnly = q.gross == null ? null : q.gross - (ex || 0);
+  return `<section class="card h5-sum"><div class="sum-top"><div><b>${esc(q.carBrand)} ${esc(q.carModel)}</b><span>${esc(q.filmBrandName)} ${esc(q.series)} · ไซส์ ${esc(sizeLabel(q.size))}</span></div><button type="button" class="linkbtn" data-act="go" data-step="shades">แก้ไข</button></div><div class="sum-rows">${q.promoSave ? `<div><span>ราคาปกติ</span><span>${money(q.gross + q.promoSave)}</span></div><div class="save"><span>โปรโมชั่นแบรนด์ ลด ${q.promoPct}%</span><span>−${money(q.promoSave)}</span></div>` : ""}<div><span>ฟิล์มทั้งคัน รวมบานหน้า</span><span>${filmOnly == null ? "รอราคา" : money(filmOnly)}</span></div>${q.sunroof !== "ไม่มี" ? `<div><span>${esc(q.sunroof)}</span><span>${ex == null ? "รอราคา" : money(ex)}</span></div>` : ""}${q.coupon ? `<div class="save"><span>โค้ด ${esc(q.coupon.code)}</span><span>−${money(q.coupon.amount)}</span></div>` : ""}<div class="tot"><b>รวม</b><b>${esc(q.totalLabel)}</b></div>${q.total != null ? `<div class="dep"><span>มัดจำตอนจอง</span><span>${money(depositAmt(q.total))} บาท</span></div>` : ""}</div></section>`;
 }
 function bookHtml() {
   const q = buildQuote();
-  return `<button class="back" data-act="go" data-step="shades">← กลับ</button><h1>จองคิวติดตั้ง</h1>${COUPONS_ON ? `<div class="card coupon" style="padding:1rem;margin-bottom:1rem"><h2 style="margin-bottom:.5rem">โค้ดส่วนลด</h2>${S.coupon ? `<div class="coupon-on"><div><b>${esc(S.coupon.code)}</b><div class="muted">${esc(S.coupon.label)}</div></div><button type="button" class="back" style="margin:0" data-act="uncoupon">เอาออก</button></div>` : `<div class="coupon-row"><input id="couponInput" class="field" placeholder="พิมพ์โค้ดส่วนลด" value="${esc(S.couponDraft || "")}" autocapitalize="characters"><button type="button" class="btn" data-act="coupon">ใช้โค้ด</button></div>`}${S.couponErr ? `<p class="err" style="margin:.5rem 0 0">${esc(S.couponErr)}</p>` : ""}</div>` : ""}${q ? quoteHtml(q, true) + sunCardHtml() : ""}
-  <div class="card form" style="padding:1rem;margin-bottom:1rem"><h2 class="fh">ผู้ติดต่อ</h2><div class="grid2"><label class="fl">ชื่อ<input class="field" data-bind="firstName" value="${esc(S.firstName)}" autocomplete="given-name"></label><label class="fl">นามสกุล<input class="field" data-bind="lastName" value="${esc(S.lastName)}" autocomplete="family-name"></label></div><label class="fl">เบอร์มือถือ<input class="field" data-bind="phone" inputmode="tel" autocomplete="tel" value="${esc(S.phone)}"></label><h2 class="fh">รถของคุณ</h2><div class="grid2"><label class="fl">ทะเบียนรถ<input id="plateNo" class="field" data-bind="plateNo" value="${esc(S.plateNo)}" placeholder="1กข 1234"></label><label class="fl">จังหวัดทะเบียน<select id="plateProv" class="field" data-bind="plateProv"><option value="">เลือก</option>${PROVINCES.map((p) => `<option ${S.plateProv === p ? "selected" : ""}>${esc(p)}</option>`).join("")}</select></label></div><label class="fl">สีรถ<input class="field" data-bind="carColor" value="${esc(S.carColor)}" placeholder="เช่น ขาว ดำ เทา"></label><h2 class="fh">สถานที่ติดตั้ง</h2><p class="muted" style="margin:0 0 .5rem;font-size:.875rem">ช่างไปติดตั้งให้ถึงที่ในกรุงเทพฯ นนทบุรี ปทุมธานี สมุทรปราการ สมุทรสาคร และนครปฐม</p><label class="fl">จังหวัด<select id="areaProv" class="field" data-bind="areaProv"><option value="">เลือกจังหวัด</option>${SERVICE_AREA.map((p) => `<option ${S.areaProv === p ? "selected" : ""}>${esc(p)}</option>`).join("")}</select></label><label class="fl">ที่อยู่หรือจุดนัด<input class="field" data-bind="location" placeholder="คอนโด บ้านเลขที่ ถนน เขต" value="${esc(S.location)}"></label>${S.geo ? `<div class="geo-done"><span>${ICON.pin} ปักหมุดจุดติดตั้งแล้ว</span><span class="geo-acts"><button type="button" class="linkbtn" data-act="mappick">เปลี่ยนจุด</button><a class="linkbtn" href="https://www.google.com/maps/search/?api=1&query=${S.geo.lat},${S.geo.lng}" target="_blank" rel="noopener">ดูใน Google Maps</a></span></div>` : `<button type="button" class="geo-pick" data-act="mappick">${ICON.pin}<span>ปักหมุดจุดติดตั้งบนแผนที่<small>ช่างใช้หมุดนี้นำทางมาถึงหน้ารถคุณ</small></span></button>`}<h2 class="fh">วันและเวลา</h2>${S.bookDate ? `<p class="picked">${esc(thDate(S.bookDate))}${S.bookTime ? ` เวลา ${esc(S.bookTime)} น.` : ""}</p>` : `<p class="muted" style="margin:0 0 .4rem;font-size:.875rem">เลือกวันในปฏิทิน แล้วเลือกเวลาที่สะดวก</p>`}${calendarHtml()}<div style="margin-top:.7rem"><div class="slots" id="timeSlots">${S.bookDate ? TIME_SLOTS.map((slot) => { const past = slotPassed(S.bookDate, slot); return `<button type="button" data-act="slot" data-time="${slot}" class="${S.bookTime === slot && !past ? "on" : ""}" ${past ? "disabled" : ""}>${slot}</button>`; }).join("") : `<span class="muted" style="font-size:.85rem">เลือกวันที่ก่อน</span>`}</div></div></div>
-  <p class="muted" style="font-size:.875rem">ขั้นต่อไปชำระผ่าน PromptPay แล้วแนบสลิป ร้านจะยืนยันคิวให้ภายในวันเดียวกัน</p>
-  <label class="consent"><input id="consent" type="checkbox" ${S.consent ? "checked" : ""}> <span>ยอมรับ <button type="button" class="back" data-act="legal" data-which="privacy">นโยบายความเป็นส่วนตัว</button> และ <button type="button" class="back" data-act="legal" data-which="terms">เงื่อนไขการใช้บริการ</button></span></label>${S.error ? `<p class="err">${esc(S.error)}</p>` : ""}<button id="bookBtn" class="btn" style="width:100%;padding:.85rem" data-act="save" ${S.busy ? "disabled" : ""}>${S.busy ? "กำลังบันทึก…" : "จองคิวและไปชำระเงิน"}</button>`;
+  const coupon = COUPONS_ON ? `<div class="card coupon h5-coupon">${S.coupon ? `<div class="coupon-on"><div><b>${esc(S.coupon.code)}</b><div class="muted">${esc(S.coupon.label)}</div></div><button type="button" class="linkbtn" data-act="uncoupon">เอาออก</button></div>` : `<label class="fl" for="couponInput">โค้ดส่วนลด</label><div class="coupon-row"><input id="couponInput" class="field" placeholder="พิมพ์โค้ดส่วนลด" value="${esc(S.couponDraft || "")}" autocapitalize="characters"><button type="button" class="btn ghost" data-act="coupon">ใช้โค้ด</button></div>`}${S.couponErr ? `<p class="err" style="margin:.5rem 0 0">${esc(S.couponErr)}</p>` : ""}</div>` : "";
+  return `<button class="back" data-act="go" data-step="shades">← กลับ</button><h1 class="sr">จองคิวติดตั้ง</h1>${coupon}${q ? bookSumHtml(q) + sunCardHtml() : ""}
+  <section class="card form h5-card"><h2 class="fh">ผู้ติดต่อ</h2><div class="grid2"><label class="fl">ชื่อ<input class="field" data-bind="firstName" value="${esc(S.firstName)}" autocomplete="given-name"></label><label class="fl">นามสกุล<input class="field" data-bind="lastName" value="${esc(S.lastName)}" autocomplete="family-name"></label></div><label class="fl">เบอร์มือถือ<input class="field" data-bind="phone" inputmode="tel" autocomplete="tel" value="${esc(S.phone)}" placeholder="08x-xxx-xxxx"></label><h2 class="fh">รถของคุณ</h2><div class="grid2"><label class="fl">ทะเบียนรถ<input id="plateNo" class="field" data-bind="plateNo" value="${esc(S.plateNo)}" placeholder="1กข 1234"></label><label class="fl">จังหวัดทะเบียน<select id="plateProv" class="field" data-bind="plateProv"><option value="">เลือก</option>${PROVINCES.map((p) => `<option ${S.plateProv === p ? "selected" : ""}>${esc(p)}</option>`).join("")}</select></label></div><label class="fl">สีรถ<input class="field" data-bind="carColor" value="${esc(S.carColor)}" placeholder="เช่น ขาว ดำ เทา"></label></section>
+  <section class="card form h5-card"><h2 class="fh">วันที่ติดตั้ง</h2>${S.bookDate ? `<p class="picked">${esc(thDate(S.bookDate))}${S.bookTime ? ` เวลา ${esc(S.bookTime)} น.` : ""}</p>` : ""}${calendarHtml()}<h2 class="fh">เวลาที่ช่างเข้าไป</h2><div class="slots" id="timeSlots">${S.bookDate ? TIME_SLOTS.map((slot) => { const past = slotPassed(S.bookDate, slot); return `<button type="button" data-act="slot" data-time="${slot}" class="${S.bookTime === slot && !past ? "on" : ""}" aria-pressed="${S.bookTime === slot && !past}" ${past ? "disabled" : ""}>${slot}</button>`; }).join("") : `<span class="muted" style="font-size:.85rem">เลือกวันที่ก่อน</span>`}</div></section>
+  <section class="card form h5-card"><h2 class="fh">สถานที่ติดตั้ง</h2><p class="muted" style="margin:0 0 .6rem;font-size:.875rem">ช่างไปติดตั้งให้ถึงที่ใน${SERVICE_AREA.map(esc).join(" ")}</p>${S.geo ? `<div class="geo-done"><span>${ICON.pin} ปักหมุดจุดติดตั้งแล้ว</span><span class="geo-acts"><button type="button" class="linkbtn" data-act="mappick">เปลี่ยนจุด</button><a class="linkbtn" href="https://www.google.com/maps/search/?api=1&query=${S.geo.lat},${S.geo.lng}" target="_blank" rel="noopener">ดูใน Google Maps</a></span></div>` : `<button type="button" class="geo-pick" data-act="mappick">${ICON.pin}<span>ปักหมุดจุดติดตั้งบนแผนที่<small>ช่างใช้หมุดนี้นำทางมาถึงหน้ารถคุณ</small></span></button>`}<label class="fl">จังหวัด<select id="areaProv" class="field" data-bind="areaProv"><option value="">เลือกจังหวัด</option>${SERVICE_AREA.map((p) => `<option ${S.areaProv === p ? "selected" : ""}>${esc(p)}</option>`).join("")}</select></label><label class="fl">รายละเอียดที่อยู่หรือจุดนัด<input class="field" data-bind="location" placeholder="บ้านเลขที่ คอนโด ชั้น ที่จอดรถ" value="${esc(S.location)}"></label></section>
+  <p class="muted" style="font-size:.875rem">ขั้นต่อไปโอนมัดจำ${q && q.total != null ? ` ${money(depositAmt(q.total))} บาท` : ""}ผ่าน PromptPay แล้วแนบสลิป ส่วนที่เหลือชำระช่างหลังตรวจรับงาน</p>
+  <label class="consent"><input id="consent" type="checkbox" ${S.consent ? "checked" : ""}> <span>ยอมรับ <button type="button" class="back" data-act="legal" data-which="privacy">นโยบายความเป็นส่วนตัว</button> และ <button type="button" class="back" data-act="legal" data-which="terms">เงื่อนไขการใช้บริการ</button></span></label>${S.error ? `<p class="err" id="bookErr">${esc(S.error)}</p>` : ""}<button id="bookBtn" class="btn" style="width:100%;padding:.85rem" data-act="save" ${S.busy ? "disabled" : ""}>${S.busy ? "กำลังบันทึก…" : "จองคิวและไปชำระมัดจำ"}</button>`;
 }
 function lineMsgUrl(text) {
   const id = String(CATALOG.shop.lineId || "").trim();
@@ -3875,7 +4211,7 @@ function referHtml(row) {
 }
 function afterSlipHtml(row) {
   const when = thDate(row.date, row.time);
-  const msg = `แจ้งชำระเงิน FilmPro\nรหัสการจอง: ${row.id}\nชื่อ: ${row.customer}\nโทร: ${row.phone}\nรถ: ${row.quote?.carBrand || ""} ${row.quote?.carModel || ""} ทะเบียน ${row.plate || ""}\nฟิล์ม: ${row.quote?.filmBrandName || ""} ${row.quote?.series || ""}\nนัดติดตั้ง: ${when}\nยอดชำระ: ${row.quote?.totalLabel || ""}\n(แนบรูปสลิปในแชตนี้)`;
+  const msg = `แจ้งชำระเงิน FilmPro\nรหัสการจอง: ${row.id}\nชื่อ: ${row.customer}\nโทร: ${row.phone}\nรถ: ${row.quote?.carBrand || ""} ${row.quote?.carModel || ""} ทะเบียน ${row.plate || ""}\nฟิล์ม: ${row.quote?.filmBrandName || ""} ${row.quote?.series || ""}\nนัดติดตั้ง: ${when}\nยอดมัดจำ: ${row.payment?.amount != null ? money(row.payment.amount) + " บาท" : ""} (ยอดรวม ${row.quote?.totalLabel || ""})\n(แนบรูปสลิปในแชตนี้)`;
   const url = lineMsgUrl(msg);
   return `<div class="card" style="padding:1rem;border-color:#93c5fd"><h2>ขั้นตอนต่อไป</h2><ol class="next-steps">
     <li class="done"><span class="n">✓</span><div><b>อัปโหลดสลิปแล้ว</b><div class="muted">รหัสการจอง ${esc(row.id)} · นัด ${esc(when)}</div></div></li>
@@ -3894,13 +4230,15 @@ function payHtml() {
   }
   const pay = row.payment || paymentFor(row.quote.total);
   const mobile = formatMobile(pay.promptpayMobile);
-  const details = `<div class="card" style="padding:1rem;margin:.6rem 0"><h2 class="fh" style="margin-top:0">นัดติดตั้ง</h2><div class="kv"><span>วันเวลา</span><b>${esc(thDate(row.date, row.time))}</b></div><div class="kv"><span>สถานที่</span><b>${esc(row.location)}</b></div><div class="kv"><span>ผู้ติดต่อ</span><b>${esc(row.customer)} ${esc(row.phone)}</b></div><div class="kv"><span>ทะเบียน</span><b>${esc(row.plate)} ${esc(row.plateProv)}</b></div></div>${quoteHtml(row.quote, true)}`;
-  return `<h1>${row.status === "paid" ? "ชำระเงินแล้ว" : row.status === "awaiting_verification" ? "ได้รับสลิปแล้ว" : "ชำระเงินเพื่อยืนยันคิว"}</h1><p class="muted">รหัสการจอง <b>${esc(row.id)}</b></p>
-  <div class="card paycard" style="padding:1rem;text-align:center">${pay.amount == null ? `<p class="amber">ซีรีส์นี้ยังไม่มีราคาประกาศ ร้านจะเสนอราคาให้ก่อน แล้วค่อยชำระเงิน</p>${quoteRequestHtml(row)}` : `<span class="muted">ยอดชำระทั้งหมด</span><p id="payAmount" class="amount">${money(pay.amount)} <small>บาท</small></p>${pay.placeholder ? `<p class="amber">ร้านยังไม่ได้ตั้งเบอร์ PromptPay จึงยังไม่แสดง QR กรุณาติดต่อร้านทาง LINE</p>` : `<p class="muted">PromptPay ${esc(mobile)}</p>`}<div id="promptpayQr" class="qr">${qrMarkup(pay.payload)}</div><p class="muted" style="font-size:.875rem">สแกนด้วยแอปธนาคาร ยอดใน QR คือยอดเต็มจำนวน</p>`}</div>
-  ${row.status !== "paid" && pay.amount != null ? `<div class="card" style="padding:1rem"><h2>อัปโหลดสลิป</h2>${pay.slipDataUrl ? `<img alt="สลิปที่อัปโหลด" src="${pay.slipDataUrl}" style="width:100%;max-height:12rem;object-fit:contain">` : ""}<label class="btn" style="display:block;text-align:center;padding:.8rem;margin-top:.6rem">${pay.slipDataUrl ? "เปลี่ยนสลิป" : "แนบสลิปโอนเงิน"}<input id="slipFile" type="file" accept="image/*" hidden></label><p class="muted" style="font-size:.8rem;margin:.5rem 0 0">รับชำระผ่าน PromptPay เท่านั้น ยังไม่รองรับบัตรเครดิต</p></div>` : ""}
+  const total = row.quote.total, rest = total != null && pay.amount != null ? Math.max(0, total - pay.amount) : null;
+  const details = `<div class="card h5-card"><h2 class="fh" style="margin-top:0">นัดติดตั้ง</h2><div class="kv"><span>วันเวลา</span><b>${esc(thDate(row.date, row.time))}</b></div><div class="kv"><span>สถานที่</span><b>${esc(row.location)}</b></div><div class="kv"><span>ผู้ติดต่อ</span><b>${esc(row.customer)} ${esc(row.phone)}</b></div><div class="kv"><span>ทะเบียน</span><b>${esc(row.plate)} ${esc(row.plateProv)}</b></div></div>${quoteHtml(row.quote, true)}`;
+  const title = row.status === "paid" ? "ชำระมัดจำแล้ว" : row.status === "awaiting_verification" ? "ได้รับสลิปแล้ว" : "ชำระมัดจำ";
+  return `<h1 class="sr">${title}</h1><section class="h5-ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg><div><b>${row.status === "pending_payment" ? "รับจองแล้ว" : esc(title)} · ${esc(row.id)}</b><span>${esc(thDate(row.date, row.time))} · ${esc(row.location)}</span></div></section>
+  <section class="card paycard h5-pay">${pay.amount == null ? `<p class="amber">ซีรีส์นี้ยังไม่มีราคาประกาศ ร้านจะเสนอราคาให้ก่อน แล้วค่อยชำระเงิน</p>${quoteRequestHtml(row)}` : `<span class="muted">ยอดมัดจำที่ต้องโอน</span><p id="payAmount" class="amount">${money(pay.amount)} <small>บาท</small></p>${rest ? `<p class="muted pay-rest">จากยอดรวม ${money(total)} บาท · อีก ${money(rest)} บาท ชำระช่างหลังตรวจรับงาน</p>` : ""}${pay.placeholder ? `<p class="amber">ร้านยังไม่ได้ตั้งเบอร์ PromptPay จึงยังไม่แสดง QR กรุณาติดต่อร้านทาง LINE</p>` : `<p class="muted">PromptPay ${esc(mobile)}</p>`}<div id="promptpayQr" class="qr">${qrMarkup(pay.payload)}</div><p class="muted" style="font-size:.875rem">สแกนด้วยแอปธนาคาร ยอดใน QR คือยอดมัดจำ</p>`}</section>
+  ${row.status !== "paid" && pay.amount != null ? `<div class="card h5-card"><h2>แนบสลิปการโอน</h2>${pay.slipDataUrl ? `<img alt="สลิปที่อัปโหลด" src="${pay.slipDataUrl}" style="width:100%;max-height:12rem;object-fit:contain">` : ""}<label class="h5-slip">${ICON.cam}<span>${pay.slipDataUrl ? "เปลี่ยนสลิป" : "เลือกรูปสลิป"}<small>ถ่ายภาพหรือเลือกจากอัลบั้ม</small></span><input id="slipFile" type="file" accept="image/*" hidden></label><p class="muted" style="font-size:.8rem;margin:.5rem 0 0">รับชำระผ่าน PromptPay เท่านั้น ยังไม่รองรับบัตรเครดิต</p></div>` : ""}
   ${details}
-  ${row.status === "awaiting_verification" ? afterSlipHtml(row) : ""}${row.status === "paid" ? `<p style="color:#1d4ed8;font-weight:700">ชำระเต็มจำนวนแล้ว</p>` : ""}${!["pending_payment"].includes(row.status) ? stageHtml(row.id) : ""}
-  <button class="btn" style="width:100%;padding:.8rem;background:#fff;color:#1e293b;border:1px solid #e2e8f0" data-act="go" data-step="home">กลับหน้าแรก</button>`;
+  ${row.status === "awaiting_verification" ? afterSlipHtml(row) : ""}${row.status === "paid" ? `<p style="color:var(--ok);font-weight:700">ชำระมัดจำแล้ว${rest ? ` · คงเหลือ ${money(rest)} บาท ชำระช่างหลังตรวจรับงาน` : ""}</p>` : ""}${!["pending_payment"].includes(row.status) ? stageHtml(row.id) : ""}
+  <button class="btn ghost" style="width:100%;padding:.8rem" data-act="go" data-step="home">กลับหน้าแรก</button>`;
 }
 function adminHtml() {
   if (!S.adminOk) return `<h1>สำหรับทีมร้าน</h1><p class="muted">ดูคิวที่บันทึกในเบราว์เซอร์นี้</p><form id="adminForm" class="card" style="padding:1rem"><label>รหัสผ่าน<input id="adminPass" class="field" type="password" autocomplete="current-password"></label><button class="btn" style="width:100%;padding:.8rem;margin-top:.8rem">เข้าสู่ระบบ</button>${S.error ? `<p class="err">${esc(S.error)}</p>` : ""}</form>`;
@@ -3909,44 +4247,57 @@ function adminHtml() {
   const statuses = [["pending_payment", "รอชำระเงิน"], ["awaiting_verification", "อัปโหลดสลิปแล้ว / รอตรวจสอบ"], ["paid", "ชำระแล้ว"], ["offered", "รอช่างตอบรับ"], ["assigned", "ช่างรับงานแล้ว"], ["inspected", "ตรวจสภาพรถแล้ว"], ["handover", "ส่งมอบแล้ว"], ["done", "ปิดงาน"], ["cancelled", "ยกเลิก"]];
   return `<div class="card" style="padding:.8rem 1rem;margin-bottom:.8rem;border-color:#93c5fd"><b>ระบบหลังบ้านเต็ม</b><div class="muted">การจองทุกรายการส่งเข้าหลังบ้านอัตโนมัติ ตรวจสลิป มอบหมายช่าง ตรวจรถ และส่งมอบงานได้ที่</div><div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.5rem"><a class="btn" style="padding:.45rem .8rem;text-decoration:none" href="tech.html#bo_book">งานจอง/มัดจำ</a><a class="btn" style="padding:.45rem .8rem;text-decoration:none;background:#fff;color:#1e293b;border:1px solid #e2e8f0" href="inspect.html">ตรวจสภาพรถ</a><a class="btn" style="padding:.45rem .8rem;text-decoration:none;background:#fff;color:#1e293b;border:1px solid #e2e8f0" href="handover.html">ส่งมอบงาน</a><a class="btn" style="padding:.45rem .8rem;text-decoration:none;background:#fff;color:#1e293b;border:1px solid #e2e8f0" href="admin-v2.html">Admin V2</a></div></div><div style="display:flex;justify-content:space-between"><h1>คิวในเครื่องนี้</h1><button class="back" data-act="logout">ออก</button></div>
   <form id="ppForm" class="card" style="padding:1rem;margin-bottom:1rem"><div style="display:flex;justify-content:space-between"><b>เบอร์มือถือ PromptPay</b>${settings.placeholder ? `<span class="ex">เบอร์ตัวอย่าง</span>` : ""}</div><p class="muted">เฉพาะเบอร์มือถือไทย 10 หลักที่ขึ้นต้น 06, 08 หรือ 09</p><input id="promptpayMobile" class="field" inputmode="tel" value="${esc(settings.promptpayMobile)}"><button class="btn" style="width:100%;padding:.7rem;margin-top:.6rem">บันทึกเบอร์</button>${S.error ? `<p class="err">${esc(S.error)}</p>` : ""}</form>
-  <p class="amber">${esc(CATALOG.notice)}</p>${rows.length ? rows.map((b) => `<article class="card" style="padding:1rem;margin:.6rem 0"><b>${esc(b.id)}</b> ${esc(b.customer)}<div class="muted">${esc(b.phone)} · ${esc(b.plate)} ${esc(b.plateProv)}</div><div>${esc(thDate(b.date, b.time))} · ${esc(b.location)}</div>${b.quote?.coupon ? `<div style="color:#B42318">โค้ด ${esc(b.quote.coupon.code)} −${money(b.quote.coupon.amount)} บาท</div>` : ""}${b.refCode ? `<div class="muted">โค้ดแนะนำของลูกค้า ${esc(b.refCode)}</div>` : ""}${b.payment && b.payment.amount != null ? `<div>ชำระเต็มจำนวน ${money(b.payment.amount)} บาท · PromptPay ${esc(formatMobile(b.payment.promptpayMobile))}${b.payment.placeholder ? " (เบอร์ตัวอย่าง)" : ""}</div>` : ""}${b.payment && b.payment.slipDataUrl ? `<img alt="สลิป ${esc(b.id)}" src="${b.payment.slipDataUrl}" style="width:100%;max-height:10rem;object-fit:contain">` : ""}${b.status === "awaiting_verification" ? `<button class="btn" style="width:100%;padding:.6rem;margin-top:.5rem" data-act="verify" data-id="${esc(b.id)}">ยืนยันสลิปแล้ว</button>` : ""}${b.status === "paid" ? `<label class="muted">มอบช่าง<select class="field" data-assign="${esc(b.id)}"><option value="">เลือกช่าง</option>${(window.filmproTechs ? window.filmproTechs() : []).map((t) => `<option value="${esc(t.id)}">${esc(t.name)} · ${esc(t.tierLabel)}</option>`).join("")}</select></label>` : ""}<label class="muted">สถานะ<select class="field" data-status="${esc(b.id)}">${statuses.map(([id, label]) => `<option value="${id}" ${b.status === id ? "selected" : ""}>${label}</option>`).join("")}</select></label>${quoteHtml(b.quote)}</article>`).join("") : `<p class="muted">ยังไม่มีการจองในเบราว์เซอร์นี้</p>`}<button class="back" data-act="go" data-step="home">กลับหน้าร้าน</button>`;
+  <p class="amber">${esc(CATALOG.notice)}</p>${rows.length ? rows.map((b) => `<article class="card" style="padding:1rem;margin:.6rem 0"><b>${esc(b.id)}</b> ${esc(b.customer)}<div class="muted">${esc(b.phone)} · ${esc(b.plate)} ${esc(b.plateProv)}</div><div>${esc(thDate(b.date, b.time))} · ${esc(b.location)}</div>${b.quote?.coupon ? `<div style="color:#B42318">โค้ด ${esc(b.quote.coupon.code)} −${money(b.quote.coupon.amount)} บาท</div>` : ""}${b.refCode ? `<div class="muted">โค้ดแนะนำของลูกค้า ${esc(b.refCode)}</div>` : ""}${b.payment && b.payment.amount != null ? `<div>มัดจำ ${money(b.payment.amount)} บาท · PromptPay ${esc(formatMobile(b.payment.promptpayMobile))}${b.payment.placeholder ? " (เบอร์ตัวอย่าง)" : ""}</div>` : ""}${b.payment && b.payment.slipDataUrl ? `<img alt="สลิป ${esc(b.id)}" src="${b.payment.slipDataUrl}" style="width:100%;max-height:10rem;object-fit:contain">` : ""}${b.status === "awaiting_verification" ? `<button class="btn" style="width:100%;padding:.6rem;margin-top:.5rem" data-act="verify" data-id="${esc(b.id)}">ยืนยันสลิปแล้ว</button>` : ""}${b.status === "paid" ? `<label class="muted">มอบช่าง<select class="field" data-assign="${esc(b.id)}"><option value="">เลือกช่าง</option>${(window.filmproTechs ? window.filmproTechs() : []).map((t) => `<option value="${esc(t.id)}">${esc(t.name)} · ${esc(t.tierLabel)}</option>`).join("")}</select></label>` : ""}<label class="muted">สถานะ<select class="field" data-status="${esc(b.id)}">${statuses.map(([id, label]) => `<option value="${id}" ${b.status === id ? "selected" : ""}>${label}</option>`).join("")}</select></label>${quoteHtml(b.quote)}</article>`).join("") : `<p class="muted">ยังไม่มีการจองในเบราว์เซอร์นี้</p>`}<button class="back" data-act="go" data-step="home">กลับหน้าร้าน</button>`;
 }
 function legalHtml() {
   if (!S.legal && !S.disclaimer) return "";
   if (S.disclaimer) return `<div class="modal"><div class="card"><h2>ข้อมูลเกี่ยวกับเฉดสีบนหน้าจอ</h2><p>1. หน้าจอจำลองสีผ่าน RGB ทัศนวิสัยจริงอาจใสกว่า</p><p>2. แสงจ้าอาจทำให้สีบนจอดูเข้มกว่าจริง</p><p>3. ต้นแบบนี้ไม่ได้อ้างว่าฟิล์มไม่บล็อก Easy Pass หรือ GPS</p><button class="btn" style="width:100%;padding:.7rem" data-act="close-disc">ตกลง, ฉันเข้าใจแล้ว</button></div></div>`;
   const body = S.legal === "privacy"
     ? `<h2>นโยบายความเป็นส่วนตัว</h2><p class="muted">แม่แบบสำหรับต้นแบบ</p><p><b>ผู้ควบคุมข้อมูล</b> FilmPro</p><p>เก็บชื่อ เบอร์ สถานที่ ทะเบียน สลิปการโอน และใบประเมินไว้ในเบราว์เซอร์นี้เท่านั้น</p>`
-    : `<h2>เงื่อนไขการใช้บริการ</h2><p>1. ราคาเป็นข้อมูลตัวอย่าง</p><p>2. คิวยืนยันเมื่อชำระเต็มจำนวนผ่าน PromptPay และร้านตรวจสลิปแล้ว</p><p>3. หากรถจริงต่างจากรุ่นที่เลือก ราคาตัวอย่างอาจไม่ตรง</p><p>4. ร้านขอสงวนสิทธิ์เลื่อนนัดเมื่อสถานที่ไม่เหมาะสม</p>`;
+    : `<h2>เงื่อนไขการใช้บริการ</h2><p>1. ราคาเป็นข้อมูลตัวอย่าง</p><p>2. คิวยืนยันเมื่อชำระมัดจำ 2,000 บาทผ่าน PromptPay และร้านตรวจสลิปแล้ว ส่วนที่เหลือชำระช่างหลังตรวจรับงาน</p><p>3. หากรถจริงต่างจากรุ่นที่เลือก ราคาตัวอย่างอาจไม่ตรง</p><p>4. ร้านขอสงวนสิทธิ์เลื่อนนัดเมื่อสถานที่ไม่เหมาะสม</p>`;
   return `<div class="sheet"><button class="back" data-act="close-legal">← กลับ</button><div class="card">${body}</div></div>`;
 }
 function paint() {
   const app = document.getElementById("app");
   const steps = { home: ["", homeHtml, 1], path: ["เลือกฟิล์ม", pathHtml, 2], quiz: ["แนะนำฟิล์ม", quizHtml, 2], series: ["เลือกรุ่นฟิล์ม", seriesHtml, 3], shades: ["เลือกความเข้ม", shadesHtml, 4], camera: ["ลองดูฟิล์ม", cameraHtml, 4], book: ["จองคิว", bookHtml, 5], pay: ["ชำระเงิน", payHtml, 6], admin: ["สำหรับทีมร้าน", adminHtml, 0], track: ["ติดตามงาน", trackHtml, 0], receipt: ["ใบเสร็จ", receiptHtml, 0], warranty: ["ใบรับประกัน", warrantyHtml, 0] };
   const [label, view, n] = steps[S.step] || steps.home;
-  document.getElementById("stepLabel").textContent = label;
-  const prog = document.getElementById("progress");
-  if (prog) prog.innerHTML = n ? [1, 2, 3, 4, 5, 6].map((i) => `<i class="${i <= n ? "on" : ""}" style="--k:${i}"></i>`).join("") : "";
+  const hdr = document.querySelector("header.top");
+  const LINE_A = `<a class="hd-line" href="https://line.me/R/ti/p/%40filmpro" target="_blank" rel="noreferrer" aria-label="แชต LINE">LINE</a>`;
+  const carSub = S.brand && S.model && ["path", "quiz", "series", "shades", "camera", "book"].includes(S.step) ? `${S.brand} ${S.model}` + (["shades", "camera"].includes(S.step) && S.series ? ` · ${film(S.filmId)?.name || ""} ${S.series}` : "") : "";
+  hdr.innerHTML = S.step === "home"
+    ? `<a class="brandmark" href="#" data-act="go" data-step="home" aria-label="FilmPro หน้าแรก"><span class="bm-strip" aria-hidden="true"></span>FilmPro</a><span class="hd-sp"></span><a class="hd-link" href="#track">ติดตามงาน</a>${LINE_A}`
+    : `<button type="button" class="hd-back" data-act="hdrback" aria-label="ย้อนกลับ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button><div class="hd-t"><b>${esc(label || "FilmPro")}</b>${carSub ? `<span>${esc(carSub)}</span>` : ""}</div>${LINE_A}`;
+  const STEPBAR = { path: 2, quiz: 2, series: 2, shades: 2, book: 3, pay: 4 };
+  const sb = STEPBAR[S.step] && !(S.step === "pay" && loadBookings().find((b) => b.id === S.bookingId)?.status !== "pending_payment") ? `<nav class="stepbar" aria-label="ขั้นตอน"><ol>${["รถ", "ฟิล์ม", "จอง", "ชำระ"].map((t, i) => `<li class="${i + 1 < STEPBAR[S.step] ? "done" : i + 1 === STEPBAR[S.step] ? "now" : ""}"${i + 1 === STEPBAR[S.step] ? ' aria-current="step"' : ""}><i></i>${t}</li>`).join("")}</ol></nav>` : "";
   document.body.classList.toggle("is-home", S.step === "home");
   document.body.dataset.step = S.step;
-  app.innerHTML = view() + legalHtml();
+  app.innerHTML = sb + view() + legalHtml();
+  const fb = app.querySelector(":scope > .back");
+  if (fb && fb === app.querySelector(":scope > :not(.stepbar)")) fb.classList.add("hdr-dup");
   const bar = document.getElementById("bar");
-  bar.hidden = S.focus || !!S.legal || S.disclaimer;
+  bar.hidden = S.focus || !!S.legal || S.disclaimer || S.step === "home";
   document.getElementById("cta").hidden = S.step !== "home";
   document.getElementById("ctaLabel").hidden = S.step === "home";
-  const sq = S.step === "shades" ? buildQuote() : null;
+  const sq = S.step === "shades" || S.step === "book" ? buildQuote() : null;
   const barSum = document.getElementById("barSum");
   const showSum = !!(sq && sq.total != null);
   barSum.hidden = !showSum;
   bar.classList.toggle("has-sum", showSum);
   if (showSum) {
+    const go = document.getElementById("barGo");
+    go.dataset.act = S.step === "book" ? "save" : "tobook";
+    go.textContent = S.step === "book" ? (S.busy ? "กำลังบันทึก…" : "จองคิว") : "ไปจองคิว";
+    document.getElementById("barLbl").textContent = S.step === "book" ? `ยอดรวม · มัดจำ ${money(depositAmt(sq.total))}` : "ทั้งคัน รวมบานหน้า";
     document.getElementById("barTotal").textContent = sq.totalLabel;
     const sp = document.getElementById("barSplit"), sun = effSun(), ser = seriesOf(), size = sizeOf(S.brand, S.model);
     const ex = ser ? sunAddon(ser, size, sun) : 0, base = ser ? basePrice(S.filmId, ser, size) : null;
     sp.hidden = !(ex && base != null);
     if (!sp.hidden) sp.textContent = `ฟิล์ม ${money(base)} + ${sunWord(sun)} ${money(ex)}`;
   }
-  if (S.step !== "home" && !showSum) bar.hidden = true;
-  document.body.classList.toggle("has-bar", !bar.hidden && S.step !== "home");
+  S.barWant = !S.legal && !S.disclaimer && S.step !== "home" && showSum;
+  bar.hidden = S.focus || !S.barWant;
+  document.body.classList.toggle("has-bar", S.barWant);
+  if (S.step === "series") { const t = document.getElementById("btabs"), on = t?.querySelector(".on"); if (on) t.scrollLeft = on.offsetLeft - t.clientWidth / 2 + on.offsetWidth / 2; }
   if (S.cameraOn && !S.photoUrl && !S.note && S.stream) attachCam();
   if (S.step === "camera") document.querySelectorAll(".tchips").forEach((row) => { const on = row.querySelector(".on"); if (on) row.scrollLeft = on.offsetLeft - row.clientWidth / 2 + on.offsetWidth / 2; });
 }
@@ -3981,6 +4332,10 @@ document.addEventListener("click", (event) => {
   if (act === "allshade") { groupsFor(effSun()).forEach((g) => { S.shades[g] = btn.dataset.m; }); S.shadeErr = ""; paint(); document.getElementById("pickcard")?.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
   if (act === "tobook") { const ser = seriesOf(); const miss = ser && ser.shades.length ? groupsFor(effSun()).filter((g) => !S.shades[g]) : []; if (miss.length) { S.shadeErr = "ยังไม่ได้เลือกเบอร์ฟิล์ม: " + miss.map(groupLabel).join(", "); paint(); document.getElementById("pickcard")?.scrollIntoView({ behavior: "smooth", block: "start" }); return; } S.shadeErr = ""; go("book"); return; }
   if (act === "next") nextStep();
+  if (act === "homesun") { S.sunroof = btn.dataset.v; S.sunOff = false; S.sunAdded = false; S.error = ""; paint(); document.querySelector('[data-act="homesun"].on')?.focus(); return; }
+  if (act === "hdrback") { const d = document.querySelector("#app > .hdr-dup"); if (d) d.click(); else go("home"); return; }
+  if (act === "gshade") { S.shades[btn.dataset.g] = btn.dataset.m; S.shadeErr = ""; paint(); return; }
+  if (act === "sameall") { const m = S.shades.rear; if (m) groupsFor(effSun()).forEach((g) => { S.shades[g] = m; }); S.shadeErr = ""; paint(); return; }
   if (act === "slot") { S.bookTime = btn.dataset.time; paint(); }
   if (act === "go") { if (btn.dataset.step !== "camera") stopCam(); go(btn.dataset.step); }
   if (act === "quiz") { S.quiz = { budget: "", priority: "", tone: "", night: null, signal: null }; S.quizStep = 0; go("quiz"); }
@@ -4015,7 +4370,7 @@ document.addEventListener("click", (event) => {
     if (!navigator.geolocation) { S.geoText = "เครื่องนี้ไม่เปิดตำแหน่ง"; paint(); return; }
     navigator.geolocation.getCurrentPosition((pos) => { S.geo = { lat: pos.coords.latitude, lng: pos.coords.longitude }; S.geoText = inServiceBox(S.geo) ? "ปักตำแหน่งแล้ว" : "ตำแหน่งนี้อยู่นอกพื้นที่ให้บริการ"; paint(); }, () => { S.geoText = "ไม่ได้รับตำแหน่ง"; paint(); });
   }
-  if (act === "save") saveBooking();
+  if (act === "save") { Promise.resolve(saveBooking()).then(() => { if (S.error && btn.id === "barGo") document.getElementById("bookErr")?.scrollIntoView({ block: "center", behavior: "smooth" }); }); }
   if (act === "track") { S.trackId = (S.trackIdIn || "").trim().toUpperCase(); S.trackPhone = S.trackPhoneIn || ""; history.replaceState(null, "", "#track"); paint(); }
   if (act === "trackpay") { S.bookingId = btn.dataset.id; history.replaceState(null, "", location.pathname + location.search); go("pay"); }
   if (act === "verify") {
@@ -4032,6 +4387,12 @@ document.addEventListener("change", (event) => {
   if (el.id === "model") { S.model = el.value; paint(); }
   if (el.id === "sunroof") { S.sunroof = el.value; S.sunOff = false; S.sunAdded = false; paint(); }
   if (el.dataset.sun === "toggle") { if (el.checked) { S.sunOff = false; fillSunShades(); } else if (S.sunAdded) { S.sunroof = "ไม่มี"; S.sunAdded = false; S.sunOff = false; } else S.sunOff = true; paint(); }
+  if (el.dataset.sun === "pick") {
+    const v = el.value, orig = S.sunroof && S.sunroof !== "ไม่มี" && !S.sunAdded;
+    if (v === "ไม่มี") { if (orig) S.sunOff = true; else { S.sunroof = "ไม่มี"; S.sunAdded = false; S.sunOff = false; } }
+    else { S.sunroof = v; S.sunOff = false; if (!orig) S.sunAdded = true; fillSunShades(); }
+    paint(); document.querySelector('input[data-sun="pick"]:checked')?.focus(); return;
+  }
   if (el.dataset.sun === "add") { S.sunroof = el.value; S.sunAdded = true; S.sunOff = false; fillSunShades(); paint(); }
   if (el.dataset.shade) { S.shades[el.dataset.shade] = el.value; S.shadeErr = ""; paint(); }
   if (el.id === "upgrade") { S.upgrade = el.value; paint(); }
@@ -4075,7 +4436,7 @@ document.addEventListener("input", (event) => {
   if (event.target.dataset.bind) S[event.target.dataset.bind] = event.target.value;
 });
 document.addEventListener("focusin", (event) => { if (event.target.matches("input, select, textarea")) { S.focus = true; document.getElementById("bar").hidden = true; } });
-document.addEventListener("focusout", () => setTimeout(() => { const a = document.activeElement; S.focus = !!(a && a.matches && a.matches("input, select, textarea")); document.getElementById("bar").hidden = S.focus || !!S.legal || S.disclaimer; }, 0));
+document.addEventListener("focusout", () => setTimeout(() => { const a = document.activeElement; S.focus = !!(a && a.matches && a.matches("input, select, textarea")); document.getElementById("bar").hidden = S.focus || !S.barWant; }, 0));
 document.getElementById("cta").addEventListener("click", nextStep);
 document.getElementById("adminLink").addEventListener("click", (event) => { event.preventDefault(); location.hash = "admin"; S.step = "admin"; paint(); });
 window.addEventListener("hashchange", () => {
@@ -4401,18 +4762,23 @@ function trackHtml() {
   const row = id ? loadBookings().find((r) => r.id === id) : null;
   const ok = row && normalizeMobile(row.phone) === normalizeMobile(S.trackPhone);
   const b = hasSuite() && id ? FP.bookings.find(id, S.trackPhone) : null;
-  const back = `<button class="btn" style="width:100%;padding:.8rem;margin-top:.8rem;background:#fff;color:#1e293b;border:1px solid #e2e8f0" data-act="go" data-step="home">กลับหน้าแรก</button>`;
+  const back = `<button class="btn ghost" style="width:100%;padding:.8rem;margin-top:.8rem" data-act="go" data-step="home">กลับหน้าแรก</button>`;
   if (!ok && !b) return `<h1>เช็กสถานะการจอง</h1><p class="muted">กรอกรหัสการจองและเบอร์มือถือที่ใช้จอง</p><div class="card" style="padding:1rem"><label>รหัสการจอง<input class="field" data-bind="trackIdIn" value="${esc(S.trackIdIn || id)}" placeholder="FP-XXXXXX" autocapitalize="characters"></label><label>เบอร์มือถือ<input class="field" inputmode="tel" data-bind="trackPhoneIn" value="${esc(S.trackPhoneIn || S.trackPhone || "")}"></label><button class="btn" style="width:100%;padding:.8rem;margin-top:.8rem" data-act="track">ดูสถานะ</button>${id ? `<p class="err">ไม่พบการจอง หรือเบอร์ไม่ตรงกับการจอง</p>` : ""}</div>${back}`;
   const c = (b && b.car) || {}, f = (b && b.film) || {};
   const carTxt = row ? `${row.quote?.carBrand || ""} ${row.quote?.carModel || ""}` : `${c.brand || ""} ${c.model || ""}`;
   const filmTxt = row ? `${row.quote?.filmBrandName || ""} ${row.quote?.series || ""}` : `${f.brandName || String(f.brand || "").toUpperCase()} ${f.series || ""}`;
   const total = row ? row.quote?.totalLabel : b.total == null ? "รอราคา" : money(b.total) + " บาท";
   const src = row || b;
-  return `<h1>สถานะการจอง</h1><p class="muted">รหัส <b>${esc(id)}</b>${row ? " · " + esc(STATUS_LABEL[row.status] || row.status) : ""}</p><div class="card" style="padding:1rem;margin:.6rem 0"><b>${esc(src.customer)}</b><div>${esc(carTxt)} · ทะเบียน ${esc(row ? row.plate : c.plate || "")}</div><div>ฟิล์ม ${esc(filmTxt)}</div><div>นัดติดตั้ง ${esc(thDate(src.date, src.time))}</div><div>สถานที่ ${esc(src.location)}</div><div style="font-weight:700;color:#1d4ed8;margin-top:.3rem">${esc(total)}</div></div>${stageHtml(id) || `<p class="muted">ยังไม่เชื่อมกับระบบหลังบ้านในเครื่องนี้</p>`}${row && ["pending_payment", "awaiting_verification"].includes(row.status) && row.payment && row.payment.amount != null ? `<button class="btn" style="width:100%;padding:.8rem" data-act="trackpay" data-id="${esc(row.id)}">ไปหน้าชำระเงิน / แนบสลิป</button>` : ""}${row ? referHtml(row) : ""}${back}`;
+  const stLabel = row ? STATUS_LABEL[row.status] || row.status : STATUS_LABEL[b.status] || b.status || "";
+  const tot = row ? row.quote?.total : b.total;
+  const dep = row?.payment?.amount ?? b?.deposit?.amount ?? null;
+  const depPaid = row ? !["pending_payment", "awaiting_verification", "cancelled"].includes(row.status) : b?.deposit?.status === "paid";
+  const money3 = tot != null && dep != null ? `<section class="card h5-card h5-money"><div><span>ยอดรวม</span><span>${money(tot)}</span></div><div><span>มัดจำ${depPaid ? " (ตรวจสลิปแล้ว)" : " (ยังไม่ยืนยัน)"}</span><span class="${depPaid ? "ok" : ""}">−${money(dep)}</span></div><div class="tot"><b>ชำระช่างหลังตรวจรับ</b><b>${money(Math.max(0, tot - dep))}</b></div></section>` : "";
+  return `<h1 class="sr">สถานะการจอง</h1><section class="h5-status"><div class="st-top"><span>${esc(id)}</span><em>${esc(stLabel)}</em></div><b class="st-when">${esc(thDate(src.date, src.time))}</b><span>${esc(carTxt)} · ${esc(filmTxt)}</span><span>ทะเบียน ${esc(row ? row.plate : c.plate || "")} · ${esc(src.location)}</span><span class="st-total">${esc(total)}</span></section>${stageHtml(id) || `<p class="muted">ยังไม่เชื่อมกับระบบหลังบ้านในเครื่องนี้</p>`}${money3}${row && ["pending_payment", "awaiting_verification"].includes(row.status) && row.payment && row.payment.amount != null ? `<button class="btn" style="width:100%;padding:.8rem" data-act="trackpay" data-id="${esc(row.id)}">ไปหน้าชำระมัดจำ / แนบสลิป</button>` : ""}${row ? referHtml(row) : ""}${back}`;
 }
 function receiptHtml() {
   const p = hasSuite() ? FP.suite().payments.find((x) => x.id === S.receiptId && x.status === "paid") : null;
-  const back = `<button class="btn" style="width:100%;padding:.8rem;margin-top:.8rem;background:#fff;color:#1e293b;border:1px solid #e2e8f0" data-act="go" data-step="home">กลับหน้าแรก</button>`;
+  const back = `<button class="btn ghost" style="width:100%;padding:.8rem;margin-top:.8rem" data-act="go" data-step="home">กลับหน้าแรก</button>`;
   if (!p) return `<h1>ใบเสร็จ</h1><p class="muted">ไม่พบใบเสร็จนี้ในเครื่องนี้</p>${back}`;
   const b = FP.bookings.get(p.bid) || {}, sh = FP.suite().settings;
   return `<h1>ใบเสร็จรับเงิน</h1><div class="card" style="padding:1rem"><div style="display:flex;justify-content:space-between"><b>${esc(sh.shop)}</b><span>${esc(p.receiptNo)}</span></div><div class="muted">${esc(new Date(p.paidAt).toLocaleString("th-TH"))}</div><hr style="border:0;border-top:1px solid #e2e8f0;margin:.6rem 0"><div>ลูกค้า ${esc(b.customer || "")}</div><div>รหัสการจอง ${esc(p.bid)}</div><div>${esc((b.car || {}).brand || "")} ${esc((b.car || {}).model || "")} · ฟิล์ม ${esc((b.film || {}).brandName || "")} ${esc((b.film || {}).series || "")}</div><div class="sumrow" style="margin-top:.6rem"><span>${p.kind === "deposit" ? "ค่าติดตั้งฟิล์ม (ชำระล่วงหน้า)" : "ส่วนที่เหลือ"}</span><span>${money(p.amount)} บาท</span></div><div class="muted">ชำระโดย ${esc(p.method || "PromptPay")}</div><p class="amber">ใบเสร็จจากระบบต้นแบบ ไม่ใช่ใบกำกับภาษี</p></div>${back}`;
