@@ -4334,7 +4334,7 @@ document.addEventListener("click", (event) => {
   if (act === "brand") { S.filmId = btn.dataset.id; S.pricedOnly = false; go("series"); }
   if (act === "priced") { S.pricedOnly = btn.dataset.on === "1"; paint(); }
   if (act === "series") chooseSeries(S.filmId, btn.dataset.name);
-  if (act === "pick") { const ser = film(btn.dataset.id).series.find((x) => x.name === btn.dataset.name); const r = recShades(ser, S.quiz); S.rec = { id: btn.dataset.id, name: btn.dataset.name, side: r.side?.model || "", front: r.front?.model || "" }; chooseSeries(btn.dataset.id, btn.dataset.name); }
+  if (act === "pick") { const ser = film(btn.dataset.id).series.find((x) => x.name === btn.dataset.name); const r = recShades(ser, S.quiz); S.rec = { id: btn.dataset.id, name: btn.dataset.name, side: r.side?.model || "", front: r.front?.model || "" }; chooseSeries(btn.dataset.id, btn.dataset.name); if (S.rec.side) { groupsFor(effSun()).forEach((g) => { S.shades[g] = g === "windshield" && S.rec.front ? S.rec.front : S.rec.side; }); paint(); } window.scrollTo(0, 0); return; }
   if (act === "answer") {
     const key = QUIZ[S.quizStep][0];
     S.quiz[key] = key === "night" || key === "signal" ? btn.dataset.v === "yes" : btn.dataset.v;
