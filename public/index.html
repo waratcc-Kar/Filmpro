@@ -3902,7 +3902,7 @@ function recommend() {
     const { side, front } = recShades(series, Q);
     const heat = heatOf(side, series);
     return { brand, series, price, best: side, front, heat,
-      toneFit: !!side && toneOk(side, Q.tone), nightFit: !Q.night || (front || side).vlt >= 35, signalFit: !(Q.signal && series.metal),
+      toneFit: !!side && toneOk(side, Q.tone), nightFit: !Q.night || ((front || side)?.vlt ?? 0) >= 35, signalFit: !(Q.signal && series.metal),
       inBudget: !range || (price != null && price >= range[0] && price <= range[1]),
       nearBudget: !range || (price != null && price >= range[0] * 0.8 && price <= range[1] * 1.25) };
   })).filter((x) => x.best);
