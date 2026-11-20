@@ -1,4 +1,5 @@
 import { eligNo } from "./elig.js";
+import { extractCatalog, buildCatalog } from "./catalog.js";
 // FilmPro Worker: static site + shared data (D1) + staff login with phone & PIN.
 // Customer site stays public. Staff pages need a session: techs open job pages, admins open everything.
 
@@ -81,6 +82,18 @@ async function nextV(env) {
 // ---------- API
 async function api(req, env, url) {
   const p = url.pathname, m = req.method;
+
+  // --- public tint catalog (sizes + prices, same as the customer site) for Corner Space
+  if (p === "/api/catalog") {
+    const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, OPTIONS" };
+    if (m === "OPTIONS") return new Response(null, { status: 204, headers: cors });
+    if (m !== "GET") return json({ error: "method" }, 405, cors);
+    const res = await env.ASSETS.fetch(new Request(new URL("/index.html", url).toString()));
+    if (!res.ok) return json({ error: "catalog_unavailable" }, 502, cors);
+    const cat = buildCatalog(extractCatalog(await res.text()));
+    cat.updated = res.headers.get("ETag") || res.headers.get("Last-Modified") || "";
+    return json(cat, 200, { ...cors, "Cache-Control": "public, max-age=300" });
+  }
 
   // --- first-run: create the owner account with the one-time setup code
   if (p === "/api/setup" && m === "GET") {
